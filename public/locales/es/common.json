@@ -1,0 +1,21 @@
+{
+  "app_name": "Pelú",
+  "welcome": "Bienvenido",
+  "loading": "Cargando...",
+  "error": "Error",
+  "success": "Éxito",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "save": "Guardar",
+  "delete": "Eliminar",
+  "edit": "Editar",
+  "close": "Cerrar",
+  "back": "Volver",
+  "next": "Siguiente",
+  "previous": "Anterior",
+  "language": {
+    "spanish": "Español",
+    "english": "Inglés",
+    "switch": "Cambiar idioma"
+  }
+}

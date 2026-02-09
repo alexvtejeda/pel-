@@ -1,0 +1,33 @@
+{
+  "discover": {
+    "title": "Discover pets",
+    "no_more": "No more pets for now",
+    "reload": "Reload"
+  },
+  "card": {
+    "age": "{{count}} year old",
+    "age_plural": "{{count}} years old",
+    "location": "Location",
+    "interested": "I'm interested",
+    "pass": "Pass"
+  },
+  "details": {
+    "name": "Name",
+    "species": "Species",
+    "breed": "Breed",
+    "age": "Age",
+    "size": "Size",
+    "description": "Description",
+    "requirements": "Adoption requirements"
+  },
+  "size": {
+    "small": "Small",
+    "medium": "Medium",
+    "large": "Large"
+  },
+  "species": {
+    "dog": "Dog",
+    "cat": "Cat",
+    "other": "Other"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "login": "Log in",
+    "register": "Sign up",
+    "how_it_works": "How it works",
+    "about": "About"
+  },
+  "hero": {
+    "title": "Give a home to those who need it most",
+    "subtitle": "Connecting rescued pets with loving families. 100% free adoption.",
+    "cta_primary": "Get started",
+    "cta_secondary": "Learn more",
+    "stats": {
+      "stray_animals": "2M+",
+      "stray_animals_label": "Homeless animals in DR",
+      "rescue_centers": "100+",
+      "rescue_centers_label": "Rescue centers",
+      "adoptions": "Free",
+      "adoptions_label": "Adoption is free"
+    }
+  },
+  "problem": {
+    "title": "A crisis that needs a solution",
+    "subtitle": "Dominican Republic faces a stray animal overpopulation",
+    "stat_1": "Over 2 million estimated stray animals in the country",
+    "stat_2": "Rescue centers operate without state support",
+    "stat_3": "Complex adoption processes discourage adopters",
+    "description": "Animal shelters struggle with limited resources, complex bureaucratic processes, and veterinary costs that prevent adoptions. Thousands of pets wait for a home while families face barriers to adopt."
+  },
+  "solution": {
+    "title": "Pelú simplifies adoption",
+    "subtitle": "A platform designed to connect, facilitate, and bring transparency",
+    "feature_1": {
+      "title": "Discover your companion",
+      "description": "Tinder-style interface to explore pet profiles. Swipe, connect, and meet your future friend."
+    },
+    "feature_2": {
+      "title": "Simplified process",
+      "description": "Chat directly with rescue centers. No complicated paperwork, no unnecessary middlemen."
+    },
+    "feature_3": {
+      "title": "Coordinated transport",
+      "description": "Real-time tracking of your pet. We know where they are at every moment until they arrive at your home."
+    },
+    "feature_4": {
+      "title": "Ongoing support",
+      "description": "Post-adoption follow-up and access to discounted veterinary services to ensure well-being."
+    }
+  },
+  "value_adopters": {
+    "title": "For adopters",
+    "subtitle": "Everything you need to adopt responsibly",
+    "benefit_1": "100% free adoption",
+    "benefit_2": "Transport with transparent pricing (pay only for logistics)",
+    "benefit_3": "Premium option with veterinary care included",
+    "benefit_4": "Access to all pets from rescue centers in one place",
+    "benefit_5": "Support for adopting special needs pets"
+  },
+  "value_rescues": {
+    "title": "For rescue centers",
+    "subtitle": "More adoptions, less administrative burden",
+    "benefit_1": "Completely free registration",
+    "benefit_2": "Greater visibility for your animals",
+    "benefit_3": "Percentage of transport fees",
+    "benefit_4": "Reduced administrative load",
+    "benefit_5": "Optional premium service for complete management"
+  },
+  "transparency": {
+    "title": "Total transparency",
+    "subtitle": "We know that trust is built with clarity",
+    "pricing_title": "Pricing model",
+    "pricing_description": "Adoption is always free. You only pay for transport if you choose to use it, calculated based on distance (9.66 RD$ per kilometer). No hidden fees.",
+    "data_title": "Data usage",
+    "data_description": "Your data is used solely to facilitate adoptions. We don't share information with third parties. You can delete your account at any time.",
+    "mission_title": "Our mission",
+    "mission_description": "Reduce the homeless animal population by connecting rescuers with adopters in a simple, transparent, and humane way."
+  },
+  "cta": {
+    "title": "Ready to take the next step?",
+    "subtitle": "Thousands of pets are waiting for a home. Start today.",
+    "button": "Create free account"
+  },
+  "footer": {
+    "tagline": "Connecting pets with families",
+    "about": "About Pelú",
+    "contact": "Contact",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "rights": "© 2024 Pelú. All rights reserved."
+  }
+}

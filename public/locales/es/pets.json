@@ -1,0 +1,33 @@
+{
+  "discover": {
+    "title": "Descubre mascotas",
+    "no_more": "No hay más mascotas por ahora",
+    "reload": "Recargar"
+  },
+  "card": {
+    "age": "{{count}} año",
+    "age_plural": "{{count}} años",
+    "location": "Ubicación",
+    "interested": "Me interesa",
+    "pass": "Pasar"
+  },
+  "details": {
+    "name": "Nombre",
+    "species": "Especie",
+    "breed": "Raza",
+    "age": "Edad",
+    "size": "Tamaño",
+    "description": "Descripción",
+    "requirements": "Requisitos de adopción"
+  },
+  "size": {
+    "small": "Pequeño",
+    "medium": "Mediano",
+    "large": "Grande"
+  },
+  "species": {
+    "dog": "Perro",
+    "cat": "Gato",
+    "other": "Otro"
+  }
+}
