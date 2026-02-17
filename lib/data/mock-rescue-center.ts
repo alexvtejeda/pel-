@@ -19,14 +19,14 @@ export interface MockInterestedUser {
 }
 
 export const mockPets: MockPet[] = [
-  { id: 'p1', name: 'Luna', imageUrl: 'https://placehold.co/400x400', status: 'available', interestedCount: 0 },
-  { id: 'p2', name: 'Mango', imageUrl: 'https://placehold.co/400x400', status: 'interested', interestedCount: 3 },
-  { id: 'p3', name: 'Coco', imageUrl: 'https://placehold.co/400x400', status: 'adopted', interestedCount: 1 },
-  { id: 'p4', name: 'Bella', imageUrl: 'https://placehold.co/400x400', status: 'available', interestedCount: 0 },
-  { id: 'p5', name: 'Rocky', imageUrl: 'https://placehold.co/400x400', status: 'interested', interestedCount: 5 },
-  { id: 'p6', name: 'Nala', imageUrl: 'https://placehold.co/400x400', status: 'available', interestedCount: 0 },
-  { id: 'p7', name: 'Max', imageUrl: 'https://placehold.co/400x400', status: 'adopted', interestedCount: 2 },
-  { id: 'p8', name: 'Lola', imageUrl: 'https://placehold.co/400x400', status: 'interested', interestedCount: 1 },
+  { id: 'p1', name: 'Luna', imageUrl: '/assets/pets/1.png', status: 'available', interestedCount: 0 },
+  { id: 'p2', name: 'Mango', imageUrl: '/assets/pets/2.png', status: 'interested', interestedCount: 3 },
+  { id: 'p3', name: 'Coco', imageUrl: '/assets/pets/3.png', status: 'adopted', interestedCount: 1 },
+  { id: 'p4', name: 'Bella', imageUrl: '/assets/pets/4.png', status: 'available', interestedCount: 0 },
+  { id: 'p5', name: 'Rocky', imageUrl: '/assets/pets/5.png', status: 'interested', interestedCount: 5 },
+  { id: 'p6', name: 'Nala', imageUrl: '/assets/pets/6.png', status: 'available', interestedCount: 0 },
+  { id: 'p7', name: 'Max', imageUrl: '/assets/pets/7.png', status: 'adopted', interestedCount: 2 },
+  { id: 'p8', name: 'Lola', imageUrl: '/assets/pets/8.png', status: 'interested', interestedCount: 1 },
 ]
 
 export const mockInterestedUsers: MockInterestedUser[] = [
