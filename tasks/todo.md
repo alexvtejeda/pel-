@@ -171,3 +171,52 @@ User should:
 4. Run `bun run dev` to test the development server
 5. Test authentication flow
 6. Proceed with Phase 3 (Landing Page) and beyond
+
+---
+
+# Rescue Center Dashboard — Phase B.2 (UI Polish)
+
+## Steps
+- [x] 1. Install shadcn `dropdown-menu` component
+- [x] 2. `components/ui/button-group.tsx` already added by user from shadcn
+- [x] 3. Fix sidebar: replace `SidebarTrigger` in `SidebarHeader` with `<Logo showText={true} />`
+- [x] 4. Rewrite `interested-tab.tsx` with new layout:
+  - Left block: avatar + name + pet + status badge + Ver perfil button
+  - Middle: Eye/EyeOff icon + form state text (hidden on mobile)
+  - Right: ButtonGroup (Aprobar/Rechazar for pending) + Abrir Chat + ⋯ DropdownMenu
+  - Rejected card: `opacity-60 bg-slate-50`
+  - New `deleteUser` handler in state
+- [x] 5. Verify all interactions work (approve, reject, revert, delete)
+
+## Review
+- `dropdown-menu` installed via `bun x shadcn@latest add dropdown-menu`
+- `button-group.tsx` was already in place (added by user)
+- Sidebar: `SidebarTrigger` removed from imports and `SidebarHeader`; replaced with `<Logo showText={true} width={32} height={32} />` — logo + "Pelú" text shows when expanded, collapses with sidebar
+- `interested-tab.tsx` rewritten:
+  - Row layout: left info block (avatar + name + pet + status badge + Ver perfil ghost button) | middle form indicator (Eye/EyeOff, hidden on mobile) | right actions
+  - `ButtonGroup` wraps Aprobar/Rechazar only when `status === 'pending'`; both buttons have hover color transitions
+  - `DropdownMenu` (⋯) has: Revertir estado → `setStatus(id, 'pending')`, Agregar en la agenda (placeholder), Eliminar → `deleteUser(id)`
+  - Rejected rows get `opacity-60 bg-slate-50`
+  - `deleteUser` handler added: filters user out of state
+
+---
+
+# Rescue Center Dashboard — Phase A
+
+## Steps
+- [x] 1. Install shadcn sidebar (`bun x shadcn@latest add sidebar`)
+- [x] 2. Create `lib/data/mock-rescue-center.ts` — mock pets and interested-users arrays
+- [x] 3. Create `app/dashboard/rescue-center/layout.tsx` — wraps in `<ProtectedRoute requireRole={['rescue_center']}>`
+- [x] 4. Create `components/dashboard/rescue-center/rescue-center-sidebar.tsx` — collapsible sidebar with 4 nav items
+- [x] 5. Create `components/dashboard/rescue-center/pets-tab.tsx` — responsive grid of pet cards with status tags
+- [x] 6. Create `components/dashboard/rescue-center/dashboard-shell.tsx` — `SidebarProvider` + shell with tab state
+- [x] 7. Create `app/dashboard/rescue-center/page.tsx` — renders `<DashboardShell />`
+
+## Review
+- Installed shadcn sidebar which also added: button, separator, sheet, tooltip, input, skeleton UI components and `hooks/use-mobile.tsx`
+- CSS sidebar variables added to `app/globals.css` automatically by shadcn CLI
+- 6 new files created (mock data, layout, page, sidebar, pets tab, dashboard shell)
+- `ProtectedRoute` enforces `rescue_center` role; non-matching accounts redirect to `/`
+- Sidebar uses `collapsible="icon"` — collapses to icon-only rail
+- Pets tab: 2/3/4-column responsive grid; yellow tag for interested (shows count), slate tag for adopted, no tag for available
+- Phase B (Interested Users + Settings) and Phase C (Form Editor) are future sessions
