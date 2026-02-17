@@ -1,3 +1,30 @@
+# Migrate to i18next (auto-detection only) — COMPLETED
+
+- [x] 1. Install `i18next-browser-languagedetector`
+- [x] 2. Create `lib/i18n/index.ts` — i18next singleton with bundled resources
+- [x] 3. Create `components/i18n-provider.tsx` — client wrapper
+- [x] 4. Update `app/layout.tsx` — swap LanguageProvider for I18nProvider
+- [x] 5. Update `components/landing/header.tsx` — remove LanguageSwitcher, fix import
+- [x] 6. Update `components/landing/landing-page.tsx` — remove LanguageSwitcher + loading guard, fix import
+- [x] 7. Delete `lib/hooks/use-translation.ts`
+- [x] 8. Delete `lib/contexts/language-context.tsx`
+- [x] 9. Delete `components/language-switcher.tsx`
+- [x] 10. Update `lib/i18n/config.ts` — keep types only
+- [x] 11. Update `CLAUDE.md` i18n section
+
+## Review
+- Installed `i18next-browser-languagedetector@8.2.1`
+- Created `lib/i18n/index.ts`: initializes i18next with all translation JSONs imported directly (no HTTP fetch), auto-detects language from `localStorage` → `navigator`, falls back to `es`
+- Created `components/i18n-provider.tsx`: thin `'use client'` wrapper that imports the init file to trigger it client-side
+- `app/layout.tsx`: replaced `<LanguageProvider>` with `<I18nProvider>`
+- `components/landing/header.tsx`: removed `LanguageSwitcher`, switched to `useTranslation` from `react-i18next`
+- `components/landing/landing-page.tsx`: removed `LanguageSwitcher` import and footer column, removed `loading` guard, switched to `useTranslation` from `react-i18next`
+- Deleted 3 files: `use-translation.ts`, `language-context.tsx`, `language-switcher.tsx`
+- `lib/i18n/config.ts`: stripped to just `Locale` and `Namespace` type aliases
+- `CLAUDE.md`: updated i18n section to document the new pattern
+
+---
+
 # Pelú MVP - Phase 1 & 2 Implementation Tasks
 
 ## Phase 1: Project Foundation & Setup
