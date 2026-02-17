@@ -37,6 +37,8 @@ bun run lint
 
 ### Authentication Flow
 1. User signs in via Email/Password or Google OAuth (`components/auth/login-page.tsx`)
+   - Email/Password authentication is the primary method
+   - Google OAuth available as secondary option
 2. On successful auth, user is redirected to role selection if no profile exists (`/auth/role-selection`)
 3. User selects role: `adopter`, `owner`, or `rescue_center`
 4. User profile is created in Firestore `users` collection
@@ -45,6 +47,20 @@ bun run lint
    - `userProfile`: Firestore UserDocument with role and preferences
    - `loading`: Boolean for initial auth check
 6. Use `useAuth()` hook to access auth state in any component
+
+### Landing Page
+The landing page (`components/landing/landing-page.tsx`) is publicly accessible without authentication:
+- **Hero section**: Headline, stats (2M+ animals, 100+ rescue centers, FREE adoption), CTAs
+- **Problem section**: Explains Dominican Republic's stray animal crisis
+- **Solution section**: Four key features (swipe interface, simplified process, transport tracking, support)
+- **Value propositions**: Benefits for adopters and rescue centers
+- **Transparency section**: Pricing (9.66 RD$/km transport), data usage, mission
+- **Footer**: Links, language switcher, copyright
+
+The header (`components/landing/header.tsx`) includes:
+- Pelú logo (clickable, links to home)
+- Language switcher (ES/EN)
+- Login button
 
 ### Firebase Structure
 
@@ -102,23 +118,36 @@ Fonts: Inter, Source Sans 3, Manrope (in that order)
 
 Translation files: `public/locales/{locale}/{namespace}.json`
 
-Namespaces:
-- `common.json` - App-wide UI elements
-- `landing.json` - Landing page content
-- `auth.json` - Authentication flow
-- `pets.json` - Pet discovery
-- `chat.json` - Chat system (future)
-- `transport.json` - Transport tracking (future)
+Namespaces: `common`, `landing`, `auth`, `pets`, `chat`, `transport`
+
+**How translations work** — react-i18next with bundled resources (no HTTP fetch):
+```tsx
+import { useTranslation } from 'react-i18next'
+
+const { t } = useTranslation('landing')
+// t('hero.title') — dot notation, falls back to Spanish if key missing
+// No loading state needed — resources are bundled synchronously
+```
+i18next is initialized in `lib/i18n/index.ts` with all JSON files imported directly. The `I18nProvider` component (`components/i18n-provider.tsx`) triggers this initialization on the client.
+
+**Language detection** — automatic via `i18next-browser-languagedetector`:
+- Reads `i18nextLng` from `localStorage` first, then falls back to `navigator.language`
+- Persists the detected/set language to `localStorage` key `i18nextLng`
+- No manual language switcher; language matches browser preference
 
 When adding new UI text:
-1. Add Spanish translation first (primary language)
-2. Add English translation
-3. Reference i18n config in `lib/i18n/config.ts` for TypeScript types
+1. Add Spanish translation first in `public/locales/es/{namespace}.json`
+2. Add English translation in `public/locales/en/{namespace}.json`
+3. Import the new JSON files in `lib/i18n/index.ts` and add to `resources`
+4. Reference types in `lib/i18n/config.ts`
 
 ## File Structure Patterns
 
 ### Components Organization
 - `components/auth/` - Authentication-related components
+- `components/landing/` - Landing page components (header, landing-page)
+- `components/logo.tsx` - Reusable logo component with Pelú dog illustration
+- `components/language-switcher.tsx` - Language toggle (ES/EN)
 - `components/ui/` - shadcn/ui components (base UI primitives)
 - `components/pets/` - Pet listing and discovery (future)
 - `components/chat/` - Messaging system (future)
@@ -127,10 +156,27 @@ When adding new UI text:
 
 ### Library Organization
 - `lib/firebase/` - All Firebase integrations (auth, firestore, storage)
-- `lib/contexts/` - React context providers
+- `lib/contexts/` - React context providers (`auth-context.tsx`, `language-context.tsx`)
+- `lib/hooks/` - Custom React hooks
 - `lib/types/` - TypeScript type definitions
-- `lib/i18n/` - Internationalization configuration
+- `lib/i18n/` - Internationalization configuration (types/config only)
 - `lib/utils.ts` - Utility functions (use `cn()` for className merging)
+
+> Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
+
+## Firebase Environment Variables
+
+Required in `.env.local`:
+```
+NEXT_PUBLIC_FIREBASE_API_KEY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
+NEXT_PUBLIC_FIREBASE_PROJECT_ID
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
+NEXT_PUBLIC_FIREBASE_APP_ID
+```
+
+The `firestore.ts` helper also exports `timestamp()` for getting a Firestore server timestamp.
 
 ## Electron Configuration
 
@@ -162,6 +208,10 @@ Configuration: `components.json`
 - Path aliases: `@/components`, `@/lib`, `@/hooks`
 
 Add components: `npx shadcn@latest add [component]`
+
+Icon library: **Lucide** (from `lucide-react`)
+
+No test framework is configured in this project.
 
 ## TypeScript Types
 
@@ -202,15 +252,16 @@ Never throw errors - always return error in response object.
 2. **Firebase** for MVP speed (may migrate backend later)
 3. **Spanish-first** design - all UI defaults to Spanish
 4. **Role-based access** enforced at Firestore level
-5. **Email/Password + Google OAuth** (Apple OAuth removed - requires Apple Developer Program)
+5. **Email/Password + Google OAuth** - Apple OAuth not included (requires Apple Developer Program)
 6. **Santo Domingo focus** for MVP (transport tracking scoped to this city initially)
+7. **Logo asset organization** - Static assets stored in `public/assets/` for easy reuse
 
 ## Future Phases
 
 The project follows a phased implementation plan (see `.claude/plans/wise-scribbling-shore.md`):
 - ✅ Phase 1: Project Foundation
 - ✅ Phase 2: Firebase & Authentication
-- Phase 3: Landing Page
+- ✅ Phase 3: Landing Page
 - Phase 4: Pet Discovery (swipe interface)
 - Phase 5: Chat System
 - Phase 6: Adoption Requirements Builder

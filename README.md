@@ -26,7 +26,7 @@ A pet adoption and transport coordination platform built with Electron, Next.js,
 
 3. **Set up Firebase**
    - Create a new Firebase project
-   - Enable Authentication with Google and Apple providers
+   - Enable Authentication with Email/Password and Google providers
    - Create a Firestore database
    - Deploy the security rules from `firestore.rules` to your Firebase project
 
@@ -56,10 +56,12 @@ pelurd.com/
 │   ├── auth/           # Authentication pages
 │   ├── globals.css     # Global styles
 │   ├── layout.tsx      # Root layout with AuthProvider
-│   └── page.tsx        # Homepage
+│   └── page.tsx        # Homepage (displays landing page)
 ├── components/          # React components
 │   ├── auth/           # Auth components (login, role selection, protected routes)
+│   ├── landing/        # Landing page components (header, landing-page)
 │   ├── ui/             # shadcn/ui components (to be added)
+│   ├── logo.tsx        # Reusable Pelú logo component
 │   └── language-switcher.tsx
 ├── lib/                 # Utilities and configurations
 │   ├── contexts/       # React contexts (auth-context)
@@ -68,6 +70,7 @@ pelurd.com/
 │   ├── types/          # TypeScript type definitions
 │   └── utils.ts        # Utility functions
 ├── public/
+│   ├── assets/         # Static assets (logo, images)
 │   └── locales/        # Translation files (es, en)
 ├── electron/           # Electron main process files
 ├── firestore.rules     # Firestore security rules
@@ -102,8 +105,8 @@ Translation files are located in `public/locales/{locale}/`:
 ## 🔐 Authentication
 
 Uses Firebase Authentication with:
-- Google OAuth
-- Apple OAuth
+- Email/Password (primary authentication method)
+- Google OAuth (secondary option)
 
 User roles:
 - **Adopter** - Looking to adopt a pet
@@ -113,22 +116,37 @@ User roles:
 ## 📱 Features Implemented
 
 ### Phase 1: Project Foundation ✅
-- Electron + Next.js setup
-- TailwindCSS with OKLCH colors
-- shadcn/ui component library
-- Internationalization (Spanish/English)
-- Design system foundation
+- Electron + Next.js 16 setup with App Router
+- TailwindCSS with OKLCH colors (Slate, Zinc, Dark Red)
+- shadcn/ui component library configuration
+- Internationalization (Spanish primary, English secondary)
+- Design system foundation (rounded-2xl cards, rounded-xl buttons)
 
 ### Phase 2: Firebase & Authentication ✅
-- Firebase configuration
-- OAuth authentication (Google, Apple)
-- User role selection
-- Protected routes
-- Auth context and hooks
+- Firebase configuration (Auth, Firestore, Storage)
+- Email/Password and Google OAuth authentication
+- User role selection (adopter, owner, rescue_center)
+- Protected routes with role-based access
+- Auth context and hooks (`useAuth`)
+- Firestore security rules with role-based permissions
+
+### Phase 3: Landing Page ✅
+- Complete landing page with hero, problem, solution sections
+- Value propositions for adopters and rescue centers
+- Transparency section (pricing, data usage, mission)
+- Fixed header with logo, language switcher, and login button
+- Reusable Logo component with Pelú dog illustration
+- Responsive design with Pelú brand styling
+- Publicly accessible (no authentication required)
+
+**Key messaging:**
+- 2M+ stray animals in Dominican Republic
+- 100% FREE adoption
+- Transparent transport pricing (9.66 RD$/km)
+- Tinder-style swipe interface coming in Phase 4
 
 ### Coming Next
-- Phase 3: Landing Page
-- Phase 4: Pet Discovery Interface
+- Phase 4: Pet Discovery Interface (swipe functionality)
 - Phase 5: Chat System
 - Phase 6: Adoption Requirements Builder
 - Phase 7: Transport Tracking

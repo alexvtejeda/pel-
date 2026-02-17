@@ -3,6 +3,20 @@ node_modules
 .pnp
 .pnp.js
 
+# Claude settings
+
+.claude/
+
+# Playwright screenshots
+.playwright-mcp
+playwright/
+
+
+# mcp configs
+
+mcp.json
+
+
 # Testing
 coverage
 
