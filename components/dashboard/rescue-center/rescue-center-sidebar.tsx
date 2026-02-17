@@ -9,6 +9,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo'
 
@@ -27,20 +28,23 @@ const navItems: { tab: Tab; label: string; icon: React.ElementType }[] = [
 ]
 
 export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSidebarProps) {
+  const { state } = useSidebar()
+
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="p-3">
-        <Logo showText={true} width={32} height={32} />
+      <SidebarHeader className='p-3'>
+        <Logo showText={state === 'expanded'} width={32} height={32} />
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarMenu>
+        <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
           {navItems.map(({ tab, label, icon: Icon }) => (
             <SidebarMenuItem key={tab}>
               <SidebarMenuButton
                 isActive={activeTab === tab}
                 onClick={() => onTabChange(tab)}
                 tooltip={label}
+                className={state === 'collapsed' ? 'p-3' : ''}
               >
                 <Icon />
                 <span>{label}</span>
