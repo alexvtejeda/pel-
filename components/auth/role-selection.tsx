@@ -1,10 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserRole, Language } from '@/lib/types/user'
 import { setDocument, timestamp } from '@/lib/firebase/firestore'
 import { getCurrentUser } from '@/lib/firebase/auth'
+import { useAuth } from '@/lib/contexts/auth-context'
+
+const roleDashboardPaths: Record<UserRole, string> = {
+  rescue_center: '/dashboard/rescue-center',
+  adopter: '/',
+  owner: '/',
+}
 
 interface RoleOption {
   value: UserRole
@@ -39,6 +46,14 @@ export function RoleSelection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { userProfile, refreshProfile } = useAuth()
+
+  // Auto-redirect if user already has a role
+  useEffect(() => {
+    if (userProfile?.role) {
+      router.push(roleDashboardPaths[userProfile.role])
+    }
+  }, [userProfile, router])
 
   const handleSubmit = async () => {
     if (!selectedRole) return
@@ -75,8 +90,9 @@ export function RoleSelection() {
       return
     }
 
-    // Redirect to home
-    router.push('/')
+    // Update auth context with the new profile, then redirect
+    await refreshProfile()
+    router.push(roleDashboardPaths[selectedRole])
     setLoading(false)
   }
 
