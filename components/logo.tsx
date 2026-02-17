@@ -12,7 +12,7 @@ export function Logo({ width = 40, height = 40, showText = true, className = '' 
   return (
     <Link href="/" className={`flex items-center gap-2 ${className}`}>
       <Image
-        src="/assets/logo.png"
+        src="/assets/logo.svg"
         alt="Pelú"
         width={width}
         height={height}
