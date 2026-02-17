@@ -1,0 +1,110 @@
+'use client'
+
+import { useState, useRef } from 'react'
+import Image from 'next/image'
+import { useAuth } from '@/lib/contexts/auth-context'
+
+export function SettingsTab() {
+  const { userProfile } = useAuth()
+
+  const [displayName, setDisplayName] = useState(userProfile?.profile?.name ?? '')
+  const [rescueName, setRescueName] = useState('')
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(userProfile?.profile?.avatarUrl ?? null)
+  const [savedName, setSavedName] = useState(false)
+  const [savedRescue, setSavedRescue] = useState(false)
+
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const url = URL.createObjectURL(file)
+    setAvatarPreview(url)
+  }
+
+  const handleSaveName = () => {
+    setSavedName(true)
+    setTimeout(() => setSavedName(false), 2000)
+  }
+
+  const handleSaveRescue = () => {
+    setSavedRescue(true)
+    setTimeout(() => setSavedRescue(false), 2000)
+  }
+
+  return (
+    <div className="max-w-lg space-y-8">
+      {/* Profile picture */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold">Foto de perfil</h2>
+        <div className="flex items-center gap-4">
+          <div className="relative w-20 h-20 rounded-full overflow-hidden bg-slate-100 shrink-0">
+            {avatarPreview ? (
+              <Image src={avatarPreview} alt="Avatar" fill className="object-cover" unoptimized />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-slate-400">
+                {displayName ? displayName[0].toUpperCase() : '?'}
+              </div>
+            )}
+          </div>
+          <div>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="text-sm px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 transition-colors"
+            >
+              Cambiar foto
+            </button>
+            <p className="text-xs text-muted-foreground mt-1">JPG, PNG o GIF · máx. 5 MB</p>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarChange}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Display name */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold">Nombre de usuario</h2>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            placeholder="Tu nombre"
+            className="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+          />
+          <button
+            onClick={handleSaveName}
+            className="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm hover:bg-slate-700 transition-colors"
+          >
+            {savedName ? 'Guardado' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+
+      {/* Rescue center name */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold">Nombre del centro de rescate</h2>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            value={rescueName}
+            onChange={(e) => setRescueName(e.target.value)}
+            placeholder="Ej. Rescate Animal Santo Domingo"
+            className="flex-1 px-4 py-2 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+          />
+          <button
+            onClick={handleSaveRescue}
+            className="px-4 py-2 bg-slate-800 text-white rounded-xl text-sm hover:bg-slate-700 transition-colors"
+          >
+            {savedRescue ? 'Guardado' : 'Guardar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
