@@ -11,7 +11,7 @@ function StatusTag({ pet }: { pet: MockPet }) {
   }
   if (pet.status === 'adopted') {
     return (
-      <span className="text-xs font-medium px-2 py-0.5 rounded-xl bg-slate-800 text-white">
+      <span className="text-xs font-medium px-2 py-0.5 rounded-xl bg-primary text-primary-foreground">
         Adoptado
       </span>
     )
@@ -23,7 +23,7 @@ export function PetsTab() {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
       {mockPets.map((pet) => (
-        <div key={pet.id} className="rounded-2xl border bg-card overflow-hidden shadow-sm">
+        <div key={pet.id} className="rounded-2xl border bg-card overflow-hidden shadow-xs">
           <div className="relative aspect-square">
             <Image
               src={pet.imageUrl}

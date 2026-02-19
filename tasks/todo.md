@@ -1,3 +1,40 @@
+# Tailwind v4 Migration
+
+## What changes
+- No more `tailwind.config.ts` — theme moves into `globals.css` via `@theme {}`
+- `@tailwind base/components/utilities` → `@import "tailwindcss"`
+- New package: `@tailwindcss/postcss` replaces `tailwindcss` + `autoprefixer` in PostCSS
+- `tailwindcss-animate` plugin replaced by built-in v4 animation support
+
+## Steps
+- [ ] Run `bunx @tailwindcss/upgrade@next` (official upgrade tool — handles deps, config migration, class renames)
+- [ ] Run `bun install` to finalize packages
+- [ ] Verify `globals.css` has correct `@import "tailwindcss"` and `@theme {}` block (OKLCH custom colors + semantic tokens intact)
+- [ ] Verify `postcss.config.mjs` updated to `@tailwindcss/postcss`
+- [ ] Remove `tailwind.config.ts` if not already deleted by the tool
+- [ ] Update `components.json`: remove `"config": "tailwind.config.ts"` field
+- [ ] Visual check of all pages in the browser
+
+## Review
+- Ran `bun x @tailwindcss/upgrade --force` — official tool handled the bulk of the migration
+- `tailwind.config.ts` deleted by the tool; all config is now in `globals.css`
+- `globals.css` restructured:
+  - `@import 'tailwindcss'` replaces the three `@tailwind` directives
+  - `@theme {}` block holds all Pelú OKLCH custom colors (slate/zinc/red palettes), semantic token references, radius, font, and accordion animations
+  - `@custom-variant dark` replaces the old `darkMode: ['class']` config
+- `postcss.config.mjs` updated to `@tailwindcss/postcss` (autoprefixer removed — built into v4)
+- `components.json` — removed stale `"config": "tailwind.config.ts"` field
+- `tailwindcss-animate` removed from deps — accordion keyframes now live in `@theme {}` directly
+- Fixed: border compatibility rule changed from `var(--color-gray-200, …)` → `var(--color-border, …)`
+- Upgrade tool auto-renamed some v3 utilities in templates:
+  - `shadow-sm` → `shadow-xs`
+  - `backdrop-blur-sm` → `backdrop-blur-xs`
+  - `inset-shadow-sm` → `inset-shadow-xs`
+  - `flex-shrink-0` → `shrink-0`
+  - `focus:outline-none` → `focus:outline-hidden`
+
+---
+
 # Migrate to i18next (auto-detection only) — COMPLETED
 
 - [x] 1. Install `i18next-browser-languagedetector`

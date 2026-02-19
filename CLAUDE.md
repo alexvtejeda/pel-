@@ -120,6 +120,8 @@ Translation files: `public/locales/{locale}/{namespace}.json`
 
 Namespaces: `common`, `landing`, `auth`, `pets`, `chat`, `transport`
 
+> Currently implemented namespace JSON files: `common`, `landing`, `auth`, `pets`. The `chat` and `transport` namespaces are planned but their JSON files do not exist yet.
+
 **How translations work** — react-i18next with bundled resources (no HTTP fetch):
 ```tsx
 import { useTranslation } from 'react-i18next'
@@ -149,6 +151,7 @@ When adding new UI text:
 - `components/logo.tsx` - Reusable logo component with Pelú dog illustration
 - `components/language-switcher.tsx` - Language toggle (ES/EN)
 - `components/ui/` - shadcn/ui components (base UI primitives)
+- `components/dashboard/rescue-center/` - Rescue center dashboard (sidebar, tabs for pets/interested/settings)
 - `components/pets/` - Pet listing and discovery (future)
 - `components/chat/` - Messaging system (future)
 - `components/transport/` - Transport tracking (future)
@@ -160,6 +163,7 @@ When adding new UI text:
 - `lib/hooks/` - Custom React hooks
 - `lib/types/` - TypeScript type definitions
 - `lib/i18n/` - Internationalization configuration (types/config only)
+- `lib/data/` - Mock/seed data used during development (e.g. `mock-rescue-center.ts`)
 - `lib/utils.ts` - Utility functions (use `cn()` for className merging)
 
 > Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
@@ -226,6 +230,8 @@ Follow this pattern for other domain types (pets, matches, conversations, etc.).
 
 ## Implementation Workflow
 
+> **Single plan file**: `~/.claude/plans/wise-scribbling-shore.md` is the single source of truth for all implementation plans. Never create a new plan file — always append to or edit that file only.
+
 1. Create plan in `tasks/todo.md` with checkboxes
 2. Get user approval before starting
 3. Implement incrementally, checking off items
@@ -262,6 +268,7 @@ The project follows a phased implementation plan (see `.claude/plans/wise-scribb
 - ✅ Phase 1: Project Foundation
 - ✅ Phase 2: Firebase & Authentication
 - ✅ Phase 3: Landing Page
+- 🔄 Phase 4 (partial): Rescue Center Dashboard (sidebar + pets/interested/settings tabs built; swipe/discovery pending)
 - Phase 4: Pet Discovery (swipe interface)
 - Phase 5: Chat System
 - Phase 6: Adoption Requirements Builder

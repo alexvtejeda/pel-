@@ -62,7 +62,7 @@ export function LoginPage() {
           </p>
         </div>
 
-        <div className="bg-card rounded-2xl p-6 space-y-4 shadow-sm border">
+        <div className="bg-card rounded-2xl p-6 space-y-4 shadow-xs border">
           {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-3">
             <div>
@@ -72,7 +72,7 @@ export function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                className="w-full px-4 py-3 border border-input rounded-xl focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
               />
             </div>
             <div>
@@ -83,13 +83,13 @@ export function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-slate-800 focus:border-transparent"
+                className="w-full px-4 py-3 border border-input rounded-xl focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
               />
             </div>
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-slate-800 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Cargando...' : mode === 'signin' ? 'Iniciar sesión' : 'Crear cuenta'}
             </button>
@@ -99,7 +99,7 @@ export function LoginPage() {
           <div className="text-center text-sm">
             <button
               onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="text-slate-600 hover:text-slate-800"
+              className="text-muted-foreground hover:text-foreground"
             >
               {mode === 'signin' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
             </button>
@@ -108,7 +108,7 @@ export function LoginPage() {
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-slate-200"></div>
+              <div className="w-full border-t border-border"></div>
             </div>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-card text-muted-foreground">O continúa con</span>
@@ -119,7 +119,7 @@ export function LoginPage() {
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-background border border-input rounded-xl hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -143,7 +143,7 @@ export function LoginPage() {
           </button>
 
           {error && (
-            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}

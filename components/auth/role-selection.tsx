@@ -113,8 +113,8 @@ export function RoleSelection() {
               onClick={() => setSelectedRole(option.value)}
               className={`p-6 rounded-2xl border-2 transition-all text-left ${
                 selectedRole === option.value
-                  ? 'border-slate-800 bg-slate-50'
-                  : 'border-slate-200 hover:border-slate-300 bg-white'
+                  ? 'border-primary bg-muted'
+                  : 'border-border hover:border-input bg-card'
               }`}
             >
               <div className="flex items-start gap-4">
@@ -125,11 +125,11 @@ export function RoleSelection() {
                 </div>
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                   selectedRole === option.value
-                    ? 'border-slate-800 bg-slate-800'
-                    : 'border-slate-300'
+                    ? 'border-primary bg-primary'
+                    : 'border-input'
                 }`}>
                   {selectedRole === option.value && (
-                    <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                     </svg>
                   )}
@@ -140,7 +140,7 @@ export function RoleSelection() {
         </div>
 
         {error && (
-          <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
+          <div className="mb-6 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
             {error}
           </div>
         )}
@@ -148,7 +148,7 @@ export function RoleSelection() {
         <button
           onClick={handleSubmit}
           disabled={!selectedRole || loading}
-          className="w-full py-3 px-4 bg-slate-800 text-white rounded-xl font-medium hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? 'Guardando...' : 'Continuar'}
         </button>

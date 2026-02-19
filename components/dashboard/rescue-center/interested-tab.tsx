@@ -25,7 +25,7 @@ function Initials({ name }: { name: string }) {
     ? parts[0][0] + parts[1][0]
     : parts[0].slice(0, 2)
   return (
-    <div className="w-9 h-9 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-semibold shrink-0">
+    <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
       {letters.toUpperCase()}
     </div>
   )
@@ -96,7 +96,7 @@ export function InterestedTab() {
         <div
           key={user.id}
           className={`rounded-2xl border bg-card p-4 flex items-center gap-4 transition-opacity ${
-            user.status === 'rejected' ? 'opacity-60 bg-slate-50' : ''
+            user.status === 'rejected' ? 'opacity-60 bg-muted' : ''
           }`}
         >
           {/* Left: avatar + info */}
@@ -132,13 +132,13 @@ export function InterestedTab() {
           <div className="hidden sm:flex items-center gap-1 shrink-0">
             {user.formFilled ? (
               <>
-                <Eye size={14} className="text-slate-700" />
-                <span className="text-xs text-slate-700">Ver formulario</span>
+                <Eye size={14} className="text-foreground" />
+                <span className="text-xs text-foreground">Ver formulario</span>
               </>
             ) : (
               <>
-                <EyeOff size={14} className="text-slate-400" />
-                <span className="text-xs text-slate-400">Formulario incompleto</span>
+                <EyeOff size={14} className="text-muted-foreground" />
+                <span className="text-xs text-muted-foreground">Formulario incompleto</span>
               </>
             )}
           </div>
@@ -183,7 +183,7 @@ export function InterestedTab() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
                   onClick={() => deleteUser(user.id)}
                 >
                   <Trash2 /> Eliminar

@@ -23,7 +23,7 @@ export function DashboardShell() {
     <SidebarProvider>
       <RescueCenterSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <SidebarInset>
-        <header className="flex h-14 items-center gap-2 border-b px-4">
+        <header className="bg-sidebar flex h-14 items-center gap-2 px-4">
           <SidebarTrigger />
           <h1 className="text-lg font-semibold">{tabTitles[activeTab]}</h1>
         </header>
