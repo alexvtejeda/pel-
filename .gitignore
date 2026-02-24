@@ -67,4 +67,4 @@ client_secret.json
 
 pelu.pdf
 
-hooks/
+hooks/read_hooks.js
