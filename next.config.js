@@ -5,13 +5,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Disable static optimization for Electron compatibility
-  typescript: {
-    ignoreBuildErrors: false,
-  },
-  eslint: {
-    ignoreDuringBuilds: false,
-  },
 }
 
 module.exports = nextConfig
