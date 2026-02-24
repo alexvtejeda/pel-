@@ -46,6 +46,7 @@ bun run lint
    - `user`: Firebase Auth User object
    - `userProfile`: Firestore UserDocument with role and preferences
    - `loading`: Boolean for initial auth check
+   - `refreshProfile()`: Re-fetches the Firestore user profile (call after profile updates)
 6. Use `useAuth()` hook to access auth state in any component
 
 ### Landing Page
@@ -101,7 +102,7 @@ Automatically redirects unauthenticated users to `/auth/login` and checks role r
 - **Zinc**: `oklch(14.1% 0.005 285.823)` - Neutral dark
 - **Dark Red**: `oklch(25.8% 0.092 26.042)` - Accent (use sparingly!)
 
-Configured in `tailwind.config.ts` with full shade ranges (50-900).
+Configured in `app/globals.css` via `@theme {}` block (Tailwind v4 — no `tailwind.config.ts`) with full shade ranges (50-900).
 
 ### Geometry Rules
 - **Cards**: Always use `rounded-2xl`
@@ -143,13 +144,23 @@ When adding new UI text:
 3. Import the new JSON files in `lib/i18n/index.ts` and add to `resources`
 4. Reference types in `lib/i18n/config.ts`
 
+## App Router Routes
+
+| Route | Component | Access |
+|---|---|---|
+| `/` | `app/page.tsx` → `components/landing/landing-page.tsx` | Public |
+| `/auth/login` | `components/auth/login-page.tsx` | Public |
+| `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no profile) |
+| `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
+
+Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
+
 ## File Structure Patterns
 
 ### Components Organization
 - `components/auth/` - Authentication-related components
 - `components/landing/` - Landing page components (header, landing-page)
 - `components/logo.tsx` - Reusable logo component with Pelú dog illustration
-- `components/language-switcher.tsx` - Language toggle (ES/EN)
 - `components/ui/` - shadcn/ui components (base UI primitives)
 - `components/dashboard/rescue-center/` - Rescue center dashboard (sidebar, tabs for pets/interested/settings)
 - `components/pets/` - Pet listing and discovery (future)
@@ -210,6 +221,7 @@ Configuration: `components.json`
 - Base color: "slate"
 - CSS variables enabled
 - Path aliases: `@/components`, `@/lib`, `@/hooks`
+- No `tailwindConfig` field (removed after Tailwind v4 migration)
 
 Add components: `npx shadcn@latest add [component]`
 
