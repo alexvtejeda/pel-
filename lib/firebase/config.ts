@@ -12,12 +12,13 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 }
 
-// Initialize Firebase only if it hasn't been initialized
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0]
+// Only initialize when the API key is present (skips during build without env vars)
+const app = firebaseConfig.apiKey
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0])
+  : null
 
-// Initialize services
-export const auth = getAuth(app)
-export const db = getFirestore(app)
-export const storage = getStorage(app)
+export const auth = app ? getAuth(app) : ({} as ReturnType<typeof getAuth>)
+export const db = app ? getFirestore(app) : ({} as ReturnType<typeof getFirestore>)
+export const storage = app ? getStorage(app) : ({} as ReturnType<typeof getStorage>)
 
 export default app
