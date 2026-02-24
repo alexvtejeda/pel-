@@ -18,6 +18,8 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import { mockInterestedUsers, mockPets, MockInterestedUser, UserStatus } from '@/lib/data/mock-rescue-center'
+import { AgendaItem } from './agenda-tab'
+import { Input } from '@/components/ui/input'
 
 function Initials({ name }: { name: string }) {
   const parts = name.trim().split(' ')
@@ -78,9 +80,86 @@ function ProfileSheet({ user, open, onClose }: ProfileSheetProps) {
   )
 }
 
-export function InterestedTab() {
+interface AgendaSheetProps {
+  user: MockInterestedUser | null
+  open: boolean
+  onClose: () => void
+  onConfirm: (item: Omit<AgendaItem, 'id'>) => void
+}
+
+function AgendaSheet({ user, open, onClose, onConfirm }: AgendaSheetProps) {
+  const today = new Date().toISOString().split('T')[0]
+  const [date, setDate] = useState(today)
+  const [type, setType] = useState<AgendaItem['type']>('meeting')
+
+  if (!user) return null
+
+  const handleConfirm = () => {
+    onConfirm({
+      personName: user.name,
+      petName: getPetName(user.petId),
+      date: new Date(date + 'T12:00:00'),
+      type,
+    })
+    onClose()
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Agregar en la agenda</SheetTitle>
+        </SheetHeader>
+        <div className="mt-6 space-y-5">
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Persona</p>
+            <p className="text-sm font-medium">{user.name}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-sm text-muted-foreground">Mascota</p>
+            <p className="text-sm font-medium">{getPetName(user.petId)}</p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Fecha</label>
+            <Input
+              type="date"
+              value={date}
+              onChange={e => setDate(e.target.value)}
+              className="rounded-xl"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium">Tipo</label>
+            <select
+              value={type}
+              onChange={e => setType(e.target.value as AgendaItem['type'])}
+              className="w-full px-3 py-2 border border-input rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+            >
+              <option value="meeting">Reunión</option>
+              <option value="transport">Transporte</option>
+              <option value="followup">Seguimiento</option>
+            </select>
+          </div>
+          <button
+            onClick={handleConfirm}
+            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
+          >
+            Agregar
+          </button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+}
+
+interface InterestedTabProps {
+  onAddToAgenda: (item: Omit<AgendaItem, 'id'>) => void
+}
+
+export function InterestedTab({ onAddToAgenda }: InterestedTabProps) {
   const [users, setUsers] = useState(mockInterestedUsers)
   const [selectedUser, setSelectedUser] = useState<MockInterestedUser | null>(null)
+  const [agendaUser, setAgendaUser] = useState<MockInterestedUser | null>(null)
 
   const setStatus = (id: string, status: UserStatus) => {
     setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status } : u))
@@ -178,7 +257,7 @@ export function InterestedTab() {
                 <DropdownMenuItem onClick={() => setStatus(user.id, 'pending')}>
                   <RotateCcw /> Revertir estado
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAgendaUser(user)}>
                   <CalendarDays /> Agregar en la agenda
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -198,6 +277,12 @@ export function InterestedTab() {
         user={selectedUser}
         open={selectedUser !== null}
         onClose={() => setSelectedUser(null)}
+      />
+      <AgendaSheet
+        user={agendaUser}
+        open={agendaUser !== null}
+        onClose={() => setAgendaUser(null)}
+        onConfirm={onAddToAgenda}
       />
     </div>
   )
