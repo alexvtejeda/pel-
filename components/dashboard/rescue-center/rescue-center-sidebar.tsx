@@ -1,6 +1,6 @@
 'use client'
 
-import { PawPrint, Users, ClipboardList, Settings } from 'lucide-react'
+import { PawPrint, Users, ClipboardList, CalendarDays, Bell, Settings } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo'
 
-type Tab = 'pets' | 'interested' | 'forms' | 'settings'
+type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'settings'
 
 interface RescueCenterSidebarProps {
   activeTab: Tab
@@ -23,8 +23,10 @@ interface RescueCenterSidebarProps {
 const navItems: { tab: Tab; label: string; icon: React.ElementType }[] = [
   { tab: 'pets', label: 'Mascotas', icon: PawPrint },
   { tab: 'interested', label: 'Interesados', icon: Users },
-  { tab: 'forms', label: 'Formulario', icon: ClipboardList },
-  { tab: 'settings', label: 'Ajustes', icon: Settings },
+  { tab: 'forms',         label: 'Formulario',     icon: ClipboardList },
+  { tab: 'agenda',        label: 'Agenda',         icon: CalendarDays },
+  { tab: 'notifications', label: 'Notificaciones', icon: Bell },
+  { tab: 'settings',      label: 'Ajustes',        icon: Settings },
 ]
 
 export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSidebarProps) {
