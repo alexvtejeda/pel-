@@ -28,7 +28,7 @@ export function LandingPage() {
               >
                 {t('hero.cta_primary')}
               </Link>
-              <button className="px-8 py-4 bg-accent inset-shadow-xs text-accent-foreground rounded-xl font-medium text-lg hover:border-input transition-colors">
+              <button className="px-8 py-4 bg-accent border inset-shadow-[1px_1px_1px_var(--color-input)] text-accent-foreground rounded-xl font-medium text-lg hover:border-input hover:inset-shadow-[4px_4px_4px_var(--color-input)] transition-all">
                 {t('hero.cta_secondary')}
               </button>
             </div>
