@@ -5,6 +5,8 @@ import { Header } from './header'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -18,7 +20,7 @@ export function LandingPage() {
 
   const ctaHref = user
     ? user.role ? rolePaths[user.role] : '/auth/role-selection'
-    : '/auth/login'
+    : '/auth/register'
 
   return (
     <div className="min-h-screen bg-background">
@@ -150,9 +152,7 @@ export function LandingPage() {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <li key={i} className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
                     </div>
                     <span className="text-foreground">{t(`value_adopters.benefit_${i}`)}</span>
                   </li>
@@ -168,9 +168,7 @@ export function LandingPage() {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <li key={i} className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
                     </div>
                     <span className="text-foreground">{t(`value_rescues.benefit_${i}`)}</span>
                   </li>
