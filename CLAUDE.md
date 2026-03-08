@@ -198,7 +198,17 @@ Configuration: `components.json`
 
 Add components: `npx shadcn@latest add [component]`
 
-Icon library: **Lucide** (from `lucide-react`)
+Icon library: **Font Awesome** — always use Font Awesome for all icons. Never use lucide-react or inline SVGs.
+
+```tsx
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaw } from '@fortawesome/free-solid-svg-icons'
+import { faGoogle } from '@fortawesome/free-brands-svg-icons'
+
+<FontAwesomeIcon icon={faPaw} className="w-4 h-4" />
+```
+
+Packages installed: `@fortawesome/fontawesome-svg-core`, `@fortawesome/react-fontawesome`, `@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`, `@fortawesome/free-brands-svg-icons`
 
 No test framework is configured in this project.
 
