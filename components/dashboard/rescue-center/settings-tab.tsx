@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { apiClient } from '@/lib/api/client'
 
 export function SettingsTab() {
   const { user, logout } = useAuth()
@@ -26,9 +27,16 @@ export function SettingsTab() {
   }
 
   const handleDeleteAccount = async () => {
-    // Account deletion requires a dedicated API endpoint — not yet implemented.
-    setDeleteError('Para eliminar tu cuenta, contacta soporte.')
-    setIsDeleting(false)
+    setIsDeleting(true)
+    setDeleteError(null)
+    const res = await apiClient('/api/v1/auth/me', { method: 'DELETE' })
+    if (!res.ok) {
+      setDeleteError('No se pudo eliminar la cuenta. Intenta de nuevo.')
+      setIsDeleting(false)
+      return
+    }
+    await logout()
+    router.push('/')
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
