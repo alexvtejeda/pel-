@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { UserRole, Language } from '@/lib/types/user'
-import { setDocument, timestamp } from '@/lib/firebase/firestore'
-import { getCurrentUser } from '@/lib/firebase/auth'
+import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { useState } from 'react'
 
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -46,14 +45,14 @@ export function RoleSelection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const { userProfile, refreshProfile } = useAuth()
+  const { user, setRole } = useAuth()
 
   // Auto-redirect if user already has a role
   useEffect(() => {
-    if (userProfile?.role) {
-      router.push(roleDashboardPaths[userProfile.role])
+    if (user?.role) {
+      router.push(roleDashboardPaths[user.role])
     }
-  }, [userProfile, router])
+  }, [user, router])
 
   const handleSubmit = async () => {
     if (!selectedRole) return
@@ -61,37 +60,14 @@ export function RoleSelection() {
     setLoading(true)
     setError(null)
 
-    const user = getCurrentUser()
-    if (!user) {
-      setError('No se encontró usuario autenticado')
+    const { error: roleError } = await setRole(selectedRole)
+
+    if (roleError) {
+      setError(roleError)
       setLoading(false)
       return
     }
 
-    // Create user profile in Firestore
-    const userDocument = {
-      uid: user.uid,
-      email: user.email || '',
-      role: selectedRole,
-      preferredLanguage: 'es' as Language,
-      profile: {
-        name: user.displayName || '',
-        avatarUrl: user.photoURL || undefined,
-        location: '',
-      },
-      createdAt: timestamp(),
-    }
-
-    const { error: saveError } = await setDocument('users', user.uid, userDocument)
-
-    if (saveError) {
-      setError(saveError)
-      setLoading(false)
-      return
-    }
-
-    // Update auth context with the new profile, then redirect
-    await refreshProfile()
     router.push(roleDashboardPaths[selectedRole])
     setLoading(false)
   }

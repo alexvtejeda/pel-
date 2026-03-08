@@ -3,9 +3,22 @@
 import Link from 'next/link'
 import { Header } from './header'
 import { useTranslation } from 'react-i18next'
+import { useAuth } from '@/lib/contexts/auth-context'
+import { UserRole } from '@/lib/types/user'
+
+const rolePaths: Record<UserRole, string> = {
+  rescue_center: '/dashboard/rescue-center',
+  adopter: '/',
+  owner: '/',
+}
 
 export function LandingPage() {
   const { t } = useTranslation('landing')
+  const { user } = useAuth()
+
+  const ctaHref = user
+    ? user.role ? rolePaths[user.role] : '/auth/role-selection'
+    : '/auth/login'
 
   return (
     <div className="min-h-screen bg-background">
@@ -23,7 +36,7 @@ export function LandingPage() {
             </p>
             <div className="flex gap-4 justify-center flex-wrap">
               <Link
-                href="/auth/login"
+                href={ctaHref}
                 className="px-8 py-4 bg-primary text-primary-foreground rounded-xl font-medium text-lg hover:bg-primary/90 transition-colors"
               >
                 {t('hero.cta_primary')}
@@ -205,7 +218,7 @@ export function LandingPage() {
           <h2 className="text-4xl font-bold mb-4">{t('cta.title')}</h2>
           <p className="text-xl text-primary-foreground/70 mb-8">{t('cta.subtitle')}</p>
           <Link
-            href="/auth/login"
+            href={ctaHref}
             className="inline-block px-8 py-4 bg-background text-primary rounded-xl font-medium text-lg hover:bg-muted transition-colors"
           >
             {t('cta.button')}

@@ -4,16 +4,14 @@ import { useState, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { signOut } from '@/lib/firebase/auth'
-import { deleteDocument } from '@/lib/firebase/firestore'
 
 export function SettingsTab() {
-  const { user, userProfile } = useAuth()
+  const { user, logout } = useAuth()
   const router = useRouter()
 
-  const [displayName, setDisplayName] = useState(userProfile?.profile?.name ?? '')
+  const [displayName, setDisplayName] = useState(user?.email ?? '')
   const [rescueName, setRescueName] = useState('')
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(userProfile?.profile?.avatarUrl ?? null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [savedName, setSavedName] = useState(false)
   const [savedRescue, setSavedRescue] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -23,31 +21,14 @@ export function SettingsTab() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleLogout = async () => {
-    await signOut()
+    await logout()
     router.push('/')
   }
 
   const handleDeleteAccount = async () => {
-    if (!user) return
-    setIsDeleting(true)
-    setDeleteError(null)
-    const { error: firestoreError } = await deleteDocument('users', user.uid)
-    if (firestoreError) {
-      setDeleteError('No se pudo eliminar la cuenta. Intenta de nuevo.')
-      setIsDeleting(false)
-      return
-    }
-    try {
-      await user.delete()
-      router.push('/')
-    } catch (err: any) {
-      if (err.code === 'auth/requires-recent-login') {
-        setDeleteError('Por seguridad, cierra sesión, vuelve a iniciar sesión y luego elimina la cuenta.')
-      } else {
-        setDeleteError('No se pudo eliminar la cuenta. Intenta de nuevo.')
-      }
-      setIsDeleting(false)
-    }
+    // Account deletion requires a dedicated API endpoint — not yet implemented.
+    setDeleteError('Para eliminar tu cuenta, contacta soporte.')
+    setIsDeleting(false)
   }
 
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {

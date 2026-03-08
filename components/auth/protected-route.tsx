@@ -16,32 +16,28 @@ export function ProtectedRoute({
   requireRole,
   redirectTo = '/auth/login',
 }: ProtectedRouteProps) {
-  const { user, userProfile, loading } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
     if (loading) return
 
-    // Redirect if not authenticated
     if (!user) {
       router.push(redirectTo)
       return
     }
 
-    // Redirect if role is required but user doesn't have profile
-    if (requireRole && !userProfile) {
+    if (requireRole && !user.role) {
       router.push('/auth/role-selection')
       return
     }
 
-    // Redirect if user role doesn't match required roles
-    if (requireRole && userProfile && !requireRole.includes(userProfile.role)) {
+    if (requireRole && user.role && !requireRole.includes(user.role)) {
       router.push('/')
       return
     }
-  }, [user, userProfile, loading, requireRole, redirectTo, router])
+  }, [user, loading, requireRole, redirectTo, router])
 
-  // Show loading state
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -53,8 +49,7 @@ export function ProtectedRoute({
     )
   }
 
-  // Don't render children if not authenticated or wrong role
-  if (!user || (requireRole && !userProfile) || (requireRole && userProfile && !requireRole.includes(userProfile.role))) {
+  if (!user || (requireRole && !user.role) || (requireRole && user.role && !requireRole.includes(user.role))) {
     return null
   }
 
