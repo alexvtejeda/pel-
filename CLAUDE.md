@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Pelú is a pet adoption and transport coordination platform built as an Electron desktop application. The tech stack is:
 - **Frontend**: Next.js 16 (App Router) + React 19 + TailwindCSS
 - **Desktop**: Electron 34 (wraps Next.js with static export)
-- **Backend**: Firebase (Auth + Firestore + Storage)
+- **Backend**: Custom REST API at `NEXT_PUBLIC_API_URL` (default: `http://localhost:8080`) — **Firebase has been removed**
 - **Package Manager**: Bun
 - **Languages**: Spanish (primary/default), English (secondary)
 
@@ -25,7 +25,7 @@ bun run electron:dev
 
 # Build for production
 bun run build              # Builds Next.js to /out
-bun run electron:build     # Builds desktop apps for all platforms
+bun run electron:build     # Builds Next.js then packages Electron app for current platform
 
 # Lint
 bun run lint
@@ -37,17 +37,16 @@ bun run lint
 
 ### Authentication Flow
 1. User signs in via Email/Password or Google OAuth (`components/auth/login-page.tsx`)
-   - Email/Password authentication is the primary method
-   - Google OAuth available as secondary option
-2. On successful auth, user is redirected to role selection if no profile exists (`/auth/role-selection`)
-3. User selects role: `adopter`, `owner`, or `rescue_center`
-4. User profile is created in Firestore `users` collection
-5. `AuthProvider` (`lib/contexts/auth-context.tsx`) manages auth state globally:
-   - `user`: Firebase Auth User object
-   - `userProfile`: Firestore UserDocument with role and preferences
+2. On success, user is redirected to `/auth/role-selection` if no role is set yet
+3. User selects role: `adopter`, `owner`, or `rescue_center`; role is persisted via `PATCH /api/v1/auth/role`
+4. `AuthProvider` (`lib/contexts/auth-context.tsx`) manages auth state globally:
+   - `user`: `AuthUser` object (`id`, `email`, `role`, `auth_provider`, `preferred_lang`)
    - `loading`: Boolean for initial auth check
-   - `refreshProfile()`: Re-fetches the Firestore user profile (call after profile updates)
-6. Use `useAuth()` hook to access auth state in any component
+   - `login(email, password)` / `register(email, password)` / `logout()` / `setRole(role)` / `updateSession(user, token)`
+5. JWT access + refresh tokens are stored in `localStorage` (`pelu_access_token`, `pelu_refresh_token`, `pelu_user`)
+6. `apiClient()` (`lib/api/client.ts`) auto-retries with refreshed token on 401; fires `pelu:session-cleared` event on hard auth failure
+7. Google OAuth: `googleRedirect()` redirects to `GET /api/v1/auth/google`; backend redirects back to `/auth/google/callback` with session in URL hash
+8. Use `useAuth()` hook to access auth state in any component
 
 ### Landing Page
 The landing page (`components/landing/landing-page.tsx`) is publicly accessible without authentication:
@@ -63,26 +62,14 @@ The header (`components/landing/header.tsx`) includes:
 - Language switcher (ES/EN)
 - Login button
 
-### Firebase Structure
+### REST API Client
 
-**Collections**:
-- `users/{uid}` - User profiles with role and preferences
-- `pets/{petId}` - Pet listings (created by owners/rescue centers)
-- `matches/{matchId}` - Swipe interest tracking (adopter ↔ owner)
-- `conversations/{conversationId}` - Chat conversations
-  - `messages/{messageId}` - Subcollection of messages
-- `transport/{transportId}` - Transport coordination data
-- `forms/{formId}` - Adoption requirement forms
-- `formResponses/{responseId}` - Submitted form responses
+All API calls go through `lib/api/`:
+- `lib/api/client.ts` — `apiClient(path, options)` fetch wrapper with JWT auth + auto-refresh; session helpers (`storeSession`, `clearSession`, `getStoredUser`, etc.)
+- `lib/api/auth.ts` — `login`, `register`, `logout`, `setRole`, `googleRedirect`
+- `lib/api/rescue-centers.ts` — `listRescueCenters`, `getRescueCenter`, `createRescueCenter`, `updateRescueCenter`
 
-**Helper functions** in `lib/firebase/firestore.ts`:
-- `getDocument(collection, id)` - Fetch single doc
-- `getDocuments(collection, constraints[])` - Query with Firestore constraints
-- `setDocument(collection, id, data)` - Create/update with merge
-- `updateDocument(collection, id, data)` - Partial update
-- `deleteDocument(collection, id)` - Delete doc
-
-All return `{ data, error }` pattern for consistent error handling.
+API functions return `{ data, error }` for consistent error handling. Never throw errors.
 
 ### Protected Routes
 
@@ -150,7 +137,8 @@ When adding new UI text:
 |---|---|---|
 | `/` | `app/page.tsx` → `components/landing/landing-page.tsx` | Public |
 | `/auth/login` | `components/auth/login-page.tsx` | Public |
-| `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no profile) |
+| `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no role yet) |
+| `/auth/google/callback` | `app/auth/google/callback/page.tsx` | Public (OAuth redirect target) |
 | `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
 
 Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
@@ -162,36 +150,33 @@ Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute
 - `components/landing/` - Landing page components (header, landing-page)
 - `components/logo.tsx` - Reusable logo component with Pelú dog illustration
 - `components/ui/` - shadcn/ui components (base UI primitives)
-- `components/dashboard/rescue-center/` - Rescue center dashboard (sidebar, tabs for pets/interested/settings)
+- `components/dashboard/rescue-center/` - Rescue center dashboard: `dashboard-shell.tsx` (layout wrapper), `rescue-center-sidebar.tsx`, `mobile-bottom-nav.tsx`, and tabs: pets, interested, forms, notifications, agenda, settings
 - `components/pets/` - Pet listing and discovery (future)
 - `components/chat/` - Messaging system (future)
 - `components/transport/` - Transport tracking (future)
 - `components/forms/` - Form builder for adoption requirements (future)
 
 ### Library Organization
-- `lib/firebase/` - All Firebase integrations (auth, firestore, storage)
-- `lib/contexts/` - React context providers (`auth-context.tsx`, `language-context.tsx`)
+- `lib/api/` - REST API client (`client.ts`), auth (`auth.ts`), and resource modules (e.g. `rescue-centers.ts`)
+- `lib/contexts/` - React context providers (`auth-context.tsx`)
 - `lib/hooks/` - Custom React hooks
 - `lib/types/` - TypeScript type definitions
 - `lib/i18n/` - Internationalization configuration (types/config only)
 - `lib/data/` - Mock/seed data used during development (e.g. `mock-rescue-center.ts`)
 - `lib/utils.ts` - Utility functions (use `cn()` for className merging)
 
+### Notable Dependencies
+- `date-fns` - Date formatting and manipulation (used in notifications, agenda)
+- `react-day-picker` - Calendar/date picker UI (used in agenda tab)
+
 > Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
 
-## Firebase Environment Variables
+## Environment Variables
 
 Required in `.env.local`:
 ```
-NEXT_PUBLIC_FIREBASE_API_KEY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN
-NEXT_PUBLIC_FIREBASE_PROJECT_ID
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID
-NEXT_PUBLIC_FIREBASE_APP_ID
+NEXT_PUBLIC_API_URL   # REST API base URL, e.g. http://localhost:8080
 ```
-
-The `firestore.ts` helper also exports `timestamp()` for getting a Firestore server timestamp.
 
 ## Electron Configuration
 
@@ -201,18 +186,6 @@ The `firestore.ts` helper also exports `timestamp()` for getting a Firestore ser
 - **Static export**: Next.js configured with `output: 'export'` in `next.config.js`
 
 Dev mode loads from `http://localhost:3000`, production loads from `out/index.html`.
-
-## Firebase Security Rules
-
-`firestore.rules` defines role-based access control:
-- Users can only read/write their own profile
-- Only `owner` and `rescue_center` roles can create pets
-- Pet owners can update/delete their own pets only
-- Adopters can create matches (swipes)
-- Conversations and messages restricted to participants
-- Transport and forms have specific role checks
-
-Deploy rules to Firebase Console after changes.
 
 ## shadcn/ui Integration
 
@@ -235,7 +208,8 @@ User-related types in `lib/types/user.ts`:
 ```typescript
 type UserRole = 'adopter' | 'owner' | 'rescue_center'
 type Language = 'es' | 'en'
-interface UserDocument { uid, email, role, preferredLanguage, profile, createdAt }
+interface AuthUser { id, email, role: UserRole | null, auth_provider, preferred_lang }
+interface AuthResponse { access_token, refresh_token, user: AuthUser }
 ```
 
 Follow this pattern for other domain types (pets, matches, conversations, etc.).
@@ -250,11 +224,11 @@ Follow this pattern for other domain types (pets, matches, conversations, etc.).
 4. Keep changes minimal and focused
 5. Add review section to `tasks/todo.md` when complete
 
-## Firestore Data Patterns
+## API Data Patterns
 
-All Firestore helpers return `{ data, error }`:
+All API functions return `{ data, error }`:
 ```typescript
-const { data, error } = await getDocument('users', userId)
+const { data, error } = await createRescueCenter(input)
 if (error) {
   // Handle error
   return
@@ -262,14 +236,14 @@ if (error) {
 // Use data
 ```
 
-Never throw errors - always return error in response object.
+Never throw errors — always return error in response object.
 
 ## Key Implementation Decisions
 
 1. **Next.js static export** for Electron compatibility (no SSR at runtime)
-2. **Firebase** for MVP speed (may migrate backend later)
+2. **Custom REST API** backend replaces Firebase; JWT tokens stored in `localStorage`
 3. **Spanish-first** design - all UI defaults to Spanish
-4. **Role-based access** enforced at Firestore level
+4. **Role-based access** enforced by the backend API
 5. **Email/Password + Google OAuth** - Apple OAuth not included (requires Apple Developer Program)
 6. **Santo Domingo focus** for MVP (transport tracking scoped to this city initially)
 7. **Logo asset organization** - Static assets stored in `public/assets/` for easy reuse
@@ -280,7 +254,7 @@ The project follows a phased implementation plan (see `.claude/plans/wise-scribb
 - ✅ Phase 1: Project Foundation
 - ✅ Phase 2: Firebase & Authentication
 - ✅ Phase 3: Landing Page
-- 🔄 Phase 4 (partial): Rescue Center Dashboard (sidebar + pets/interested/settings tabs built; swipe/discovery pending)
+- ✅ Phase 4 (partial): Rescue Center Dashboard (sidebar, mobile nav, pets/interested/forms/notifications/agenda/settings tabs built; swipe/discovery pending)
 - Phase 4: Pet Discovery (swipe interface)
 - Phase 5: Chat System
 - Phase 6: Adoption Requirements Builder

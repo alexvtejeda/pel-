@@ -1,14 +1,14 @@
 # Pelú - Pet Adoption Platform
 
-A pet adoption and transport coordination platform built with Electron, Next.js, React, Firebase, and TailwindCSS.
+A pet adoption and transport coordination platform built with Electron, Next.js, React, and TailwindCSS.
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Bun (package manager)
 - Node.js 18+
-- Firebase project
+- Pelú REST API running (see `pelu-api` repo)
 
 ### Installation
 
@@ -19,149 +19,96 @@ A pet adoption and transport coordination platform built with Electron, Next.js,
 
 2. **Set up environment variables**
    ```bash
-   cp .env.example .env
+   cp .env.example .env.local
    ```
 
-   Then edit `.env` and add your Firebase credentials from the [Firebase Console](https://console.firebase.google.com/).
-
-3. **Set up Firebase**
-   - Create a new Firebase project
-   - Enable Authentication with Email/Password and Google providers
-   - Create a Firestore database
-   - Deploy the security rules from `firestore.rules` to your Firebase project
+   Set `NEXT_PUBLIC_API_URL` to your API base URL (e.g. `http://localhost:8080`).
 
 ### Development
 
-**Run Next.js development server:**
 ```bash
+# Next.js dev server (port 3000)
 bun run dev
-```
 
-**Run Electron desktop app:**
-```bash
+# Electron desktop app with hot reload
 bun run electron:dev
-```
 
-**Build for production:**
-```bash
+# Build for production
 bun run build
 bun run electron:build
+
+# Lint
+bun run lint
 ```
 
-## 🏗️ Project Structure
+## Architecture
+
+- **Frontend**: Next.js 16 (App Router) + React 19 + TailwindCSS
+- **Desktop**: Electron 34 wrapping Next.js (static export via `output: 'export'`)
+- **Backend**: Custom REST API (`NEXT_PUBLIC_API_URL`, default `http://localhost:8080`)
+- **Auth**: JWT (access + refresh tokens stored in `localStorage`)
+
+### Authentication Flow
+
+1. User signs in or registers via `/auth/login`
+2. On success, redirected to `/auth/role-selection` to pick a role (`adopter`, `owner`, `rescue_center`)
+3. Google OAuth: backend redirects to `/auth/google/callback` with session encoded in URL hash
+4. JWT tokens are managed by `lib/api/client.ts` — auto-refreshes on 401
+
+### Project Structure
 
 ```
-pelurd.com/
-├── app/                 # Next.js app directory
-│   ├── auth/           # Authentication pages
-│   ├── globals.css     # Global styles
-│   ├── layout.tsx      # Root layout with AuthProvider
-│   └── page.tsx        # Homepage (displays landing page)
-├── components/          # React components
-│   ├── auth/           # Auth components (login, role selection, protected routes)
-│   ├── landing/        # Landing page components (header, landing-page)
-│   ├── ui/             # shadcn/ui components (to be added)
-│   ├── logo.tsx        # Reusable Pelú logo component
-│   └── language-switcher.tsx
-├── lib/                 # Utilities and configurations
-│   ├── contexts/       # React contexts (auth-context)
-│   ├── firebase/       # Firebase configuration and helpers
-│   ├── i18n/           # Internationalization config
-│   ├── types/          # TypeScript type definitions
-│   └── utils.ts        # Utility functions
+├── app/                    # Next.js App Router pages
+│   └── auth/google/callback/  # Google OAuth redirect handler
+├── components/
+│   ├── auth/               # Login, role selection, protected route
+│   ├── dashboard/rescue-center/  # Rescue center dashboard tabs
+│   ├── landing/            # Landing page and header
+│   └── ui/                 # shadcn/ui primitives
+├── lib/
+│   ├── api/                # REST API client (client.ts, auth.ts, rescue-centers.ts)
+│   ├── contexts/           # AuthProvider / useAuth hook
+│   ├── i18n/               # i18next configuration
+│   ├── types/              # TypeScript types (user.ts, etc.)
+│   └── utils.ts            # cn() and other utilities
 ├── public/
-│   ├── assets/         # Static assets (logo, images)
-│   └── locales/        # Translation files (es, en)
-├── electron/           # Electron main process files
-├── firestore.rules     # Firestore security rules
-└── tasks/              # Implementation task tracking
+│   ├── assets/             # Static images and logo
+│   └── locales/            # Translation files (es, en)
+└── electron/               # Electron main process and preload
 ```
 
-## 🎨 Design System
+## Design System
 
-Pelú uses a custom color palette with OKLCH color space:
+- **Colors** (OKLCH): Slate (primary dark), Zinc (neutral dark), Dark Red (accent)
+- **Cards**: `rounded-2xl` · **Buttons**: `rounded-xl` · **Circles**: avatars and status indicators only
+- **Fonts**: Inter, Source Sans 3, Manrope
+- **Components**: shadcn/ui (new-york style, slate base)
 
-- **Slate**: `oklch(12.9% 0.042 264.695)` - Primary dark color
-- **Zinc**: `oklch(14.1% 0.005 285.823)` - Neutral dark color
-- **Dark Red**: `oklch(25.8% 0.092 26.042)` - Accent color (use sparingly)
+## Internationalization
 
-**Typography**: Inter, Source Sans 3, Manrope
+Spanish is the default language. Translation files live in `public/locales/{es,en}/`:
+- `common.json`, `landing.json`, `auth.json`, `pets.json`
 
-**Geometry Rules**:
-- Cards: `rounded-2xl`
-- Buttons: `rounded-xl`
-- Circles: Only for avatars and status indicators
+## User Roles
 
-## 🌍 Internationalization
+| Role | Description |
+|---|---|
+| `adopter` | Looking to adopt a pet |
+| `owner` | Giving a pet up for adoption |
+| `rescue_center` | Animal rescue organization |
 
-The app supports Spanish (default) and English.
+## Features Implemented
 
-Translation files are located in `public/locales/{locale}/`:
-- `common.json` - Common UI elements
-- `landing.json` - Landing page content
-- `auth.json` - Authentication flow
-- `pets.json` - Pet discovery interface
+- ✅ Phase 1: Project foundation (Electron + Next.js, design system, i18n)
+- ✅ Phase 2: Authentication (JWT, Email/Password + Google OAuth, role selection)
+- ✅ Phase 3: Landing page
+- ✅ Phase 4 (partial): Rescue center dashboard (pets, interested, forms, notifications, agenda, settings tabs)
+- Phase 4: Pet discovery / swipe interface
+- Phase 5: Chat system
+- Phase 6: Adoption requirements builder
+- Phase 7: Transport tracking
+- Phase 8: Payment integration
 
-## 🔐 Authentication
+## License
 
-Uses Firebase Authentication with:
-- Email/Password (primary authentication method)
-- Google OAuth (secondary option)
-
-User roles:
-- **Adopter** - Looking to adopt a pet
-- **Owner** - Giving a pet up for adoption
-- **Rescue Center** - Animal rescue organization
-
-## 📱 Features Implemented
-
-### Phase 1: Project Foundation ✅
-- Electron + Next.js 16 setup with App Router
-- TailwindCSS with OKLCH colors (Slate, Zinc, Dark Red)
-- shadcn/ui component library configuration
-- Internationalization (Spanish primary, English secondary)
-- Design system foundation (rounded-2xl cards, rounded-xl buttons)
-
-### Phase 2: Firebase & Authentication ✅
-- Firebase configuration (Auth, Firestore, Storage)
-- Email/Password and Google OAuth authentication
-- User role selection (adopter, owner, rescue_center)
-- Protected routes with role-based access
-- Auth context and hooks (`useAuth`)
-- Firestore security rules with role-based permissions
-
-### Phase 3: Landing Page ✅
-- Complete landing page with hero, problem, solution sections
-- Value propositions for adopters and rescue centers
-- Transparency section (pricing, data usage, mission)
-- Fixed header with logo, language switcher, and login button
-- Reusable Logo component with Pelú dog illustration
-- Responsive design with Pelú brand styling
-- Publicly accessible (no authentication required)
-
-**Key messaging:**
-- 2M+ stray animals in Dominican Republic
-- 100% FREE adoption
-- Transparent transport pricing (9.66 RD$/km)
-- Tinder-style swipe interface coming in Phase 4
-
-### Coming Next
-- Phase 4: Pet Discovery Interface (swipe functionality)
-- Phase 5: Chat System
-- Phase 6: Adoption Requirements Builder
-- Phase 7: Transport Tracking
-- Phase 8: Payment Integration
-
-## 🔧 Configuration Files
-
-- `package.json` - Dependencies and scripts
-- `tsconfig.json` - TypeScript configuration
-- `next.config.js` - Next.js configuration for Electron
-- `tailwind.config.ts` - TailwindCSS with Pelú theme
-- `components.json` - shadcn/ui configuration
-- `next-i18next.config.js` - i18n configuration
-- `firestore.rules` - Firestore security rules
-
-## 📝 License
-
-Private project - All rights reserved
+Private project — All rights reserved
