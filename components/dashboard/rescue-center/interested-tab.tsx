@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Eye, EyeOff, MoreHorizontal, RotateCcw, CalendarDays, Trash2 } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash, faEllipsis, faRotateLeft, faCalendarDays, faTrash } from '@fortawesome/free-solid-svg-icons'
 import {
   Sheet,
   SheetContent,
@@ -211,12 +212,12 @@ export function InterestedTab({ onAddToAgenda }: InterestedTabProps) {
           <div className="hidden sm:flex items-center gap-1 shrink-0">
             {user.formFilled ? (
               <>
-                <Eye size={14} className="text-foreground" />
+                <FontAwesomeIcon icon={faEye} className="w-3.5 h-3.5 text-foreground" />
                 <span className="text-xs text-foreground">Ver formulario</span>
               </>
             ) : (
               <>
-                <EyeOff size={14} className="text-muted-foreground" />
+                <FontAwesomeIcon icon={faEyeSlash} className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-xs text-muted-foreground">Formulario incompleto</span>
               </>
             )}
@@ -250,22 +251,22 @@ export function InterestedTab({ onAddToAgenda }: InterestedTabProps) {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-xl">
-                  <MoreHorizontal />
+                  <FontAwesomeIcon icon={faEllipsis} className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setStatus(user.id, 'pending')}>
-                  <RotateCcw /> Revertir estado
+                  <FontAwesomeIcon icon={faRotateLeft} className="w-4 h-4" /> Revertir estado
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setAgendaUser(user)}>
-                  <CalendarDays /> Agregar en la agenda
+                  <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4" /> Agregar en la agenda
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
                   onClick={() => deleteUser(user.id)}
                 >
-                  <Trash2 /> Eliminar
+                  <FontAwesomeIcon icon={faTrash} className="w-4 h-4" /> Eliminar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

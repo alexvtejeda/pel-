@@ -1,19 +1,21 @@
 'use client'
 
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
-  AlignLeft,
-  AlignJustify,
-  ListTodo,
-  CheckSquare,
-  ChevronsUpDown,
-  Calendar,
-  Star,
-  ChevronUp,
-  ChevronDown,
-  Trash2,
-  Plus,
-} from 'lucide-react'
+  faAlignLeft,
+  faAlignJustify,
+  faListCheck,
+  faSquareCheck,
+  faSort,
+  faCalendar,
+  faStar,
+  faChevronUp,
+  faChevronDown,
+  faTrash,
+  faPlus,
+} from '@fortawesome/free-solid-svg-icons'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
@@ -30,14 +32,14 @@ interface FormField {
   ratingMax: string
 }
 
-const FIELD_TYPES: { type: FieldType; label: string; Icon: React.ElementType }[] = [
-  { type: 'short_text',      label: 'Texto corto',       Icon: AlignLeft },
-  { type: 'long_text',       label: 'Texto largo',        Icon: AlignJustify },
-  { type: 'multiple_choice', label: 'Selección múltiple', Icon: ListTodo },
-  { type: 'checkbox',        label: 'Casillas',           Icon: CheckSquare },
-  { type: 'dropdown',        label: 'Desplegable',        Icon: ChevronsUpDown },
-  { type: 'date',            label: 'Fecha',              Icon: Calendar },
-  { type: 'rating',          label: 'Escala',             Icon: Star },
+const FIELD_TYPES: { type: FieldType; label: string; icon: IconDefinition }[] = [
+  { type: 'short_text',      label: 'Texto corto',       icon: faAlignLeft },
+  { type: 'long_text',       label: 'Texto largo',        icon: faAlignJustify },
+  { type: 'multiple_choice', label: 'Selección múltiple', icon: faListCheck },
+  { type: 'checkbox',        label: 'Casillas',           icon: faSquareCheck },
+  { type: 'dropdown',        label: 'Desplegable',        icon: faSort },
+  { type: 'date',            label: 'Fecha',              icon: faCalendar },
+  { type: 'rating',          label: 'Escala',             icon: faStar },
 ]
 
 function typeInfo(type: FieldType) {
@@ -152,7 +154,7 @@ export function FormsTab() {
               ))}
             </select>
             <Button size="sm" className="rounded-xl shrink-0" onClick={addField}>
-              <Plus size={14} />
+              <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
             </Button>
           </div>
 
@@ -163,7 +165,7 @@ export function FormsTab() {
             </p>
           ) : (
             fields.map((field, i) => {
-              const { Icon } = typeInfo(field.type)
+              const { icon } = typeInfo(field.type)
               return (
                 <div
                   key={field.id}
@@ -172,7 +174,7 @@ export function FormsTab() {
                     activeId === field.id ? 'ring-2 ring-ring' : 'hover:bg-muted/50'
                   }`}
                 >
-                  <Icon size={14} className="text-muted-foreground shrink-0" />
+                  <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                   <span className="text-sm flex-1 truncate">
                     {field.label
                       ? field.label
@@ -190,7 +192,7 @@ export function FormsTab() {
                       disabled={i === 0}
                       onClick={() => moveUp(i)}
                     >
-                      <ChevronUp size={12} />
+                      <FontAwesomeIcon icon={faChevronUp} className="w-3 h-3" />
                     </Button>
                     <Button
                       variant="ghost" size="icon"
@@ -198,14 +200,14 @@ export function FormsTab() {
                       disabled={i === fields.length - 1}
                       onClick={() => moveDown(i)}
                     >
-                      <ChevronDown size={12} />
+                      <FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
                     </Button>
                     <Button
                       variant="ghost" size="icon"
                       className="h-6 w-6 rounded-lg text-destructive hover:text-destructive"
                       onClick={() => deleteField(field.id)}
                     >
-                      <Trash2 size={12} />
+                      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                     </Button>
                   </div>
                 </div>
@@ -225,8 +227,8 @@ export function FormsTab() {
               {/* Type label */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 {(() => {
-                  const { Icon, label } = typeInfo(activeField.type)
-                  return <><Icon size={13} /><span>{label}</span></>
+                  const { icon, label } = typeInfo(activeField.type)
+                  return <><FontAwesomeIcon icon={icon} className="w-3 h-3" /><span>{label}</span></>
                 })()}
               </div>
 
@@ -284,7 +286,7 @@ export function FormsTab() {
                         onClick={() => deleteOption(activeField.id, idx)}
                         disabled={activeField.options.length <= 1}
                       >
-                        <Trash2 size={14} />
+                        <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
                       </Button>
                     </div>
                   ))}
@@ -293,7 +295,7 @@ export function FormsTab() {
                     className="rounded-xl"
                     onClick={() => addOption(activeField.id)}
                   >
-                    <Plus size={14} /> Agregar opción
+                    <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" /> Agregar opción
                   </Button>
                 </div>
               )}

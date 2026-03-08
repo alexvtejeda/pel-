@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { CalendarDays } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCalendarDays } from '@fortawesome/free-solid-svg-icons'
 import { Calendar } from '@/components/ui/calendar'
 
 export interface AgendaItem {
@@ -76,7 +77,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
 
         {dayEvents.length === 0 ? (
           <div className="rounded-2xl border border-dashed flex flex-col items-center justify-center py-16 gap-2 text-muted-foreground">
-            <CalendarDays size={28} strokeWidth={1.5} />
+            <FontAwesomeIcon icon={faCalendarDays} className="w-7 h-7" />
             <p className="text-sm">No hay eventos este día</p>
           </div>
         ) : (

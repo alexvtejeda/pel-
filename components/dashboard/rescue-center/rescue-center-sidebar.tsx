@@ -1,6 +1,8 @@
 'use client'
 
-import { PawPrint, Users, ClipboardList, CalendarDays, Bell, Settings } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPaw, faUsers, faClipboardList, faCalendarDays, faBell, faGear } from '@fortawesome/free-solid-svg-icons'
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +14,15 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo'
+import { useAuth } from '@/lib/contexts/auth-context'
+
+function nameFromEmail(email: string): string {
+  const prefix = email.split('@')[0]
+  return prefix
+    .split(/[._+]/)
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(' ')
+}
 
 type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'settings'
 
@@ -20,17 +31,22 @@ interface RescueCenterSidebarProps {
   onTabChange: (tab: Tab) => void
 }
 
-const navItems: { tab: Tab; label: string; icon: React.ElementType }[] = [
-  { tab: 'pets', label: 'Mascotas', icon: PawPrint },
-  { tab: 'interested', label: 'Interesados', icon: Users },
-  { tab: 'forms',         label: 'Formulario',     icon: ClipboardList },
-  { tab: 'agenda',        label: 'Agenda',         icon: CalendarDays },
-  { tab: 'notifications', label: 'Notificaciones', icon: Bell },
-  { tab: 'settings',      label: 'Ajustes',        icon: Settings },
+const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
+  { tab: 'pets',          label: 'Mascotas',       icon: faPaw },
+  { tab: 'interested',    label: 'Interesados',    icon: faUsers },
+  { tab: 'forms',         label: 'Formulario',     icon: faClipboardList },
+  { tab: 'agenda',        label: 'Agenda',         icon: faCalendarDays },
+  { tab: 'notifications', label: 'Notificaciones', icon: faBell },
+  { tab: 'settings',      label: 'Ajustes',        icon: faGear },
 ]
 
 export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSidebarProps) {
   const { state } = useSidebar()
+  const { user } = useAuth()
+
+  const email = user?.email ?? ''
+  const displayName = email ? nameFromEmail(email) : ''
+  const initial = email.charAt(0).toUpperCase()
 
   return (
     <Sidebar collapsible="icon">
@@ -40,7 +56,7 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
 
       <SidebarContent>
         <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
-          {navItems.map(({ tab, label, icon: Icon }) => (
+          {navItems.map(({ tab, label, icon }) => (
             <SidebarMenuItem key={tab}>
               <SidebarMenuButton
                 isActive={activeTab === tab}
@@ -48,7 +64,7 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
                 tooltip={label}
                 className={state === 'collapsed' ? 'p-3' : ''}
               >
-                <Icon />
+                <FontAwesomeIcon icon={icon} className="w-4 h-4" />
                 <span>{label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -57,7 +73,17 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
       </SidebarContent>
 
       <SidebarFooter className="p-3">
-        <Logo showText={false} width={32} height={32} />
+        <div className={`flex items-center gap-3 ${state === 'collapsed' ? 'justify-center' : ''}`}>
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-white">
+            {initial}
+          </div>
+          {state === 'expanded' && (
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-sm font-semibold text-foreground">{displayName}</span>
+              <span className="truncate text-xs text-muted-foreground">{email}</span>
+            </div>
+          )}
+        </div>
       </SidebarFooter>
     </Sidebar>
   )

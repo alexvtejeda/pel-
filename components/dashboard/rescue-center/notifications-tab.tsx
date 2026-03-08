@@ -1,6 +1,7 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBell } from '@fortawesome/free-solid-svg-icons'
 
 export interface AppNotification {
   id: string
@@ -27,7 +28,7 @@ export function NotificationsTab({ notifications }: NotificationsTabProps) {
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
-        <Bell size={32} strokeWidth={1.5} />
+        <FontAwesomeIcon icon={faBell} className="w-8 h-8" />
         <p className="text-sm">No hay notificaciones</p>
       </div>
     )
@@ -38,7 +39,7 @@ export function NotificationsTab({ notifications }: NotificationsTabProps) {
       {notifications.map((n) => (
         <div key={n.id} className="rounded-2xl border bg-card p-4 flex gap-3">
           <div className="mt-0.5 shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <Bell size={14} className="text-primary" />
+            <FontAwesomeIcon icon={faBell} className="w-3.5 h-3.5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">{n.title}</p>
