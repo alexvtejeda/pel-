@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -46,10 +48,11 @@ export function RoleSelection() {
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
   const { user, setRole } = useAuth()
+  const submitted = useRef(false)
 
-  // Auto-redirect if user already has a role
+  // Auto-redirect returning users who already have a role
   useEffect(() => {
-    if (user?.role) {
+    if (user?.role && !submitted.current) {
       router.push(roleDashboardPaths[user.role])
     }
   }, [user, router])
@@ -57,6 +60,7 @@ export function RoleSelection() {
   const handleSubmit = async () => {
     if (!selectedRole) return
 
+    submitted.current = true
     setLoading(true)
     setError(null)
 
@@ -68,7 +72,7 @@ export function RoleSelection() {
       return
     }
 
-    router.push(roleDashboardPaths[selectedRole])
+    router.push(`/auth/onboarding/${selectedRole}`)
     setLoading(false)
   }
 
@@ -105,9 +109,7 @@ export function RoleSelection() {
                     : 'border-input'
                 }`}>
                   {selectedRole === option.value && (
-                    <svg className="w-4 h-4 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                    </svg>
+                    <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
                   )}
                 </div>
               </div>

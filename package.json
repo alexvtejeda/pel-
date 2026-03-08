@@ -13,6 +13,11 @@
     "electron:build": "next build && electron-builder"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^7.2.0",
+    "@fortawesome/free-brands-svg-icons": "^7.2.0",
+    "@fortawesome/free-regular-svg-icons": "^7.2.0",
+    "@fortawesome/free-solid-svg-icons": "^7.2.0",
+    "@fortawesome/react-fontawesome": "^3.2.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-separator": "^1.1.8",
@@ -26,6 +31,7 @@
     "i18next": "^24.2.0",
     "i18next-browser-languagedetector": "^8.2.1",
     "lucide-react": "^0.574.0",
+    "motion": "^12.23.12",
     "next": "^16.1.5",
     "next-i18next": "^15.3.1",
     "radix-ui": "^1.4.3",
