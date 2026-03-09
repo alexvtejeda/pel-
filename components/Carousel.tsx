@@ -86,7 +86,7 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
         style={{ width: itemWidth, height: itemWidth, rotateY }}
         transition={transition}
       >
-        <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
+        <img src={item.image} alt={item.title} className="w-full h-full object-cover" draggable="false" />
         {item.title && (
           <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-3 py-2">
             <p className="text-xs text-white truncate">{item.title}</p>
