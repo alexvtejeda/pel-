@@ -6,7 +6,8 @@ import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faHouse, faDog, faShieldCat, faCheck } from '@fortawesome/free-solid-svg-icons'
+import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -18,7 +19,8 @@ interface RoleOption {
   value: UserRole
   title: string
   description: string
-  icon: string
+  icon: IconDefinition
+  color: string
 }
 
 const roleOptions: RoleOption[] = [
@@ -26,19 +28,22 @@ const roleOptions: RoleOption[] = [
     value: 'adopter',
     title: 'Adoptante',
     description: 'Quiero adoptar una mascota',
-    icon: '🏠',
+    icon: faHouse,
+    color: 'var(--color-pop-750)',
   },
   {
     value: 'owner',
     title: 'Dueño de mascota',
-    description: 'Quiero dar en adopción mi mascota',
-    icon: '🐕',
+    description: 'Quiero servicios para mi mascota',
+    icon: faDog,
+    color: 'var(--color-pop-700)',
   },
   {
     value: 'rescue_center',
     title: 'Centro de rescate',
     description: 'Represento un centro de rescate animal',
-    icon: '🏥',
+    icon: faShieldCat,
+    color: 'var(--color-pop-650)',
   },
 ]
 
@@ -91,25 +96,27 @@ export function RoleSelection() {
             <button
               key={option.value}
               onClick={() => setSelectedRole(option.value)}
-              className={`p-6 rounded-2xl border-2 transition-all text-left ${
+              className={`p-6 rounded-2xl border-2 transition-all duration-300 ease-in-out text-left slide-background [--su-color:color-mix(in_oklch,var(--color-pop-450)_50%,transparent)] ${
                 selectedRole === option.value
-                  ? 'border-primary bg-muted'
-                  : 'border-border hover:border-input bg-card'
+                  ? 'transition-all ease-in duration-300 border-pop-950/10 bg-pop-450/50 inset-shadow-decoration'
+                  : 'border-border'
               }`}
             >
               <div className="flex items-start gap-4">
-                <div className="text-4xl">{option.icon}</div>
+                <div className="text-4xl w-10 flex items-center justify-center">
+                  <FontAwesomeIcon icon={option.icon} style={{color: option.color}}/>
+                </div>
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold mb-1">{option.title}</h3>
                   <p className="text-muted-foreground">{option.description}</p>
                 </div>
                 <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                   selectedRole === option.value
-                    ? 'border-primary bg-primary'
+                    ? 'border-pop-450 bg-pop-550'
                     : 'border-input'
                 }`}>
                   {selectedRole === option.value && (
-                    <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
+                    <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-secondary"/>
                   )}
                 </div>
               </div>

@@ -50,6 +50,18 @@
   --color-red-900: oklch(15% 0.092 26.042);
   --color-red: oklch(25.8% 0.092 26.042);
 
+  --color-pop-950: oklch(0.328 0.0505 207.16);
+  --color-pop-900: oklch(0.3903 0.062 209.24);
+  --color-pop-850: oklch(0.4526 0.0727 207.93);
+  --color-pop-800: oklch(0.5107 0.0831 209.3);
+  --color-pop-750: oklch(0.5669 0.0926 209.43);
+  --color-pop-700: oklch(0.6241 0.1022 208.57);
+  --color-pop-650: oklch(0.678 0.1118 209.46);
+  --color-pop-600: oklch(0.7704 0.1274 209.22);
+  --color-pop-550: oklch(0.7328 0.121 208.76);
+  --color-pop-500: oklch(0.8654 0.1272 207.08);
+  --color-pop-450: oklch(0.851 0.1015 207.32);
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -96,6 +108,8 @@
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  --inset-shadow-decoration: inset 1px 1px 1px var(--color-pop-450);
 
   @keyframes accordion-down {
     from {
@@ -204,4 +218,34 @@
     @apply bg-background text-foreground;
     font-family: 'Inter', 'Source Sans 3', 'Manrope', system-ui, sans-serif;
   }
+}
+
+@utility slide-background {
+    --su-color: currentColor;
+    --su-duration: 0.4s;
+
+    position: relative;
+    overflow: hidden;
+
+    &::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-color: var(--su-color);
+      transform: scaleX(0);
+      transform-origin: right;
+      transition: transform var(--su-duration) ease-in-out;
+      z-index: 0;
+    }
+
+    & > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    &:hover::after,
+    &[data-selected="true"]::after {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
 }
