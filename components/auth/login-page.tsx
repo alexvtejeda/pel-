@@ -2,27 +2,26 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 
 export function LoginPage() {
-  const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
-  const { login, register } = useAuth()
+  const { login } = useAuth()
 
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    const authFn = mode === 'signin' ? login : register
-    const { error: authError } = await authFn(email, password)
+    const { error: authError } = await login(email, password)
 
     if (authError) {
       setError(authError)
@@ -43,9 +42,7 @@ export function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold mb-2">Pelú</h1>
-          <p className="text-muted-foreground">
-            {mode === 'signin' ? 'Inicia sesión para continuar' : 'Crea tu cuenta'}
-          </p>
+          <p className="text-muted-foreground">Inicia sesión para continuar</p>
         </div>
 
         <div className="bg-card rounded-2xl p-6 space-y-4 shadow-xs border">
@@ -77,18 +74,14 @@ export function LoginPage() {
               disabled={loading}
               className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Cargando...' : mode === 'signin' ? 'Iniciar sesión' : 'Crear cuenta'}
+              {loading ? 'Cargando...' : 'Iniciar sesión'}
             </button>
           </form>
 
-          {/* Toggle between signin/signup */}
           <div className="text-center text-sm">
-            <button
-              onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              {mode === 'signin' ? '¿No tienes cuenta? Regístrate' : '¿Ya tienes cuenta? Inicia sesión'}
-            </button>
+            <Link href="/auth/register" className="text-muted-foreground hover:text-foreground">
+              ¿No tienes cuenta? Regístrate
+            </Link>
           </div>
 
           {/* Divider */}
