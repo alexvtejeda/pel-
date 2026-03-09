@@ -1,9 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCirclePlus } from '@fortawesome/free-solid-svg-icons'
 import { RescueCenterSidebar } from './rescue-center-sidebar'
-import { PetsTab } from './pets-tab'
+import { PetsTab, PetsTabHandle } from './pets-tab'
 import { InterestedTab } from './interested-tab'
 import { FormsTab } from './forms-tab'
 import { SettingsTab } from './settings-tab'
@@ -24,6 +26,7 @@ const tabTitles: Record<Tab, string> = {
 
 export function DashboardShell() {
   const [activeTab, setActiveTab] = useState<Tab>('pets')
+  const petsTabRef = useRef<PetsTabHandle>(null)
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
 
@@ -62,10 +65,19 @@ export function DashboardShell() {
       <SidebarInset>
         <header className="bg-sidebar flex h-14 items-center gap-2 px-4">
           <SidebarTrigger className="hidden md:flex" />
-          <h1 className="text-lg font-semibold">{tabTitles[activeTab]}</h1>
+          <h1 className="text-lg font-semibold flex-1">{tabTitles[activeTab]}</h1>
+          {activeTab === 'pets' && (
+            <button
+              type="button"
+              onClick={() => petsTabRef.current?.openUpload()}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FontAwesomeIcon icon={faCirclePlus} className="w-5 h-5" />
+            </button>
+          )}
         </header>
         <main className="p-4 pb-20 md:pb-4">
-          {activeTab === 'pets' && <PetsTab />}
+          {activeTab === 'pets' && <PetsTab ref={petsTabRef} />}
           {activeTab === 'interested' && <InterestedTab onAddToAgenda={addAgendaItem} />}
           {activeTab === 'forms' && <FormsTab />}
           {activeTab === 'agenda' && <AgendaTab items={agendaItems} />}
