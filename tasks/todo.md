@@ -29,3 +29,16 @@
 - `params` is a Promise in Next.js 15+ server components → added `async/await`
 - `router.replace` called during render → moved all redirects into `useEffect`
 - `useEffect` auto-redirect in role-selection fired after `setRole` updated user → added `submitted` ref to suppress it
+
+---
+
+# Pets Tab — Three-dot menu, Photo Upload, View Profile Modal, Adopted Overlay
+
+## Tasks
+
+- [x] 1. Create `packages/hooks.ts` — `useOnClickOutside` hook (needed by `animated-modal.tsx`)
+- [x] 2. Update `pets-tab.tsx` — local `pets` state (copy of mockPets) so pets can be removed
+- [x] 3. Add hidden `<input type="file">` ref + "Subir Fotos" handler (max 5 MB per file, accept images/videos)
+- [x] 4. Add `PetProfileModal` component — controlled (open/onClose/petId props), uses framer-motion animations matching `animated-modal` style; list view → detail view for interested users
+- [x] 5. Add three-dot `DropdownMenu` to each pet card footer with: Subir Fotos, Ver Perfil
+- [x] 6. Add adopted-pet hover overlay (muted/50% bg + `faCircleXmark` in pop-450); click removes pet from grid
