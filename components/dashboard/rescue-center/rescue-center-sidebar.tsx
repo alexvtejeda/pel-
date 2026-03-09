@@ -73,7 +73,10 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
       </SidebarContent>
 
       <SidebarFooter className="p-3">
-        <div className={`flex items-center gap-3 ${state === 'collapsed' ? 'justify-center' : ''}`}>
+        <div
+          className={`flex items-center gap-3 cursor-pointer ${state === 'collapsed' ? 'justify-center' : ''}`}
+          onClick={() => onTabChange('settings')}
+        >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-white">
             {initial}
           </div>
