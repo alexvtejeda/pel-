@@ -157,73 +157,39 @@ function PetProfileModal({ petId, onClose }: PetProfileModalProps) {
   )
 }
 
-interface UploadPreview {
-  petId: string
-  urls: string[]
-  names: string[]
-}
+function CardCarousel({ urls }: { urls: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
 
-function UploadPreviewModal({ preview, onClose }: { preview: UploadPreview | null; onClose: () => void }) {
-  // Revoke object URLs on close to avoid memory leaks
-  const handleClose = () => {
-    preview?.urls.forEach((url) => URL.revokeObjectURL(url))
-    onClose()
-  }
+  useEffect(() => {
+    if (containerRef.current) {
+      setWidth(containerRef.current.offsetWidth)
+    }
+  }, [])
 
-  const carouselItems = preview?.urls.map((url, i) => ({
+  const items = urls.map((url, i) => ({
     id: i,
     image: url,
-    title: preview.names[i] ?? '',
+    title: '',
     description: '',
     icon: null as unknown as React.ReactNode,
-  })) ?? []
-
-  // Width fits nicely in the modal (modal max-w-[40%] ~= 400px on desktop)
-  const carouselWidth = 300
+  }))
 
   return (
-    <AnimatePresence>
-      {preview && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-50 flex items-center justify-center [perspective:800px] [transform-style:preserve-3d]"
-          onClick={handleClose}
-        >
-          <div className="fixed inset-0 bg-black/50" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-[40%] flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={handleClose}>
-              <FontAwesomeIcon
-                icon={faXmark}
-                className="w-4 h-4 text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
-              />
-            </button>
-
-            <div className="flex flex-col items-center p-8 gap-4">
-              <h2 className="text-lg font-semibold self-start">
-                {preview.urls.length === 1 ? 'Foto subida' : `${preview.urls.length} fotos subidas`}
-              </h2>
-              <Carousel
-                items={carouselItems}
-                baseWidth={carouselWidth}
-                autoplay={preview.urls.length > 1}
-                autoplayDelay={3000}
-                pauseOnHover
-                loop={preview.urls.length > 1}
-              />
-            </div>
-          </motion.div>
-        </motion.div>
+    <div ref={containerRef} className="w-full h-full">
+      {width > 0 && (
+        <Carousel
+          items={items}
+          baseWidth={width}
+          autoplay={urls.length > 1}
+          autoplayDelay={3000}
+          pauseOnHover
+          loop={urls.length > 1}
+          containerPadding={0}
+          className="relative overflow-hidden w-full h-full"
+        />
       )}
-    </AnimatePresence>
+    </div>
   )
 }
 
@@ -247,7 +213,7 @@ export function PetsTab() {
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<MockPet[]>(mockPets)
   const [profilePetId, setProfilePetId] = useState<string | null>(null)
-  const [uploadPreview, setUploadPreview] = useState<UploadPreview | null>(null)
+  const [petPhotos, setPetPhotos] = useState<Record<string, string[]>>({})
   const uploadRef = useRef<HTMLInputElement>(null)
   const uploadPetIdRef = useRef<string | null>(null)
 
@@ -269,11 +235,12 @@ export function PetsTab() {
     }
     const valid = files.filter((f) => f.size <= 5 * 1024 * 1024)
     if (valid.length > 0 && uploadPetIdRef.current) {
-      setUploadPreview({
-        petId: uploadPetIdRef.current,
-        urls: valid.map((f) => URL.createObjectURL(f)),
-        names: valid.map((f) => f.name),
-      })
+      const petId = uploadPetIdRef.current
+      const newUrls = valid.map((f) => URL.createObjectURL(f))
+      setPetPhotos((prev) => ({
+        ...prev,
+        [petId]: [...(prev[petId] ?? []), ...newUrls],
+      }))
     }
     e.target.value = ''
   }
@@ -295,12 +262,16 @@ export function PetsTab() {
         {pets.map((pet) => (
           <div key={pet.id} className="group rounded-2xl border bg-card overflow-hidden shadow-xs">
             <div className="relative aspect-square">
-              <Image
-                src={pet.imageUrl}
-                alt={pet.name}
-                fill
-                className="object-cover"
-              />
+              {petPhotos[pet.id]?.length > 0 ? (
+                <CardCarousel urls={petPhotos[pet.id]} />
+              ) : (
+                <Image
+                  src={pet.imageUrl}
+                  alt={pet.name}
+                  fill
+                  className="object-cover"
+                />
+              )}
               {pet.status === 'adopted' && (
                 <div
                   className="absolute inset-0 bg-muted/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
@@ -340,7 +311,6 @@ export function PetsTab() {
       </div>
 
       <PetProfileModal petId={profilePetId} onClose={() => setProfilePetId(null)} />
-      <UploadPreviewModal preview={uploadPreview} onClose={() => setUploadPreview(null)} />
     </>
   )
 }

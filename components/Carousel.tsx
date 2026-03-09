@@ -20,6 +20,8 @@ export interface CarouselProps {
   pauseOnHover?: boolean;
   loop?: boolean;
   round?: boolean;
+  className?: string;
+  containerPadding?: number;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -124,14 +126,15 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
 
 export default function Carousel({
   items = DEFAULT_ITEMS,
-  baseWidth = 300,
+  baseWidth = 500,
   autoplay = false,
   autoplayDelay = 3000,
   pauseOnHover = false,
   loop = false,
-  round = false
+  round = false,
+  className,
+  containerPadding = 16,
 }: CarouselProps): JSX.Element {
-  const containerPadding = 16;
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
   const itemsForRender = useMemo(() => {
@@ -257,7 +260,7 @@ export default function Carousel({
   return (
     <div
       ref={containerRef}
-      className={`relative overflow-hidden p-4 ${
+      className={className ?? `relative overflow-hidden p-4 ${
         round ? 'rounded-full border border-white' : 'rounded-[24px] border border-[#222]'
       }`}
       style={{
