@@ -22,6 +22,7 @@ export interface CarouselProps {
   round?: boolean;
   className?: string;
   containerPadding?: number;
+  dotsOverlay?: boolean;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -134,6 +135,7 @@ export default function Carousel({
   round = false,
   className,
   containerPadding = 16,
+  dotsOverlay = false,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -298,18 +300,18 @@ export default function Carousel({
           />
         ))}
       </motion.div>
-      <div className={`flex w-full justify-center ${round ? 'absolute z-20 bottom-12 left-1/2 -translate-x-1/2' : ''}`}>
-        <div className="mt-4 flex w-[150px] justify-between px-8">
+      <div className={`flex w-full justify-center ${round || dotsOverlay ? 'absolute z-20 bottom-3 left-1/2 -translate-x-1/2' : ''}`}>
+        <div className={`flex w-[150px] justify-between px-8 ${dotsOverlay ? '' : 'mt-4'}`}>
           {items.map((_, index) => (
             <motion.div
               key={index}
               className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
                 activeIndex === index
-                  ? round
+                  ? round || dotsOverlay
                     ? 'bg-white'
                     : 'bg-[#333333]'
-                  : round
-                    ? 'bg-[#555]'
+                  : round || dotsOverlay
+                    ? 'bg-white/50'
                     : 'bg-[rgba(51,51,51,0.4)]'
               }`}
               animate={{

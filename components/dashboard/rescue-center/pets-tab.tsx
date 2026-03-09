@@ -186,6 +186,7 @@ function CardCarousel({ urls }: { urls: string[] }) {
           pauseOnHover
           loop={urls.length > 1}
           containerPadding={0}
+          dotsOverlay
           className="relative overflow-hidden w-full h-full"
         />
       )}
