@@ -25,6 +25,13 @@ export interface CreateRescueCenterInput {
   instagram?: string
 }
 
+export async function getMyRescueCenter(): Promise<{ data: RescueCenter | null; error: string | null }> {
+  const res = await apiClient('/api/v1/rescue-centers/me')
+  const json = await res.json()
+  if (!res.ok) return { data: null, error: json.error || 'Error al obtener centro de rescate' }
+  return { data: json, error: null }
+}
+
 export async function listRescueCenters(): Promise<RescueCenter[]> {
   const res = await fetch(`${BASE_URL}/api/v1/rescue-centers`)
   if (!res.ok) return []
