@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -9,6 +9,7 @@ import {
   faPlus,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
+import Carousel from '@/components/Carousel'
 import { createRescueCenter } from '@/lib/api/rescue-centers'
 import { createPet, uploadPhotos } from '@/lib/api/pets'
 import { BackgroundBeams } from '@/components/ui/beams'
@@ -17,6 +18,41 @@ import { Logo } from '@/components/logo'
 interface PendingPhoto {
   url: string
   file: File
+}
+
+function CardCarousel({ urls }: { urls: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  const items = urls.map((url, i) => ({
+    id: i,
+    image: url,
+    title: '',
+    description: '',
+    icon: null as unknown as React.ReactNode,
+  }))
+
+  useEffect(() => {
+    if (containerRef.current) setWidth(containerRef.current.offsetWidth)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      {width > 0 && (
+        <Carousel
+          items={items}
+          baseWidth={width}
+          autoplay={urls.length > 1}
+          autoplayDelay={3000}
+          pauseOnHover
+          loop={urls.length > 1}
+          containerPadding={0}
+          dotsOverlay
+          className="relative overflow-hidden w-full h-full"
+        />
+      )}
+    </div>
+  )
 }
 
 export function RescueCenterWizard() {
@@ -143,12 +179,12 @@ export function RescueCenterWizard() {
       <BackgroundBeams />
 
       {/* Topbar */}
-      <nav className="relative z-10 flex items-center px-8 py-5 border-b border-border">
+      <nav className="relative bg-card z-10 flex items-center px-8 py-5 inset-shadow-[0px_0px_1px_2px_var(--color-input)]">
         <Logo width={32} height={32} />
       </nav>
 
       {/* Page content */}
-      <main className="relative z-10 max-w-[920px] mx-auto px-8 py-12 pb-20">
+      <main className="mt-4 rounded-lg relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/90 shadow-[-1px_1px_1px_1px_var(--color-input)]">
 
         <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu centro de rescate</h1>
         <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
@@ -268,62 +304,61 @@ export function RescueCenterWizard() {
                 e.target.value = ''
               }}
             />
-            <div
-              className="grid grid-cols-2 gap-2 cursor-pointer"
-              onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
-            >
-              {/* Main slot — col-span-2 */}
-              {petPhotos[0] ? (
-                <div className="col-span-2 relative rounded-xl overflow-hidden h-[116px]">
-                  <img src={petPhotos[0].url} alt="" className="w-full h-full object-cover" />
+            {petPhotos.length > 0 ? (
+              /* Pet card preview — mirrors the dashboard card exactly */
+              <div className="rounded-2xl border bg-card overflow-hidden">
+                <div className="relative aspect-square bg-muted/30">
+                  <CardCarousel urls={petPhotos.map((p) => p.url)} />
+                  {/* Clear all photos */}
                   <button
                     type="button"
-                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 flex items-center justify-center"
-                    onClick={() => removePhoto(petPhotos[0].url)}
+                    onClick={() => { petPhotos.forEach((p) => URL.revokeObjectURL(p.url)); setPetPhotos([]) }}
+                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
                   >
-                    <FontAwesomeIcon icon={faXmark} className="w-3 h-3 text-white" />
+                    <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5 text-gray-700" />
                   </button>
+                  {/* Add more photos */}
+                  {petPhotos.length < MAX_PHOTOS && (
+                    <button
+                      type="button"
+                      onClick={() => photoInputRef.current?.click()}
+                      className="absolute bottom-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
+                    >
+                      <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5 text-gray-700" />
+                    </button>
+                  )}
                 </div>
-              ) : (
-                <div
-                  className={`col-span-2 rounded-xl border-2 border-dashed h-[116px] flex flex-col items-center justify-center gap-1 transition-colors ${
-                    dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'
-                  }`}
-                  onClick={() => photoInputRef.current?.click()}
-                >
+                <div className="p-3">
+                  <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      petAge && `${petAge} meses`,
+                      petGender === 'male' ? '♂' : '♀',
+                      petSpecies === 'dog' ? '🐕' : '🐈',
+                    ].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              /* Dashed placeholder grid */
+              <div
+                className="grid grid-cols-2 gap-2 cursor-pointer"
+                onClick={() => photoInputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
+              >
+                <div className={`col-span-2 rounded-xl border-2 border-dashed h-[116px] flex flex-col items-center justify-center gap-1 transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
                   <FontAwesomeIcon icon={faPlus} className="w-5 h-5 text-muted-foreground/30" />
                   <span className="text-xs text-muted-foreground/30">Foto principal</span>
                 </div>
-              )}
-
-              {/* 4 small slots */}
-              {[1, 2, 3, 4].map((i) =>
-                petPhotos[i] ? (
-                  <div key={i} className="relative rounded-xl overflow-hidden h-[80px]">
-                    <img src={petPhotos[i].url} alt="" className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center"
-                      onClick={() => removePhoto(petPhotos[i].url)}
-                    >
-                      <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    key={i}
-                    className={`rounded-xl border-2 border-dashed h-[80px] flex items-center justify-center transition-colors ${
-                      dragging ? 'border-pop-550/50' : 'border-input hover:border-pop-550/30'
-                    }`}
-                    onClick={() => photoInputRef.current?.click()}
-                  >
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className={`rounded-xl border-2 border-dashed h-[80px] flex items-center justify-center transition-colors ${dragging ? 'border-pop-550/50' : 'border-input hover:border-pop-550/30'}`}>
                     <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-muted-foreground/20" />
                   </div>
-                )
-              )}
-            </div>
+                ))}
+              </div>
+            )}
             <p className="text-xs text-muted-foreground/40 text-center">
               Arrastra y suelta · Se comprimen automáticamente
             </p>
