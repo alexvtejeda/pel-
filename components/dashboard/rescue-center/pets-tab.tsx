@@ -152,7 +152,7 @@ function EditPetModal({
       setSpecies(pet.species ?? 'dog')
       setPhotos(initialPhotos)
     }
-  }, [pet])
+  }, [pet, initialPhotos])
 
   const handleAddFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []).filter(
@@ -379,10 +379,14 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     }
     if (valid.length > 0 && uploadPetIdRef.current) {
       const petId = uploadPetIdRef.current
-      const photos = await uploadPhotos(petId, valid)
-      setPets((prev) =>
-        prev.map((p) => (p.id === petId ? { ...p, photos: [...p.photos, ...photos] } : p))
-      )
+      try {
+        const photos = await uploadPhotos(petId, valid)
+        setPets((prev) =>
+          prev.map((p) => (p.id === petId ? { ...p, photos: [...p.photos, ...photos] } : p))
+        )
+      } catch (err) {
+        console.error('Error uploading photos:', err)
+      }
     }
     uploadPetIdRef.current = null
     e.target.value = ''
@@ -392,35 +396,39 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     id: string,
     updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; photos: EditPhoto[] }
   ) => {
-    // 1. Update metadata
-    const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age, gender: updates.gender, species: updates.species })
+    try {
+      // 1. Update metadata
+      const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age, gender: updates.gender, species: updates.species })
 
-    // 2. Delete removed existing photos
-    const original = pets.find((p) => p.id === id)?.photos ?? []
-    const keptIds = new Set(updates.photos.filter((p) => p.id).map((p) => p.id!))
-    const toDelete = original.filter((p) => !keptIds.has(p.id))
-    await Promise.all(toDelete.map((p) => deletePhoto(id, p.id)))
+      // 2. Delete removed existing photos
+      const original = pets.find((p) => p.id === id)?.photos ?? []
+      const keptIds = new Set(updates.photos.filter((p) => p.id).map((p) => p.id!))
+      const toDelete = original.filter((p) => !keptIds.has(p.id))
+      await Promise.all(toDelete.map((p) => deletePhoto(id, p.id)))
 
-    // 3. Upload new photos
-    const newFiles = updates.photos.filter((p) => p.file).map((p) => p.file!)
-    let newPhotos: Photo[] = []
-    if (newFiles.length > 0) {
-      newPhotos = await uploadPhotos(id, newFiles)
+      // 3. Upload new photos
+      const newFiles = updates.photos.filter((p) => p.file).map((p) => p.file!)
+      let newPhotos: Photo[] = []
+      if (newFiles.length > 0) {
+        newPhotos = await uploadPhotos(id, newFiles)
+      }
+
+      // 4. Build final photo list in display order
+      let newIdx = 0
+      const finalPhotos: Photo[] = updates.photos.map((ep) => {
+        if (ep.id) return original.find((p) => p.id === ep.id)!
+        return newPhotos[newIdx++]
+      })
+
+      // 5. Persist order if it changed
+      if (finalPhotos.length > 1) {
+        await reorderPhotos(id, finalPhotos.map((p) => p.id))
+      }
+
+      setPets((prev) => prev.map((p) => (p.id === id ? { ...updated, photos: finalPhotos } : p)))
+    } catch (err) {
+      console.error('Error saving pet:', err)
     }
-
-    // 4. Build final photo list in display order
-    let newIdx = 0
-    const finalPhotos: Photo[] = updates.photos.map((ep) => {
-      if (ep.id) return original.find((p) => p.id === ep.id)!
-      return newPhotos[newIdx++]
-    })
-
-    // 5. Persist order if it changed
-    if (finalPhotos.length > 1) {
-      await reorderPhotos(id, finalPhotos.map((p) => p.id))
-    }
-
-    setPets((prev) => prev.map((p) => (p.id === id ? { ...updated, photos: finalPhotos } : p)))
   }
 
   const handleDeletePet = async (petId: string) => {
