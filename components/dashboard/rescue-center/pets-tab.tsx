@@ -164,6 +164,16 @@ function EditPetModal({
     e.target.value = ''
   }
 
+  const handleRemovePhoto = (url: string, hasFile: boolean) => {
+    if (hasFile) URL.revokeObjectURL(url)
+    setPhotos((prev) => prev.filter((p) => p.url !== url))
+  }
+
+  const handleClose = () => {
+    photos.forEach((p) => { if (p.file) URL.revokeObjectURL(p.url) })
+    onClose()
+  }
+
   return (
     <AnimatePresence>
       {pet && (
@@ -172,7 +182,7 @@ function EditPetModal({
           animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
           className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={onClose}
+          onClick={handleClose}
         >
           <div className="fixed inset-0 bg-black/50" />
           <motion.div
@@ -183,7 +193,7 @@ function EditPetModal({
             className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-md flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
-            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={onClose}>
+            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={handleClose}>
               <FontAwesomeIcon
                 icon={faXmark}
                 className="w-4 h-4 text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
@@ -204,7 +214,7 @@ function EditPetModal({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Edad (años)</label>
+                <label className="text-sm font-medium">Edad (meses)</label>
                 <input
                   type="number"
                   min={0}
@@ -277,7 +287,7 @@ function EditPetModal({
                       <button
                         type="button"
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
-                        onClick={() => setPhotos((prev) => prev.filter((p) => p.url !== photo.url))}
+                        onClick={() => handleRemovePhoto(photo.url, !!photo.file)}
                       >
                         <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5 text-white" />
                       </button>
@@ -295,7 +305,7 @@ function EditPetModal({
               </div>
 
               <Button
-                onClick={() => { onSave(pet.id, { name, description, age: age as number, gender, species, photos }); onClose() }}
+                onClick={() => { onSave(pet.id, { name, description, age: age as number, gender, species, photos }); handleClose() }}
                 disabled={!name.trim() || age === ''}
                 className="rounded-xl"
               >
@@ -341,8 +351,12 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         species: data.species,
       })
       if (data.photos.length > 0) {
-        const photos = await uploadPhotos(pet.id, data.photos)
-        pet.photos = photos
+        try {
+          const photos = await uploadPhotos(pet.id, data.photos)
+          pet.photos = photos
+        } catch {
+          // Photo upload failed — pet was created; show it without photos
+        }
       }
       setPets((prev) => [...prev, pet])
       setAddPetOpen(false)
