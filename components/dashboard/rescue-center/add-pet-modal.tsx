@@ -41,14 +41,18 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const MAX_PHOTOS = 5
-  const canSave = name.trim() !== '' && age !== '' && !isNaN(parseInt(age, 10))
+  const parsedAge = parseInt(age, 10)
+  const canSave = name.trim() !== '' && !isNaN(parsedAge) && parsedAge >= 0
 
   const addFiles = (files: FileList | File[]) => {
-    const valid = Array.from(files)
+    const candidates = Array.from(files)
       .filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
-      .slice(0, MAX_PHOTOS - photos.length)
-    if (valid.length === 0) return
-    setPhotos((prev) => [...prev, ...valid.map((f) => ({ url: URL.createObjectURL(f), file: f }))])
+    if (candidates.length === 0) return
+    setPhotos((prev) => {
+      const remaining = MAX_PHOTOS - prev.length
+      if (remaining <= 0) return prev
+      return [...prev, ...candidates.slice(0, remaining).map((f) => ({ url: URL.createObjectURL(f), file: f }))]
+    })
   }
 
   const removePhoto = (url: string) => {
