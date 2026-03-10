@@ -184,7 +184,7 @@ export function RescueCenterWizard() {
       </nav>
 
       {/* Page content */}
-      <main className="mt-4 rounded-lg relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/90 shadow-[-1px_1px_1px_1px_var(--color-input)]">
+      <main className="backdrop-blur-sm my-4 rounded-lg relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30  inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
 
         <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu centro de rescate</h1>
         <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
@@ -306,7 +306,7 @@ export function RescueCenterWizard() {
             />
             {petPhotos.length > 0 ? (
               /* Pet card preview — mirrors the dashboard card exactly */
-              <div className="rounded-2xl border bg-card overflow-hidden">
+              <div className="rounded-xl border inset-shadow-[0px_0px_1px_2px_var(--color-input)] bg-card overflow-hidden">
                 <div className="relative aspect-square bg-muted/30">
                   <CardCarousel urls={petPhotos.map((p) => p.url)} />
                   {/* Clear all photos */}
@@ -340,23 +340,27 @@ export function RescueCenterWizard() {
                 </div>
               </div>
             ) : (
-              /* Dashed placeholder grid */
+              /* Card silhouette — same shape as the preview, dashed border photo area */
               <div
-                className="grid grid-cols-2 gap-2 cursor-pointer"
+                className="rounded-xl border inset-shadow-[0px_0px_1px_2px_var(--color-input)] bg-card overflow-hidden cursor-pointer"
                 onClick={() => photoInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
               >
-                <div className={`col-span-2 rounded-xl border-2 border-dashed h-[116px] flex flex-col items-center justify-center gap-1 transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
-                  <FontAwesomeIcon icon={faPlus} className="w-5 h-5 text-muted-foreground/30" />
-                  <span className="text-xs text-muted-foreground/30">Foto principal</span>
+                <div className={`relative aspect-square border-b-2 border-dashed flex items-center justify-center transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
+                  <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/20" />
                 </div>
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`rounded-xl border-2 border-dashed h-[80px] flex items-center justify-center transition-colors ${dragging ? 'border-pop-550/50' : 'border-input hover:border-pop-550/30'}`}>
-                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4 text-muted-foreground/20" />
-                  </div>
-                ))}
+                <div className="p-3">
+                  <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {[
+                      petAge && `${petAge} meses`,
+                      petGender === 'male' ? '♂' : '♀',
+                      petSpecies === 'dog' ? '🐕' : '🐈',
+                    ].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
               </div>
             )}
             <p className="text-xs text-muted-foreground/40 text-center">
