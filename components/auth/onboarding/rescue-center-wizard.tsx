@@ -76,7 +76,7 @@ export function RescueCenterWizard() {
       address: address.trim(),
       ...(rnc.trim() && { rnc: rnc.trim() }),
       ...(website.trim() && { website: website.trim() }),
-      instagram: instagram.trim(),
+      ...(instagram.trim() && { instagram: instagram.trim() }),
     })
 
     if (error) {
@@ -451,7 +451,7 @@ export function RescueCenterWizard() {
 
         {/* Error */}
         {submitError && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm">
             {submitError}
           </div>
         )}
