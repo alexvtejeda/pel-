@@ -4,10 +4,10 @@ import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 're
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
+  faPaw,
   faEllipsis,
   faPhotoFilm,
   faUser,
-  faArrowUpFromBracket,
   faXmark,
   faPenToSquare,
   faTrash,
@@ -33,6 +33,7 @@ import {
   type Pet,
   type Photo,
 } from '@/lib/api/pets'
+import { AddPetModal, type AddPetFormData } from './add-pet-modal'
 
 export interface PetsTabHandle {
   openUpload: () => void
@@ -41,8 +42,6 @@ export interface PetsTabHandle {
 // A photo in the edit modal — either an existing API photo (has id) or a new local file
 type EditPhoto = { id?: string; url: string; file?: File }
 
-// A pending photo during the create flow (blob URL + original File)
-type PendingPhoto = { url: string; file: File }
 
 function CardCarousel({ urls }: { urls: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -79,82 +78,6 @@ function CardCarousel({ urls }: { urls: string[] }) {
   )
 }
 
-function UploadModal({
-  open,
-  onFiles,
-  onClose,
-}: {
-  open: boolean
-  onFiles: (files: File[]) => void
-  onClose: () => void
-}) {
-  const [dragging, setDragging] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  const handle = (files: FileList | null) => {
-    if (!files) return
-    onFiles(Array.from(files))
-    onClose()
-  }
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={onClose}
-        >
-          <div className="fixed inset-0 bg-black/50" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-sm overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={onClose}>
-              <FontAwesomeIcon
-                icon={faXmark}
-                className="w-4 h-4 text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
-              />
-            </button>
-            <input
-              ref={inputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              className="hidden"
-              onChange={(e) => handle(e.target.files)}
-            />
-            <div
-              className={`m-6 rounded-2xl border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center gap-3 py-12 ${
-                dragging ? 'border-primary bg-primary/5' : 'border-input'
-              }`}
-              onClick={() => inputRef.current?.click()}
-              onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-              onDragLeave={() => setDragging(false)}
-              onDrop={(e) => {
-                e.preventDefault()
-                setDragging(false)
-                handle(e.dataTransfer.files)
-              }}
-            >
-              <FontAwesomeIcon icon={faArrowUpFromBracket} className="w-7 h-7 text-muted-foreground" />
-              <div className="text-center px-4">
-                <p className="text-sm font-medium text-muted-foreground">Subir más fotos</p>
-                <p className="text-xs text-muted-foreground/70 mt-1">400×400 px · máx. 5 MB</p>
-              </div>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
 
 function PetProfileModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
@@ -193,153 +116,6 @@ function PetProfileModal({ open, onClose }: { open: boolean; onClose: () => void
   )
 }
 
-function NameModal({
-  open,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean
-  onConfirm: (name: string) => void
-  onCancel: () => void
-}) {
-  const [name, setName] = useState('')
-
-  const handleConfirm = () => {
-    if (!name.trim()) return
-    onConfirm(name.trim())
-    setName('')
-  }
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={onCancel}
-        >
-          <div className="fixed inset-0 bg-black/50" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-sm flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={onCancel}>
-              <FontAwesomeIcon
-                icon={faXmark}
-                className="w-4 h-4 text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
-              />
-            </button>
-            <div className="p-8 flex flex-col gap-4">
-              <h2 className="text-lg font-semibold">¿Cómo se llama la mascota?</h2>
-              <input
-                autoFocus
-                type="text"
-                placeholder="Nombre"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-                className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-              <Button onClick={handleConfirm} disabled={!name.trim()} className="rounded-xl">
-                Guardar
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
-
-function DescriptionModal({
-  open,
-  onConfirm,
-  onCancel,
-}: {
-  open: boolean
-  onConfirm: (description: string, age: number) => void
-  onCancel: () => void
-}) {
-  const [description, setDescription] = useState('')
-  const [age, setAge] = useState('')
-
-  const handleConfirm = () => {
-    const parsed = parseInt(age, 10)
-    if (isNaN(parsed) || parsed < 0) return
-    onConfirm(description.trim(), parsed)
-    setDescription('')
-    setAge('')
-  }
-
-  return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          onClick={onCancel}
-        >
-          <div className="fixed inset-0 bg-black/50" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-sm flex flex-col overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button type="button" className="absolute top-4 right-4 z-10 group" onClick={onCancel}>
-              <FontAwesomeIcon
-                icon={faXmark}
-                className="w-4 h-4 text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
-              />
-            </button>
-            <div className="p-8 flex flex-col gap-4">
-              <h2 className="text-lg font-semibold">Descripción de la mascota</h2>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">
-                  Edad <span className="text-destructive">*</span>
-                </label>
-                <input
-                  autoFocus
-                  type="number"
-                  min={0}
-                  placeholder="Ej: 2"
-                  value={age}
-                  onChange={(e) => setAge(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleConfirm()}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-                <p className="text-xs text-muted-foreground/70">Años · la edad aproximada está bien</p>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Descripción</label>
-                <textarea
-                  placeholder="Describe la personalidad, raza..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
-                />
-              </div>
-              <Button onClick={handleConfirm} disabled={!age.trim()} className="rounded-xl">
-                Guardar
-              </Button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  )
-}
 
 function EditPetModal({
   pet,
@@ -349,12 +125,21 @@ function EditPetModal({
 }: {
   pet: Pet | null
   initialPhotos: EditPhoto[]
-  onSave: (id: string, updates: { name: string; description: string; age: number; photos: EditPhoto[] }) => void
+  onSave: (id: string, updates: {
+    name: string
+    description: string
+    age: number
+    gender: 'male' | 'female'
+    species: 'dog' | 'cat'
+    photos: EditPhoto[]
+  }) => void
   onClose: () => void
 }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [age, setAge] = useState<number | ''>('')
+  const [gender, setGender] = useState<'male' | 'female'>('male')
+  const [species, setSpecies] = useState<'dog' | 'cat'>('dog')
   const [photos, setPhotos] = useState<EditPhoto[]>([])
   const addRef = useRef<HTMLInputElement>(null)
 
@@ -363,6 +148,8 @@ function EditPetModal({
       setName(pet.name)
       setDescription(pet.description)
       setAge(pet.age)
+      setGender(pet.gender ?? 'male')
+      setSpecies(pet.species ?? 'dog')
       setPhotos(initialPhotos)
     }
   }, [pet])
@@ -429,6 +216,36 @@ function EditPetModal({
                 <p className="text-xs text-muted-foreground/70">La edad aproximada está bien</p>
               </div>
 
+              {/* Gender */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">Género</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setGender('male')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'male' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    ♂ Macho
+                  </button>
+                  <button type="button" onClick={() => setGender('female')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'female' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    ♀ Hembra
+                  </button>
+                </div>
+              </div>
+
+              {/* Species */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">Tipo</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setSpecies('dog')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'dog' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    🐕 Perro
+                  </button>
+                  <button type="button" onClick={() => setSpecies('cat')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'cat' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    🐈 Gato
+                  </button>
+                </div>
+              </div>
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Descripción</label>
                 <textarea
@@ -478,7 +295,7 @@ function EditPetModal({
               </div>
 
               <Button
-                onClick={() => { onSave(pet.id, { name, description, age: age as number, photos }); onClose() }}
+                onClick={() => { onSave(pet.id, { name, description, age: age as number, gender, species, photos }); onClose() }}
                 disabled={!name.trim() || age === ''}
                 className="rounded-xl"
               >
@@ -494,39 +311,44 @@ function EditPetModal({
 
 export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
   const [pets, setPets] = useState<Pet[]>([])
-  const [rescueCenterId, setRescueCenterId] = useState<string | null>(null)
-  const [uploadModalOpen, setUploadModalOpen] = useState(false)
+  const [addPetOpen, setAddPetOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [editingPet, setEditingPet] = useState<Pet | null>(null)
-  const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([])
-  const [pendingName, setPendingName] = useState<string | null>(null)
   const uploadMoreRef = useRef<HTMLInputElement>(null)
-  const dropzoneRef = useRef<HTMLInputElement>(null)
   const uploadPetIdRef = useRef<string | null>(null)
 
   useImperativeHandle(ref, () => ({
-    openUpload: () => setUploadModalOpen(true),
+    openUpload: () => setAddPetOpen(true),
   }))
 
   useEffect(() => {
     async function load() {
       const { data: rc } = await getMyRescueCenter()
       if (!rc) return
-      setRescueCenterId(rc.id)
       const data = await listPets(rc.id)
       setPets(data)
     }
     load()
   }, [])
 
-  const processNewFiles = (files: File[]) => {
-    const valid = files.filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
-    const oversized = files.filter((f) => f.size > 5 * 1024 * 1024)
-    if (oversized.length > 0) {
-      alert(`${oversized.length} archivo(s) superan el límite de 5 MB y no serán subidos.`)
+  const handleAddPetConfirm = async (data: AddPetFormData) => {
+    try {
+      const pet = await createPet({
+        name: data.name,
+        description: data.description,
+        age: data.age,
+        gender: data.gender,
+        species: data.species,
+      })
+      if (data.photos.length > 0) {
+        const photos = await uploadPhotos(pet.id, data.photos)
+        pet.photos = photos
+      }
+      setPets((prev) => [...prev, pet])
+      setAddPetOpen(false)
+    } catch (err) {
+      console.error('Error creating pet:', err)
     }
-    if (valid.length === 0) return
-    setPendingPhotos(valid.map((f) => ({ url: URL.createObjectURL(f), file: f })))
   }
 
   const handleUploadMore = (petId: string) => {
@@ -552,39 +374,12 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     e.target.value = ''
   }
 
-  const handleNameConfirm = (name: string) => {
-    setPendingName(name)
-  }
-
-  const handleNameCancel = () => {
-    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
-    setPendingPhotos([])
-  }
-
-  const handleDescriptionConfirm = async (description: string, age: number) => {
-    const pet = await createPet({ name: pendingName!, description, age, gender: 'male', species: 'dog' })
-    if (pendingPhotos.length > 0) {
-      const photos = await uploadPhotos(pet.id, pendingPhotos.map((p) => p.file))
-      pet.photos = photos
-    }
-    setPets((prev) => [...prev, pet])
-    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
-    setPendingPhotos([])
-    setPendingName(null)
-  }
-
-  const handleDescriptionCancel = () => {
-    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
-    setPendingPhotos([])
-    setPendingName(null)
-  }
-
   const handleEditSave = async (
     id: string,
-    updates: { name: string; description: string; age: number; photos: EditPhoto[] }
+    updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; photos: EditPhoto[] }
   ) => {
     // 1. Update metadata
-    const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age })
+    const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age, gender: updates.gender, species: updates.species })
 
     // 2. Delete removed existing photos
     const original = pets.find((p) => p.id === id)?.photos ?? []
@@ -629,34 +424,22 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         className="hidden"
         onChange={handleUploadMoreChange}
       />
-      <input
-        ref={dropzoneRef}
-        type="file"
-        accept="image/*"
-        multiple
-        className="hidden"
-        onChange={(e) => {
-          processNewFiles(Array.from(e.target.files ?? []))
-          e.target.value = ''
-        }}
-      />
 
+      {/* Tab header — always visible */}
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-base font-semibold">Mascotas</h2>
+        <Button onClick={() => setAddPetOpen(true)} className="rounded-xl gap-2">
+          <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
+          Agregar mascota
+        </Button>
+      </div>
+
+      {/* Empty state — only when no pets */}
       {pets.length === 0 && (
-        <div className="flex items-center justify-center min-h-[calc(100vh-3.5rem)] -m-4">
-          <div
-            className="rounded-2xl border-2 border-dashed border-input transition-colors cursor-pointer flex flex-col items-center justify-center gap-4 p-24"
-            onClick={() => dropzoneRef.current?.click()}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => {
-              e.preventDefault()
-              processNewFiles(Array.from(e.dataTransfer.files))
-            }}
-          >
-            <FontAwesomeIcon icon={faArrowUpFromBracket} className="w-10 h-10 text-muted-foreground" />
-            <div className="text-center px-4">
-              <p className="text-base font-medium text-muted-foreground">Subir fotos</p>
-              <p className="text-sm text-muted-foreground/70 mt-1">400×400 px · máx. 5 MB</p>
-            </div>
+        <div className="flex items-center justify-center min-h-[320px]">
+          <div className="flex flex-col items-center gap-3 text-muted-foreground">
+            <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-20" />
+            <p className="text-sm">Aún no hay mascotas. ¡Agrega la primera!</p>
           </div>
         </div>
       )}
@@ -672,18 +455,41 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
               transition={{ duration: 0.2 }}
               className="rounded-2xl border bg-card overflow-hidden shadow-xs"
             >
-              <div className="relative aspect-square">
-                <CardCarousel urls={pet.photos.map((p) => p.url)} />
-                <button
-                  type="button"
-                  onClick={() => setEditingPet(pet)}
-                  className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
-                >
-                  <FontAwesomeIcon icon={faPenToSquare} className="w-3.5 h-3.5 text-gray-700" />
-                </button>
+              <div className="relative aspect-square bg-muted/30">
+                {pet.photos.length > 0 ? (
+                  <>
+                    <CardCarousel urls={pet.photos.map((p) => p.url)} />
+                    <button
+                      type="button"
+                      onClick={() => setEditingPet(pet)}
+                      className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
+                    >
+                      <FontAwesomeIcon icon={faPenToSquare} className="w-3.5 h-3.5 text-gray-700" />
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setEditingPet(pet)}
+                    className="absolute inset-0 flex items-center justify-center hover:bg-muted/20 transition-colors group"
+                  >
+                    <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
+                  </button>
+                )}
               </div>
               <div className="p-3 flex items-center justify-between gap-2">
-                <span className="font-medium text-sm truncate">{pet.name}, {pet.age} años</span>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-medium text-sm truncate">{pet.name}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {[
+                      pet.age != null && `${pet.age} meses`,
+                      pet.gender === 'male' ? '♂' : pet.gender === 'female' ? '♀' : null,
+                      pet.species === 'dog' ? '🐕' : pet.species === 'cat' ? '🐈' : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </span>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-xl w-7 h-7">
@@ -711,27 +517,15 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         </AnimatePresence>
       </div>
 
-      <UploadModal
-        open={uploadModalOpen}
-        onFiles={(files) => { processNewFiles(files) }}
-        onClose={() => setUploadModalOpen(false)}
-      />
-
-      <NameModal
-        open={pendingPhotos.length > 0 && pendingName === null}
-        onConfirm={handleNameConfirm}
-        onCancel={handleNameCancel}
-      />
-
-      <DescriptionModal
-        open={pendingName !== null}
-        onConfirm={handleDescriptionConfirm}
-        onCancel={handleDescriptionCancel}
+      <AddPetModal
+        open={addPetOpen}
+        onConfirm={handleAddPetConfirm}
+        onClose={() => setAddPetOpen(false)}
       />
 
       <EditPetModal
         pet={editingPet}
-        initialPhotos={editingPet ? editingPet.photos.map((p) => ({ id: p.id, url: p.url })) : []}
+        initialPhotos={editingPet?.photos.map((p) => ({ id: p.id, url: p.url })) ?? []}
         onSave={handleEditSave}
         onClose={() => setEditingPet(null)}
       />
