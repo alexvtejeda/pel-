@@ -21,18 +21,28 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import Carousel from '@/components/Carousel'
+import { getMyRescueCenter } from '@/lib/api/rescue-centers'
+import {
+  listPets,
+  createPet,
+  updatePet,
+  deletePet,
+  uploadPhotos,
+  deletePhoto,
+  reorderPhotos,
+  type Pet,
+  type Photo,
+} from '@/lib/api/pets'
 
 export interface PetsTabHandle {
   openUpload: () => void
 }
 
-interface PetEntry {
-  id: string
-  name: string
-  description: string
-  age: number
-  photos: string[]
-}
+// A photo in the edit modal — either an existing API photo (has id) or a new local file
+type EditPhoto = { id?: string; url: string; file?: File }
+
+// A pending photo during the create flow (blob URL + original File)
+type PendingPhoto = { url: string; file: File }
 
 function CardCarousel({ urls }: { urls: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -333,17 +343,19 @@ function DescriptionModal({
 
 function EditPetModal({
   pet,
+  initialPhotos,
   onSave,
   onClose,
 }: {
-  pet: PetEntry | null
-  onSave: (id: string, updates: { name: string; description: string; age: number; photos: string[] }) => void
+  pet: Pet | null
+  initialPhotos: EditPhoto[]
+  onSave: (id: string, updates: { name: string; description: string; age: number; photos: EditPhoto[] }) => void
   onClose: () => void
 }) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [age, setAge] = useState<number | ''>('')
-  const [photos, setPhotos] = useState<string[]>([])
+  const [photos, setPhotos] = useState<EditPhoto[]>([])
   const addRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -351,7 +363,7 @@ function EditPetModal({
       setName(pet.name)
       setDescription(pet.description)
       setAge(pet.age)
-      setPhotos([...pet.photos])
+      setPhotos(initialPhotos)
     }
   }, [pet])
 
@@ -360,7 +372,7 @@ function EditPetModal({
       (f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024
     )
     if (files.length > 0) {
-      setPhotos((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))])
+      setPhotos((prev) => [...prev, ...files.map((f) => ({ url: URL.createObjectURL(f), file: f }))])
     }
     e.target.value = ''
   }
@@ -394,7 +406,6 @@ function EditPetModal({
             <div className="p-8 flex flex-col gap-5 overflow-y-auto">
               <h2 className="text-lg font-semibold">Editar mascota</h2>
 
-              {/* Name */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Nombre</label>
                 <input
@@ -405,7 +416,6 @@ function EditPetModal({
                 />
               </div>
 
-              {/* Age */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Edad (años)</label>
                 <input
@@ -419,7 +429,6 @@ function EditPetModal({
                 <p className="text-xs text-muted-foreground/70">La edad aproximada está bien</p>
               </div>
 
-              {/* Description */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Descripción</label>
                 <textarea
@@ -431,7 +440,6 @@ function EditPetModal({
                 />
               </div>
 
-              {/* Photos */}
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">Fotos</label>
                 <input ref={addRef} type="file" accept="image/*" multiple className="hidden" onChange={handleAddFiles} />
@@ -441,10 +449,10 @@ function EditPetModal({
                   onReorder={setPhotos}
                   className="flex gap-2 flex-wrap"
                 >
-                  {photos.map((url) => (
-                    <Reorder.Item key={url} value={url} className="relative cursor-grab active:cursor-grabbing">
+                  {photos.map((photo) => (
+                    <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
                       <img
-                        src={url}
+                        src={photo.url}
                         alt=""
                         draggable="false"
                         className="w-16 h-16 rounded-xl object-cover"
@@ -452,7 +460,7 @@ function EditPetModal({
                       <button
                         type="button"
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
-                        onClick={() => setPhotos((prev) => prev.filter((p) => p !== url))}
+                        onClick={() => setPhotos((prev) => prev.filter((p) => p.url !== photo.url))}
                       >
                         <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5 text-white" />
                       </button>
@@ -485,11 +493,12 @@ function EditPetModal({
 }
 
 export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
-  const [pets, setPets] = useState<PetEntry[]>([])
+  const [pets, setPets] = useState<Pet[]>([])
+  const [rescueCenterId, setRescueCenterId] = useState<string | null>(null)
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
-  const [editingPet, setEditingPet] = useState<PetEntry | null>(null)
-  const [pendingPhotos, setPendingPhotos] = useState<string[]>([])
+  const [editingPet, setEditingPet] = useState<Pet | null>(null)
+  const [pendingPhotos, setPendingPhotos] = useState<PendingPhoto[]>([])
   const [pendingName, setPendingName] = useState<string | null>(null)
   const uploadMoreRef = useRef<HTMLInputElement>(null)
   const dropzoneRef = useRef<HTMLInputElement>(null)
@@ -499,6 +508,17 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     openUpload: () => setUploadModalOpen(true),
   }))
 
+  useEffect(() => {
+    async function load() {
+      const { data: rc } = await getMyRescueCenter()
+      if (!rc) return
+      setRescueCenterId(rc.id)
+      const data = await listPets(rc.id)
+      setPets(data)
+    }
+    load()
+  }, [])
+
   const processNewFiles = (files: File[]) => {
     const valid = files.filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
     const oversized = files.filter((f) => f.size > 5 * 1024 * 1024)
@@ -506,7 +526,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
       alert(`${oversized.length} archivo(s) superan el límite de 5 MB y no serán subidos.`)
     }
     if (valid.length === 0) return
-    setPendingPhotos(valid.map((f) => URL.createObjectURL(f)))
+    setPendingPhotos(valid.map((f) => ({ url: URL.createObjectURL(f), file: f })))
   }
 
   const handleUploadMore = (petId: string) => {
@@ -514,7 +534,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     uploadMoreRef.current?.click()
   }
 
-  const handleUploadMoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadMoreChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? [])
     const valid = files.filter((f) => f.size <= 5 * 1024 * 1024)
     const oversized = files.filter((f) => f.size > 5 * 1024 * 1024)
@@ -523,9 +543,9 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
     }
     if (valid.length > 0 && uploadPetIdRef.current) {
       const petId = uploadPetIdRef.current
-      const newUrls = valid.map((f) => URL.createObjectURL(f))
+      const photos = await uploadPhotos(petId, valid)
       setPets((prev) =>
-        prev.map((p) => (p.id === petId ? { ...p, photos: [...p.photos, ...newUrls] } : p))
+        prev.map((p) => (p.id === petId ? { ...p, photos: [...p.photos, ...photos] } : p))
       )
     }
     uploadPetIdRef.current = null
@@ -537,34 +557,70 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
   }
 
   const handleNameCancel = () => {
-    pendingPhotos.forEach((url) => URL.revokeObjectURL(url))
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
     setPendingPhotos([])
   }
 
-  const handleDescriptionConfirm = (description: string, age: number) => {
-    const newPet: PetEntry = { id: crypto.randomUUID(), name: pendingName!, description, age, photos: pendingPhotos }
-    setPets((prev) => [...prev, newPet])
+  const handleDescriptionConfirm = async (description: string, age: number) => {
+    const pet = await createPet({ name: pendingName!, description, age, gender: 'male', species: 'dog' })
+    if (pendingPhotos.length > 0) {
+      const photos = await uploadPhotos(pet.id, pendingPhotos.map((p) => p.file))
+      pet.photos = photos
+    }
+    setPets((prev) => [...prev, pet])
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
     setPendingPhotos([])
     setPendingName(null)
-  }
-
-  const handleEditSave = (id: string, updates: { name: string; description: string; age: number; photos: string[] }) => {
-    setPets((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)))
-  }
-
-  const handleDeletePet = (petId: string) => {
-    setPets((prev) => prev.filter((p) => p.id !== petId))
   }
 
   const handleDescriptionCancel = () => {
-    pendingPhotos.forEach((url) => URL.revokeObjectURL(url))
+    pendingPhotos.forEach((p) => URL.revokeObjectURL(p.url))
     setPendingPhotos([])
     setPendingName(null)
+  }
+
+  const handleEditSave = async (
+    id: string,
+    updates: { name: string; description: string; age: number; photos: EditPhoto[] }
+  ) => {
+    // 1. Update metadata
+    const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age })
+
+    // 2. Delete removed existing photos
+    const original = pets.find((p) => p.id === id)?.photos ?? []
+    const keptIds = new Set(updates.photos.filter((p) => p.id).map((p) => p.id!))
+    const toDelete = original.filter((p) => !keptIds.has(p.id))
+    await Promise.all(toDelete.map((p) => deletePhoto(id, p.id)))
+
+    // 3. Upload new photos
+    const newFiles = updates.photos.filter((p) => p.file).map((p) => p.file!)
+    let newPhotos: Photo[] = []
+    if (newFiles.length > 0) {
+      newPhotos = await uploadPhotos(id, newFiles)
+    }
+
+    // 4. Build final photo list in display order
+    let newIdx = 0
+    const finalPhotos: Photo[] = updates.photos.map((ep) => {
+      if (ep.id) return original.find((p) => p.id === ep.id)!
+      return newPhotos[newIdx++]
+    })
+
+    // 5. Persist order if it changed
+    if (finalPhotos.length > 1) {
+      await reorderPhotos(id, finalPhotos.map((p) => p.id))
+    }
+
+    setPets((prev) => prev.map((p) => (p.id === id ? { ...updated, photos: finalPhotos } : p)))
+  }
+
+  const handleDeletePet = async (petId: string) => {
+    await deletePet(petId)
+    setPets((prev) => prev.filter((p) => p.id !== petId))
   }
 
   return (
     <>
-      {/* Hidden input for "Subir Fotos" on existing pets */}
       <input
         ref={uploadMoreRef}
         type="file"
@@ -573,7 +629,6 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         className="hidden"
         onChange={handleUploadMoreChange}
       />
-      {/* Hidden input for dropzone click (new pet, skips upload modal) */}
       <input
         ref={dropzoneRef}
         type="file"
@@ -607,8 +662,6 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
       )}
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-
-        {/* Pet cards */}
         <AnimatePresence>
           {pets.map((pet) => (
             <motion.div
@@ -620,7 +673,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
               className="rounded-2xl border bg-card overflow-hidden shadow-xs"
             >
               <div className="relative aspect-square">
-                <CardCarousel urls={pet.photos} />
+                <CardCarousel urls={pet.photos.map((p) => p.url)} />
                 <button
                   type="button"
                   onClick={() => setEditingPet(pet)}
@@ -678,6 +731,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
 
       <EditPetModal
         pet={editingPet}
+        initialPhotos={editingPet ? editingPet.photos.map((p) => ({ id: p.id, url: p.url })) : []}
         onSave={handleEditSave}
         onClose={() => setEditingPet(null)}
       />
