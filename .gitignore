@@ -73,3 +73,7 @@ hooks/read_hooks.js
 
 # Transcriptions for prompts
 *.txt
+
+#Form examples (tmp)
+form-template/
+successful-form/.worktrees
