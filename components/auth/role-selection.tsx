@@ -12,7 +12,7 @@ import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
   adopter: '/',
-  owner: '/',
+  member: '/',
 }
 
 interface RoleOption {
@@ -32,9 +32,9 @@ const roleOptions: RoleOption[] = [
     color: 'var(--color-pop-750)',
   },
   {
-    value: 'owner',
-    title: 'Dueño de mascota',
-    description: 'Quiero servicios para mi mascota',
+    value: 'member',
+    title: 'Miembro',
+    description: 'Explora mascotas, adopta o rescata un animal callejero.',
     icon: faDog,
     color: 'var(--color-pop-700)',
   },

@@ -11,10 +11,10 @@ import { RescueCenterWizard } from './rescue-center-wizard'
 const roleDashboardPaths: Record<string, string> = {
   rescue_center: '/dashboard/rescue-center',
   adopter: '/',
-  owner: '/',
+  member: '/',
 }
 
-const validRoles = ['adopter', 'owner', 'rescue_center']
+const validRoles = ['adopter', 'member', 'rescue_center']
 
 export function OnboardingClient({ role }: { role: string }) {
   const { user, loading } = useAuth()
@@ -26,12 +26,10 @@ export function OnboardingClient({ role }: { role: string }) {
       router.replace('/auth/login')
       return
     }
-    // Mismatch: user's role doesn't match the URL segment
     if (user.role && user.role !== role) {
       router.replace(`/auth/onboarding/${user.role}`)
       return
     }
-    // Unknown role in URL
     if (!validRoles.includes(role)) {
       router.replace(user.role ? (roleDashboardPaths[user.role] ?? '/') : '/')
     }
@@ -40,7 +38,7 @@ export function OnboardingClient({ role }: { role: string }) {
   if (loading || !user) return null
 
   if (role === 'adopter') return <AdopterWizard />
-  if (role === 'owner') return <OwnerWizard />
+  if (role === 'member') return <OwnerWizard />   // temporary — replaced in plan 2
   if (role === 'rescue_center') return <RescueCenterWizard />
 
   return null

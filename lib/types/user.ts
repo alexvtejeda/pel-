@@ -1,4 +1,4 @@
-export type UserRole = 'adopter' | 'owner' | 'rescue_center'
+export type UserRole = 'adopter' | 'member' | 'rescue_center'
 export type Language = 'es' | 'en'
 
 export interface AuthUser {
@@ -7,6 +7,7 @@ export interface AuthUser {
   role: UserRole | null
   auth_provider: string
   preferred_lang: string
+  display_name: string | null
 }
 
 export interface AuthResponse {

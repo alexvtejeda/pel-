@@ -3,7 +3,7 @@ import { OnboardingClient } from '@/components/auth/onboarding/onboarding-client
 export function generateStaticParams() {
   return [
     { role: 'adopter' },
-    { role: 'owner' },
+    { role: 'member' },
     { role: 'rescue_center' },
   ]
 }
