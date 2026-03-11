@@ -145,6 +145,11 @@
   ::file-selector-button {
     border-color: var(--color-border, currentcolor);
   }
+
+  /* Remove Firefox number input spinners */
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
 }
 
 @layer base {

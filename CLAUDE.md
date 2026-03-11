@@ -68,8 +68,11 @@ All API calls go through `lib/api/`:
 - `lib/api/client.ts` — `apiClient(path, options)` fetch wrapper with JWT auth + auto-refresh; session helpers (`storeSession`, `clearSession`, `getStoredUser`, etc.)
 - `lib/api/auth.ts` — `login`, `register`, `logout`, `setRole`, `googleRedirect`
 - `lib/api/rescue-centers.ts` — `listRescueCenters`, `getRescueCenter`, `createRescueCenter`, `updateRescueCenter`
+- `lib/api/pets.ts` — `listPets`, `createPet`, `updatePet`, `deletePet`, `uploadPhotos`, `deletePhoto`, `reorderPhotos`
 
 API functions return `{ data, error }` for consistent error handling. Never throw errors.
+
+**Photo upload exception**: `uploadPhotos` uses raw `fetch` (not `apiClient`) with `getStoredAccessToken()` because `multipart/form-data` must not have `Content-Type` set manually. Follow this same pattern for any future multipart endpoints.
 
 ### Protected Routes
 
@@ -88,6 +91,7 @@ Automatically redirects unauthenticated users to `/auth/login` and checks role r
 - **Slate**: `oklch(12.9% 0.042 264.695)` - Primary dark
 - **Zinc**: `oklch(14.1% 0.005 285.823)` - Neutral dark
 - **Dark Red**: `oklch(25.8% 0.092 26.042)` - Accent (use sparingly!)
+- **Pop** (`--color-pop-*`): Gradient accent color used for step indicators, beams, and CTAs (shades: 450, 500, 550)
 
 Configured in `app/globals.css` via `@theme {}` block (Tailwind v4 — no `tailwind.config.ts`) with full shade ranges (50-900).
 
@@ -139,6 +143,7 @@ When adding new UI text:
 | `/auth/login` | `components/auth/login-page.tsx` | Public |
 | `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no role yet) |
 | `/auth/google/callback` | `app/auth/google/callback/page.tsx` | Public (OAuth redirect target) |
+| `/auth/onboarding/[role]` | `components/auth/onboarding/onboarding-client.tsx` | Authenticated; routes to role-specific wizard |
 | `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
 
 Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
@@ -147,10 +152,12 @@ Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute
 
 ### Components Organization
 - `components/auth/` - Authentication-related components
+- `components/auth/onboarding/` - Role-specific onboarding wizards (`adopter-wizard.tsx`, `owner-wizard.tsx`, `rescue-center-wizard.tsx`) driven by `onboarding-client.tsx`
 - `components/landing/` - Landing page components (header, landing-page)
 - `components/logo.tsx` - Reusable logo component with Pelú dog illustration
-- `components/ui/` - shadcn/ui components (base UI primitives)
-- `components/dashboard/rescue-center/` - Rescue center dashboard: `dashboard-shell.tsx` (layout wrapper), `rescue-center-sidebar.tsx`, `mobile-bottom-nav.tsx`, and tabs: pets, interested, forms, notifications, agenda, settings
+- `components/Stepper.tsx` - Multi-step wizard UI with animated slide transitions (uses `motion/react`). Exports `Stepper` (default) and `Step`. Key props: `onFinalStepCompleted`, `title`, `subtitle`, `headerLeft` (ReactNode in header), `renderStepIndicator`, `backButtonText`/`nextButtonText`, `disableStepIndicators`.
+- `components/ui/` - shadcn/ui components (base UI primitives); also contains `beams.tsx` (`BackgroundBeams`) for animated SVG beam decorations
+- `components/dashboard/rescue-center/` - Rescue center dashboard: `dashboard-shell.tsx` (layout wrapper), `rescue-center-sidebar.tsx`, `mobile-bottom-nav.tsx`, and tabs: pets, interested, forms, notifications, agenda, settings. `add-pet-modal.tsx` handles pet creation (name, description, age, species, gender) + photo upload in a single modal flow.
 - `components/pets/` - Pet listing and discovery (future)
 - `components/chat/` - Messaging system (future)
 - `components/transport/` - Transport tracking (future)
@@ -168,6 +175,7 @@ Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute
 ### Notable Dependencies
 - `date-fns` - Date formatting and manipulation (used in notifications, agenda)
 - `react-day-picker` - Calendar/date picker UI (used in agenda tab)
+- `motion/react` - Animation library (used in Stepper transitions and onboarding wizards)
 
 > Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
 
@@ -222,7 +230,13 @@ interface AuthUser { id, email, role: UserRole | null, auth_provider, preferred_
 interface AuthResponse { access_token, refresh_token, user: AuthUser }
 ```
 
-Follow this pattern for other domain types (pets, matches, conversations, etc.).
+Pet-related types are co-located in `lib/api/pets.ts`:
+```typescript
+interface Photo { id, url, position: number }
+interface Pet { id, rescue_center_id, name, description, age: number, gender: 'male'|'female', species: 'dog'|'cat', status, photos: Photo[] }
+```
+
+> **Note**: `lib/api/pets.ts` functions currently throw errors instead of returning `{ data, error }`. New API modules should use the `{ data, error }` pattern; pet functions are a known exception.
 
 ## Implementation Workflow
 

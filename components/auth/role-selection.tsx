@@ -56,8 +56,10 @@ export function RoleSelection() {
   const submitted = useRef(false)
 
   // Auto-redirect returning users who already have a role
+  // Skip if they navigated back from onboarding to change their role
   useEffect(() => {
-    if (user?.role && !submitted.current) {
+    const changingRole = localStorage.getItem('pelu_changing_role')
+    if (user?.role && !submitted.current && !changingRole) {
       router.push(roleDashboardPaths[user.role])
     }
   }, [user, router])
@@ -68,6 +70,7 @@ export function RoleSelection() {
     submitted.current = true
     setLoading(true)
     setError(null)
+    localStorage.removeItem('pelu_changing_role')
 
     const { error: roleError } = await setRole(selectedRole)
 

@@ -17,6 +17,9 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   backButtonText?: string;
   nextButtonText?: string;
   disableStepIndicators?: boolean;
+  title?: string;
+  subtitle?: string;
+  headerLeft?: ReactNode;
   renderStepIndicator?: (props: {
     step: number;
     currentStep: number;
@@ -38,6 +41,9 @@ export default function Stepper({
   backButtonText = 'Back',
   nextButtonText = 'Continue',
   disableStepIndicators = false,
+  title,
+  subtitle,
+  headerLeft,
   renderStepIndicator,
   ...rest
 }: StepperProps) {
@@ -78,13 +84,23 @@ export default function Stepper({
 
   return (
     <div
-      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-[4/3] md:aspect-[2/1]"
+      className="flex min-h-full flex-1 flex-col items-center justify-center p-4 sm:aspect-4/3 md:aspect-2/1"
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-md rounded-4xl shadow-xl ${stepCircleContainerClassName}`}
-        style={{ border: '1px solid #222' }}
+        className={`mx-auto w-full max-w-lg rounded-4xl shadow-xl ${stepCircleContainerClassName} border border-input bg-background`}
       >
+        {(title || subtitle || headerLeft) && (
+          <div className="relative text-center p-8">
+            {headerLeft && (
+              <div className="flex h-full items-start pt-4 mb-8">
+                {headerLeft}
+              </div>
+            )}
+            {title && <h1 className="text-xl font-bold">{title}</h1>}
+            {subtitle && <p className="text-muted-foreground text-sm mt-1">{subtitle}</p>}
+          </div>
+        )}
         <div className={`${stepContainerClassName} flex w-full items-center p-8`}>
           {stepsArray.map((_, index) => {
             const stepNumber = index + 1;
@@ -144,7 +160,7 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-green-500 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:bg-green-600 active:bg-green-700"
+                className="duration-350 flex items-center justify-center rounded-full bg-pop-550 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:opacity-90 active:opacity-80"
                 {...nextButtonProps}
               >
                 {isLastStep ? 'Complete' : nextButtonText}
@@ -271,17 +287,17 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators =
     >
       <motion.div
         variants={{
-          inactive: { scale: 1, backgroundColor: '#222', color: '#a3a3a3' },
-          active: { scale: 1, backgroundColor: '#5227FF', color: '#5227FF' },
-          complete: { scale: 1, backgroundColor: '#5227FF', color: '#3b82f6' }
+          inactive: { scale: 1, backgroundColor: 'var(--primary)', color: 'var(--primary-foreground)' },
+          active: { scale: 1, backgroundColor: 'var(--color-pop-450)', color: 'var(--color-pop-450)' },
+          complete: { scale: 1, backgroundColor: 'var(--color-pop-450)', color: 'var(--primary)' }
         }}
         transition={{ duration: 0.3 }}
         className="flex h-8 w-8 items-center justify-center rounded-full font-semibold"
       >
         {status === 'complete' ? (
-          <FontAwesomeIcon icon={faCheck} className="h-4 w-4 text-black" />
+          <FontAwesomeIcon icon={faCheck} className="h-4 w-4 text-primary" />
         ) : status === 'active' ? (
-          <div className="h-3 w-3 rounded-full bg-[#060010]" />
+          <div className="h-3 w-3 rounded-full bg-background" />
         ) : (
           <span className="text-sm">{step}</span>
         )}
@@ -297,7 +313,7 @@ interface StepConnectorProps {
 function StepConnector({ isComplete }: StepConnectorProps) {
   const lineVariants: Variants = {
     incomplete: { width: 0, backgroundColor: 'transparent' },
-    complete: { width: '100%', backgroundColor: '#5227FF' }
+    complete: { width: '100%', backgroundColor: 'var(--color-pop-450)' }
   };
 
   return (

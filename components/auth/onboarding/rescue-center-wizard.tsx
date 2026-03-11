@@ -1,19 +1,24 @@
 'use client'
-
-import { useState, useRef, useEffect } from 'react'
+import { OnboardingNav } from './onboarding-nav'
+import React, { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faPaw,
+  faArrowUpFromBracket,
   faPlus,
   faXmark,
+  faMars,
+  faVenus,
+  faDog,
+  faCat,
 } from '@fortawesome/free-solid-svg-icons'
 import Carousel from '@/components/Carousel'
 import { createRescueCenter } from '@/lib/api/rescue-centers'
 import { createPet, uploadPhotos } from '@/lib/api/pets'
 import { BackgroundBeams } from '@/components/ui/beams'
-import { Logo } from '@/components/logo'
+
 
 interface PendingPhoto {
   url: string
@@ -93,10 +98,6 @@ export function RescueCenterWizard() {
     ])
   }
 
-  const removePhoto = (url: string) => {
-    URL.revokeObjectURL(url)
-    setPetPhotos((prev) => prev.filter((p) => p.url !== url))
-  }
 
   // Pet section is considered filled if name is provided
   const hasPetData = petName.trim() !== ''
@@ -152,9 +153,9 @@ export function RescueCenterWizard() {
 
   if (submitted) {
     return (
-      <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
-        <div className="relative z-10 w-full max-w-md text-center space-y-6">
+        <div className="relative z-10 w-full rounded-lg max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
           <FontAwesomeIcon icon={faPaw} className="w-16 h-16 text-foreground" />
           <h1 className="text-2xl font-bold text-foreground">¡Solicitud enviada!</h1>
           <p className="text-muted-foreground">
@@ -178,10 +179,14 @@ export function RescueCenterWizard() {
     <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
 
-      {/* Topbar */}
-      <nav className="relative bg-card z-10 flex items-center px-8 py-5 inset-shadow-[0px_0px_1px_2px_var(--color-input)]">
-        <Logo width={32} height={32} />
-      </nav>
+      <OnboardingNav 
+        items={[
+          {label: 'Inicio', current: false, href: "/"}, 
+          {label: 'Registro', current: false, href: "/auth/register"},
+          {label: 'Rol', current: false, href: "/auth/role-selection", changeRole: true},
+          {label: 'Centro de Rescate', current: true}
+        ]}
+      />
 
       {/* Page content */}
       <main className="backdrop-blur-sm my-4 rounded-lg relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30  inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
@@ -190,7 +195,7 @@ export function RescueCenterWizard() {
         <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
 
         {/* Two-column: center fields + pet photo grid */}
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_240px] gap-8 mb-12">
+        <div>
 
           {/* Left: Center fields */}
           <div className="flex flex-col gap-5">
@@ -284,14 +289,132 @@ export function RescueCenterWizard() {
               </div>
             </div>
           </div>
+        </div>
 
+        {/* "Opcional" divider */}
+        <div className="grid grid-cols-2 gap-y-8">
+          <div className="my-8 col-span-4 flex items-center gap-4 mb-8">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">
+              Opcional
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          {/* Optional pet section */}
+          <p className="col-span-4 self-center text-base font-semibold mb-5">¿Tienes una mascota lista para adopción?</p>
+
+          <div className="flex flex-col gap-8 mb-12">
+            {/* Name + description */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Nombre
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej. Coco"
+                  value={petName}
+                  onChange={(e) => setPetName(e.target.value)}
+                  className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Descripción
+                </label>
+                <input
+                  type="text"
+                  placeholder="ej. Muy cariñoso, bueno con niños…"
+                  value={petDescription}
+                  onChange={(e) => setPetDescription(e.target.value)}
+                  className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            </div>
+
+            {/* Age */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Edad (años)
+              </label>
+              <input
+                type="number"
+                min={0}
+                placeholder="ej. 8"
+                value={petAge}
+                onChange={(e) => setPetAge(e.target.value)}
+                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
+
+            {/* Gender + Species toggles */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Género
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPetGender('male')}
+                    className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      petGender === 'male'
+                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        : 'border-input text-muted-foreground hover:border-border'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faMars} /> Macho
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPetGender('female')}
+                    className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ease-in duration-300 ${
+                      petGender === 'female'
+                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        : 'border-input text-muted-foreground hover:border-border'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faVenus} /> Hembra
+                  </button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Tipo
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPetSpecies('dog')}
+                    className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      petSpecies === 'dog'
+                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        : 'border-input text-muted-foreground hover:border-border'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faDog} /> Perro
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPetSpecies('cat')}
+                    className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      petSpecies === 'cat'
+                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        : 'border-input text-muted-foreground hover:border-border'
+                    }`}
+                  >
+                    <FontAwesomeIcon icon={faCat} /> Gato
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           {/* Right: Pet photo grid */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-2 ms-8">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Fotos de la mascota{' '}
-              <span className="text-muted-foreground/50 font-normal normal-case tracking-normal">
-                (opcional)
-              </span>
+              Vista Previa {' '}
             </label>
             <input
               ref={photoInputRef}
@@ -313,211 +436,87 @@ export function RescueCenterWizard() {
                   <button
                     type="button"
                     onClick={() => { petPhotos.forEach((p) => URL.revokeObjectURL(p.url)); setPetPhotos([]) }}
-                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
+                    className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-background/90 shadow-sm hover:bg-background transition-colors"
                   >
-                    <FontAwesomeIcon icon={faXmark} className="w-3.5 h-3.5 text-gray-700" />
+                    <FontAwesomeIcon icon={faXmark} className="text-primary" />
                   </button>
                   {/* Add more photos */}
                   {petPhotos.length < MAX_PHOTOS && (
                     <button
                       type="button"
                       onClick={() => photoInputRef.current?.click()}
-                      className="absolute bottom-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
+                      className="absolute bottom-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-background/90 shadow-sm hover:bg-background transition-colors"
                     >
-                      <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5 text-gray-700" />
+                      <FontAwesomeIcon icon={faPlus} className="text-primary" />
                     </button>
                   )}
                 </div>
                 <div className="p-3">
                   <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {[
-                      petAge && `${petAge} meses`,
-                      petGender === 'male' ? '♂' : '♀',
-                      petSpecies === 'dog' ? '🐕' : '🐈',
-                    ].filter(Boolean).join(' · ')}
-                  </p>
                 </div>
               </div>
             ) : (
               /* Card silhouette — same shape as the preview, dashed border photo area */
               <div
-                className="rounded-xl border inset-shadow-[0px_0px_1px_2px_var(--color-input)] bg-card overflow-hidden cursor-pointer"
+                className="rounded-xl border inset-shadow-[1px_1px_1px_1px_var(--color-input)] bg-card overflow-hidden cursor-pointer"
                 onClick={() => photoInputRef.current?.click()}
                 onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
               >
                 <div className={`relative aspect-square border-b-2 border-dashed flex items-center justify-center transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
-                  <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/20" />
+                  <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-5xl text-muted-foreground/20" />
                 </div>
                 <div className="p-3">
                   <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
                   <p className="text-xs text-muted-foreground">
                     {[
-                      petAge && `${petAge} meses`,
-                      petGender === 'male' ? '♂' : '♀',
-                      petSpecies === 'dog' ? '🐕' : '🐈',
-                    ].filter(Boolean).join(' · ')}
+                      petAge && `${petAge} años`,
+                      petGender === 'male' ? <FontAwesomeIcon icon={faMars} /> : <FontAwesomeIcon icon={faVenus} />,
+                      petSpecies === 'dog' ? <FontAwesomeIcon icon={faDog} /> : <FontAwesomeIcon icon={faCat} />,
+                    ].filter(Boolean).map((item, i, arr) => (
+                      <React.Fragment key={i}>{item}{i < arr.length - 1 && ' · '}</React.Fragment>
+                    ))}
                   </p>
                 </div>
               </div>
             )}
-            <p className="text-xs text-muted-foreground/40 text-center">
-              Arrastra y suelta · Se comprimen automáticamente
+            <p className="text-xs text-muted-foreground text-center">
+              Arrastra y suelta · Click para subir imagen de mascota
             </p>
+          </div>          
+
+          {/* Footer */}
+          <div className="col-span-full flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                localStorage.setItem('pelu_changing_role', '1')
+                router.push('/auth/role-selection')
+              }}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" />
+              Cambiar rol
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {submitting ? 'Enviando…' : 'Enviar solicitud →'}
+            </button>
           </div>
         </div>
-
-        {/* "Opcional" divider */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex-1 h-px bg-border" />
-          <span className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">
-            Opcional
-          </span>
-          <div className="flex-1 h-px bg-border" />
-        </div>
-
-        {/* Optional pet section */}
-        <p className="text-base font-semibold mb-5">¿Tienes una mascota lista para adopción?</p>
-
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-5 mb-12">
-          {/* Name + description */}
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Nombre
-              </label>
-              <input
-                type="text"
-                placeholder="ej. Coco"
-                value={petName}
-                onChange={(e) => setPetName(e.target.value)}
-                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
+        <div className="animate-wiggle col-span-full m-8">
+          {/* Error */}
+          {submitError && (
+            <div className="p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm">
+              {submitError}
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Descripción
-              </label>
-              <input
-                type="text"
-                placeholder="ej. Muy cariñoso, bueno con niños…"
-                value={petDescription}
-                onChange={(e) => setPetDescription(e.target.value)}
-                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
-            </div>
-          </div>
-
-          {/* Age */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Edad (meses)
-            </label>
-            <input
-              type="number"
-              min={0}
-              placeholder="ej. 8"
-              value={petAge}
-              onChange={(e) => setPetAge(e.target.value)}
-              className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          {/* Gender + Species toggles */}
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Género
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPetGender('male')}
-                  className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petGender === 'male'
-                      ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
-                      : 'border-input text-muted-foreground hover:border-border'
-                  }`}
-                >
-                  ♂ Macho
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPetGender('female')}
-                  className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petGender === 'female'
-                      ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
-                      : 'border-input text-muted-foreground hover:border-border'
-                  }`}
-                >
-                  ♀ Hembra
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Tipo
-              </label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPetSpecies('dog')}
-                  className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petSpecies === 'dog'
-                      ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
-                      : 'border-input text-muted-foreground hover:border-border'
-                  }`}
-                >
-                  🐕 Perro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPetSpecies('cat')}
-                  className={`flex-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petSpecies === 'cat'
-                      ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
-                      : 'border-input text-muted-foreground hover:border-border'
-                  }`}
-                >
-                  🐈 Gato
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Error */}
-        {submitError && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm">
-            {submitError}
-          </div>
-        )}
-
-        {/* Footer */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => {
-              localStorage.setItem('pelu_changing_role', '1')
-              router.push('/auth/role-selection')
-            }}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" />
-            Cambiar rol
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {submitting ? 'Enviando…' : 'Enviar solicitud →'}
-          </button>
-        </div>
-
+          )}
+        </div>      
       </main>
     </div>
   )

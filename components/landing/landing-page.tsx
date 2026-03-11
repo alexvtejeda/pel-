@@ -60,7 +60,7 @@ export function LandingPage() {
               <div className="text-muted-foreground">{t('hero.stats.rescue_centers_label')}</div>
             </div>
             <div className="text-center p-6 bg-muted rounded-2xl">
-              <div className="text-4xl font-bold text-red-700 mb-2">{t('hero.stats.adoptions')}</div>
+              <div className="text-4xl font-bold text-pop-600 mb-2">{t('hero.stats.adoptions')}</div>
               <div className="text-muted-foreground">{t('hero.stats.adoptions_label')}</div>
             </div>
           </div>

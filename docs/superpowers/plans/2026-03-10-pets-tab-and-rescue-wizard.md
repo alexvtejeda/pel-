@@ -199,7 +199,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
             transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-[520px] flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-130 flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -643,7 +643,7 @@ Replace the current empty-state block (the `pets.length === 0` block that shows 
 
 {/* Empty state — only when no pets */}
 {pets.length === 0 && (
-  <div className="flex items-center justify-center min-h-[320px]">
+  <div className="flex items-center justify-center min-h-80">
     <div className="flex flex-col items-center gap-3 text-muted-foreground">
       <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-20" />
       <p className="text-sm">Aún no hay mascotas. ¡Agrega la primera!</p>
@@ -917,7 +917,7 @@ export function RescueCenterWizard() {
       </nav>
 
       {/* Page content */}
-      <main className="relative z-10 max-w-[920px] mx-auto px-8 py-12 pb-20">
+      <main className="relative z-10 max-w-230 mx-auto px-8 py-12 pb-20">
 
         <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu centro de rescate</h1>
         <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
@@ -1029,7 +1029,7 @@ export function RescueCenterWizard() {
             >
               {/* Main slot — col-span-2 */}
               {petPhotos[0] ? (
-                <div className="col-span-2 relative rounded-xl overflow-hidden h-[116px]">
+                <div className="col-span-2 relative rounded-xl overflow-hidden h-29">
                   <img src={petPhotos[0].url} alt="" className="w-full h-full object-cover" />
                   <button
                     type="button"
@@ -1041,7 +1041,7 @@ export function RescueCenterWizard() {
                 </div>
               ) : (
                 <div
-                  className={`col-span-2 rounded-xl border-2 border-dashed h-[116px] flex flex-col items-center justify-center gap-1 transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}
+                  className={`col-span-2 rounded-xl border-2 border-dashed h-29 flex flex-col items-center justify-center gap-1 transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}
                   onClick={() => photoInputRef.current?.click()}
                 >
                   <FontAwesomeIcon icon={faPlus} className="w-5 h-5 text-muted-foreground/30" />

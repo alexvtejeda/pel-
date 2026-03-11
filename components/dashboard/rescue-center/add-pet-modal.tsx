@@ -104,7 +104,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
             transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-[520px] flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-130 flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}

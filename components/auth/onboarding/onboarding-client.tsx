@@ -1,5 +1,6 @@
 'use client'
 
+import { OnboardingNav } from './onboarding-nav'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'

@@ -1,10 +1,13 @@
 'use client'
 
+import { OnboardingNav } from './onboarding-nav'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faHeart } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faHeart, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import Stepper, { Step } from '@/components/Stepper'
+import { BackgroundBeams } from '@/components/ui/beams'
+
 
 export function OwnerWizard() {
   const router = useRouter()
@@ -19,14 +22,29 @@ export function OwnerWizard() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-lg">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold mb-1">Cuéntanos sobre ti</h1>
-          <p className="text-muted-foreground text-sm">Solo unos pasos para personalizar tu experiencia</p>
-        </div>
-
+    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <OnboardingNav 
+        items={[
+          {label: 'Inicio', current: false, href: "/"}, 
+          {label: 'Registro', current: false, href: "/auth/register"},
+          {label: 'Rol', current: false, href: "/auth/role-selection", changeRole: true},
+          {label: 'Individuo', current: true}
+        ]}
+      />
+      <BackgroundBeams />
+      <div className="relative z-10 w-full max-w-lg">
         <Stepper
+          title="Cuéntanos sobre ti"
+          subtitle="Solo unos pasos para personalizar tu experiencia"
+          headerLeft={
+            <button
+              onClick={() => { localStorage.setItem('pelu_changing_role', '1'); router.push('/auth/role-selection') }}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" />
+              Cambiar rol
+            </button>
+          }
           onFinalStepCompleted={handleComplete}
           backButtonText="Atrás"
           nextButtonText="Siguiente"
