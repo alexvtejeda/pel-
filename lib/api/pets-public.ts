@@ -31,3 +31,17 @@ export async function listPublicPets(
     return { data: null, error: 'Error de conexión' }
   }
 }
+
+export async function getPetBySlug(
+  slug: string
+): Promise<{ data: Pet | null; error: string | null }> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/pets/s/${encodeURIComponent(slug)}`)
+    if (res.status === 404) return { data: null, error: null }
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar mascota' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}

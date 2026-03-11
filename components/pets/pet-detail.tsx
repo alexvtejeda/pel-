@@ -13,6 +13,8 @@ import {
   faChevronLeft,
   faChevronRight,
   faCakeCandles,
+  faShareFromSquare,
+  faCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -26,6 +28,7 @@ export function PetDetail({ pet }: PetDetailProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
   const [photoIndex, setPhotoIndex] = useState(0)
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     setPhotoIndex(0)
@@ -36,6 +39,18 @@ export function PetDetail({ pet }: PetDetailProps) {
 
   const prev = () => setPhotoIndex((i) => (i > 0 ? i - 1 : photos.length - 1))
   const next = () => setPhotoIndex((i) => (i < photos.length - 1 ? i + 1 : 0))
+
+  const handleShare = async () => {
+    if (!pet.short_slug) return
+    const url = `${window.location.origin}/p/${pet.short_slug}`
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      // Clipboard API not available
+    }
+  }
 
   const handleAdopt = () => {
     alert(t('detail.coming_soon'))
@@ -126,8 +141,8 @@ export function PetDetail({ pet }: PetDetailProps) {
         )}
       </div>
 
-      {/* Adopt button */}
-      <div className="p-4 border-t border-border shrink-0">
+      {/* Adopt button + share */}
+      <div className="p-4 border-t border-border shrink-0 space-y-2">
         {user ? (
           <button
             onClick={handleAdopt}
@@ -142,6 +157,15 @@ export function PetDetail({ pet }: PetDetailProps) {
           >
             {t('detail.login_prompt')}
           </Link>
+        )}
+        {pet.short_slug && (
+          <button
+            onClick={handleShare}
+            className="w-full py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
+          >
+            <FontAwesomeIcon icon={copied ? faCheck : faShareFromSquare} className="w-3.5 h-3.5" />
+            {copied ? t('detail.link_copied', 'Enlace copiado') : t('detail.share', 'Compartir')}
+          </button>
         )}
       </div>
     </div>

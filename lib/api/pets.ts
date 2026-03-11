@@ -17,6 +17,7 @@ export interface Pet {
   gender: 'male' | 'female'
   species: 'dog' | 'cat'
   status: string
+  short_slug: string
   photos: Photo[]
 }
 
