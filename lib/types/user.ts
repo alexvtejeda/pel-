@@ -1,4 +1,4 @@
-export type UserRole = 'adopter' | 'member' | 'rescue_center'
+export type UserRole = 'adopter' | 'member' | 'rescue_center' | 'business'
 export type Language = 'es' | 'en'
 
 export interface AuthUser {

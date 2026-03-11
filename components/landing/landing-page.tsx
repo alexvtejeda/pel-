@@ -12,6 +12,7 @@ const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
   adopter: '/',
   member: '/',
+  business: '/',
 }
 
 export function LandingPage() {

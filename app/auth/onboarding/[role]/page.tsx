@@ -5,6 +5,7 @@ export function generateStaticParams() {
     { role: 'adopter' },
     { role: 'member' },
     { role: 'rescue_center' },
+    { role: 'business' },
   ]
 }
 
