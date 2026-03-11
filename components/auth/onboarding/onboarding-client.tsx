@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { AdopterWizard } from './adopter-wizard'
-import { OwnerWizard } from './owner-wizard'
+import { MemberWizard } from './member-wizard'
 import { RescueCenterWizard } from './rescue-center-wizard'
 
 const roleDashboardPaths: Record<string, string> = {
@@ -38,7 +38,7 @@ export function OnboardingClient({ role }: { role: string }) {
   if (loading || !user) return null
 
   if (role === 'adopter') return <AdopterWizard />
-  if (role === 'member') return <OwnerWizard />   // temporary — replaced in plan 2
+  if (role === 'member') return <MemberWizard />
   if (role === 'rescue_center') return <RescueCenterWizard />
 
   return null
