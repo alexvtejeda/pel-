@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, getStoredAccessToken } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -13,6 +13,7 @@ export interface RescueCenter {
   address: string
   city: string
   status: string
+  logo_url: string | null
 }
 
 export interface CreateRescueCenterInput {
@@ -62,4 +63,25 @@ export async function updateRescueCenter(id: string, data: Partial<CreateRescueC
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al actualizar centro de rescate' }
   return { data: json, error: null }
+}
+
+// Uses raw fetch — multipart/form-data must not have Content-Type set manually
+export async function uploadRcLogo(
+  file: File
+): Promise<{ data: { logo_url: string } | null; error: string | null }> {
+  try {
+    const token = getStoredAccessToken()
+    const form = new FormData()
+    form.append('logo', file)
+    const res = await fetch(`${BASE_URL}/api/v1/rescue-centers/me/logo`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: form,
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al subir logo' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
 }

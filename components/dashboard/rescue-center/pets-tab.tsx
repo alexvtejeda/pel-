@@ -349,6 +349,8 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         age: data.age,
         gender: data.gender,
         species: data.species,
+        conditions: data.conditions.length > 0 ? data.conditions : undefined,
+        condition_notes: data.condition_notes?.trim() || undefined,
       })
       if (data.photos.length > 0) {
         try {
@@ -501,7 +503,14 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
               </div>
               <div className="p-3 flex items-center justify-between gap-2">
                 <div className="flex flex-col gap-0.5 min-w-0">
-                  <span className="font-medium text-sm truncate">{pet.name}</span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium text-sm truncate">{pet.name}</span>
+                    {pet.conditions?.length > 0 && (
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
+                        Condición especial
+                      </span>
+                    )}
+                  </div>
                   <span className="text-xs text-muted-foreground">
                     {[
                       pet.age != null && `${pet.age} meses`,

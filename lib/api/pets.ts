@@ -19,6 +19,8 @@ export interface Pet {
   status: string
   short_slug: string
   photos: Photo[]
+  conditions: string[]
+  condition_notes: string | null
 }
 
 export async function listPets(rescueCenterId: string): Promise<Pet[]> {
@@ -27,13 +29,13 @@ export async function listPets(rescueCenterId: string): Promise<Pet[]> {
   return res.json()
 }
 
-export async function createPet(data: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat' }): Promise<Pet> {
+export async function createPet(data: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
   const res = await apiClient('/api/v1/pets', { method: 'POST', body: JSON.stringify(data) })
   if (!res.ok) throw new Error('Failed to create pet')
   return res.json()
 }
 
-export async function updatePet(id: string, data: { name?: string; description?: string; age?: number; gender?: 'male' | 'female'; species?: 'dog' | 'cat' }): Promise<Pet> {
+export async function updatePet(id: string, data: { name?: string; description?: string; age?: number; gender?: 'male' | 'female'; species?: 'dog' | 'cat'; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
   const res = await apiClient(`/api/v1/pets/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
   if (!res.ok) throw new Error('Failed to update pet')
   return res.json()

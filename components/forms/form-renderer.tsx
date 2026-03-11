@@ -1,0 +1,265 @@
+'use client'
+
+import { useState } from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { Form, FormField, FieldType } from '@/lib/api/forms'
+
+type Answers = Record<string, string | string[]>
+type FileMap = Record<string, File>
+
+interface FormRendererProps {
+  form: Form
+  rc: { name: string; logo_url: string | null }
+  preview?: boolean
+  onSubmit?: (answers: Answers, files: FileMap) => Promise<void>
+}
+
+export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormRendererProps) {
+  const [answers, setAnswers]     = useState<Answers>({})
+  const [files, setFiles]         = useState<FileMap>({})
+  const [errors, setErrors]       = useState<Record<string, string>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [submitted, setSubmitted] = useState(false)
+
+  const setAnswer = (id: string, value: string | string[]) =>
+    setAnswers(prev => ({ ...prev, [id]: value }))
+
+  const validate = (): boolean => {
+    const newErrors: Record<string, string> = {}
+    for (const field of form.fields) {
+      if (!field.required) continue
+      const ans = answers[field.id]
+      if (!ans || (Array.isArray(ans) ? ans.length === 0 : ans.trim() === '')) {
+        newErrors[field.id] = 'Este campo es obligatorio'
+      }
+    }
+    setErrors(newErrors)
+    if (Object.keys(newErrors).length > 0) {
+      // Scroll to first error
+      const firstId = Object.keys(newErrors)[0]
+      document.getElementById(`field-${firstId}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      return false
+    }
+    return true
+  }
+
+  const handleSubmit = async () => {
+    if (preview || !onSubmit) return
+    if (!validate()) return
+    setSubmitting(true)
+    setSubmitError(null)
+    try {
+      await onSubmit(answers, files)
+      setSubmitted(true)
+    } catch (e) {
+      setSubmitError(e instanceof Error ? e.message : 'Error al enviar')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="text-center py-12 space-y-4">
+        <p className="text-4xl">&#x1F43E;</p>
+        <h2 className="text-xl font-bold">¡Solicitud enviada!</h2>
+        <p className="text-muted-foreground text-sm">
+          Tu solicitud ha sido enviada. El centro revisará tu información y te notificará pronto.
+        </p>
+        <div className="p-4 bg-muted rounded-2xl text-sm text-muted-foreground">
+          Estado: <span className="font-medium text-foreground">Pendiente de revisión</span>
+        </div>
+        <a href="/pets" className="inline-block px-6 py-2.5 bg-pop-550 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+          Volver a mascotas
+        </a>
+      </div>
+    )
+  }
+
+  let lastSection = ''
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+      <h1 className="text-2xl font-bold">{form.name}</h1>
+
+      {form.fields.map(field => {
+        const showSectionHeader = field.section && field.section !== lastSection
+        if (field.section) lastSection = field.section
+
+        return (
+          <div key={field.id}>
+            {showSectionHeader && (
+              <div className="flex items-center gap-3 mt-6 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  {field.section}
+                </span>
+                <div className="flex-1 border-t border-border" />
+              </div>
+            )}
+            <FieldInput
+              field={field}
+              value={answers[field.id]}
+              fileValue={files[field.id]}
+              error={errors[field.id]}
+              preview={preview}
+              onChange={val => setAnswer(field.id, val)}
+              onFile={file => setFiles(prev => ({ ...prev, [field.id]: file }))}
+              allAnswers={answers}
+              onAnswerChange={setAnswer}
+            />
+          </div>
+        )
+      })}
+
+      {!preview && (
+        <div className="pt-4">
+          {submitError && (
+            <div className="mb-4 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm animate-wiggle">
+              {submitError}
+            </div>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={submitting}
+            className="w-full py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {submitting ? 'Enviando...' : 'Enviar solicitud ->'}
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface FieldInputProps {
+  field: FormField
+  value: string | string[] | undefined
+  fileValue: File | undefined
+  error: string | undefined
+  preview: boolean
+  onChange: (val: string | string[]) => void
+  onFile: (file: File) => void
+  allAnswers: Answers
+  onAnswerChange: (id: string, value: string | string[]) => void
+}
+
+function FieldInput({ field, value, fileValue, error, preview, onChange, onFile, allAnswers, onAnswerChange }: FieldInputProps) {
+  const strVal    = typeof value === 'string' ? value : ''
+  const arrVal    = Array.isArray(value) ? value : []
+  const inputCls  = `w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring bg-background ${error ? 'border-destructive ring-2 ring-destructive' : 'border-input'}`
+
+  // Which follow-up to show (for multiple_choice / dropdown)?
+  const activeFollowUp = (field.type === 'multiple_choice' || field.type === 'dropdown')
+    ? field.follow_ups?.find(fu => fu.when_answer === strVal)
+    : null
+
+  return (
+    <div id={`field-${field.id}`} className="space-y-2">
+      <label className="block text-sm font-medium">
+        {field.label}
+        {field.required && <span className="text-destructive ml-1">*</span>}
+      </label>
+      {field.description && (
+        <p className="text-xs text-muted-foreground">{field.description}</p>
+      )}
+
+      {field.type === 'short_text' && (
+        <input type="text" value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+      )}
+      {field.type === 'long_text' && (
+        <textarea rows={4} value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+      )}
+      {field.type === 'date' && (
+        <input type="date" value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+      )}
+      {field.type === 'multiple_choice' && (
+        <div className="space-y-1.5">
+          {field.options.map(opt => (
+            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name={field.id} value={opt}
+                checked={strVal === opt} onChange={() => onChange(opt)}
+                className="accent-primary" disabled={preview} />
+              <span className="text-sm">{opt}</span>
+            </label>
+          ))}
+        </div>
+      )}
+      {field.type === 'checkbox' && (
+        <div className="space-y-1.5">
+          {field.options.map(opt => (
+            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" value={opt}
+                checked={arrVal.includes(opt)}
+                onChange={e => {
+                  if (e.target.checked) onChange([...arrVal, opt])
+                  else onChange(arrVal.filter(v => v !== opt))
+                }}
+                className="accent-primary" disabled={preview} />
+              <span className="text-sm">{opt}</span>
+            </label>
+          ))}
+        </div>
+      )}
+      {field.type === 'dropdown' && (
+        <select value={strVal} onChange={e => onChange(e.target.value)}
+          className={inputCls} disabled={preview}>
+          <option value="">Selecciona...</option>
+          {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+        </select>
+      )}
+      {field.type === 'rating' && (
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">{field.ratingMin}</span>
+          {[1, 2, 3, 4, 5].map(n => (
+            <button key={n} type="button"
+              onClick={() => !preview && onChange(String(n))}
+              className={`w-9 h-9 rounded-xl border text-sm font-medium transition-colors ${strVal === String(n) ? 'bg-pop-550 border-pop-550 text-white' : 'border-input hover:border-pop-550/50'}`}>
+              {n}
+            </button>
+          ))}
+          <span className="text-xs text-muted-foreground">{field.ratingMax}</span>
+        </div>
+      )}
+      {field.type === 'file_upload' && !preview && (
+        <div
+          className="rounded-xl border border-dashed border-input p-6 text-center cursor-pointer hover:border-pop-550/50 transition-colors"
+          onClick={() => document.getElementById(`file-input-${field.id}`)?.click()}
+        >
+          <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl text-muted-foreground/40 mb-2" />
+          <p className="text-sm text-muted-foreground">
+            {fileValue ? fileValue.name : 'Adjuntar archivo'}
+          </p>
+          <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG, WEBP o PDF · max 10MB</p>
+          <input
+            id={`file-input-${field.id}`}
+            type="file"
+            accept="image/*,.pdf"
+            className="hidden"
+            onChange={e => { if (e.target.files?.[0]) onFile(e.target.files[0]) }}
+          />
+        </div>
+      )}
+
+      {error && <p className="text-xs text-destructive">{error}</p>}
+
+      {/* Conditional follow-up */}
+      {activeFollowUp && (
+        <div className="ml-6 mt-2 animate-in fade-in">
+          <FieldInput
+            field={{ ...activeFollowUp.field, id: `${field.id}_fu`, follow_ups: [] } as FormField}
+            value={allAnswers[`${field.id}_fu`]}
+            fileValue={undefined}
+            error={undefined}
+            preview={preview}
+            onChange={val => onAnswerChange(`${field.id}_fu`, val)}
+            onFile={() => {}}
+            allAnswers={allAnswers}
+            onAnswerChange={onAnswerChange}
+          />
+        </div>
+      )}
+    </div>
+  )
+}

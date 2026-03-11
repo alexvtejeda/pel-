@@ -17,7 +17,17 @@ export interface AddPetFormData {
   gender: 'male' | 'female'
   species: 'dog' | 'cat'
   photos: File[]
+  conditions: string[]
+  condition_notes: string
 }
+
+const CONDITION_GROUPS = [
+  { label: 'Movilidad',    items: [{ label: 'Miembro(s) faltante(s)', key: 'mobility_missing_limb' }] },
+  { label: 'Sensorial',    items: [{ label: 'Ciego/a', key: 'sensory_blind' }, { label: 'Sordo/a', key: 'sensory_deaf' }] },
+  { label: 'Médico',       items: [{ label: 'Enfermedad crónica', key: 'medical_chronic' }, { label: 'FIV/FeLV positivo (gatos)', key: 'medical_fiv_felv' }] },
+  { label: 'Conductual',   items: [{ label: 'Agresividad', key: 'behavioral_aggressive' }, { label: 'Trauma', key: 'behavioral_trauma' }, { label: 'Ansiedad / separación', key: 'behavioral_anxiety' }] },
+  { label: 'Alimenticio',  items: [{ label: 'Manejo dietético / peso', key: 'dietary_weight' }] },
+]
 
 interface PendingPhoto {
   url: string
@@ -37,8 +47,14 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const [gender, setGender] = useState<'male' | 'female'>('male')
   const [species, setSpecies] = useState<'dog' | 'cat'>('dog')
   const [photos, setPhotos] = useState<PendingPhoto[]>([])
+  const [hasConditions, setHasConditions] = useState(false)
+  const [conditions, setConditions] = useState<string[]>([])
+  const [conditionNotes, setConditionNotes] = useState('')
   const [dragging, setDragging] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  const toggleCondition = (key: string) =>
+    setConditions(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key])
 
   const MAX_PHOTOS = 5
   const parsedAge = parseInt(age, 10)
@@ -68,6 +84,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
     setGender('male')
     setSpecies('dog')
     setPhotos([])
+    setHasConditions(false)
+    setConditions([])
+    setConditionNotes('')
   }
 
   const handleClose = () => {
@@ -84,6 +103,8 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
       gender,
       species,
       photos: photos.map((p) => p.file),
+      conditions: hasConditions ? conditions : [],
+      condition_notes: hasConditions ? conditionNotes.trim() : '',
     })
     reset()
   }
@@ -219,6 +240,55 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                   className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
                 />
               </div>
+
+              {/* Conditions toggle */}
+              <label className="flex items-center gap-3 cursor-pointer mt-2">
+                <input
+                  type="checkbox"
+                  checked={hasConditions}
+                  onChange={e => {
+                    setHasConditions(e.target.checked)
+                    if (!e.target.checked) { setConditions([]); setConditionNotes('') }
+                  }}
+                  className="w-4 h-4 rounded accent-primary"
+                />
+                <span className="text-sm">Este animal tiene condiciones especiales</span>
+              </label>
+
+              {/* Expanded conditions panel */}
+              {hasConditions && (
+                <div className="ml-7 space-y-4 mt-2">
+                  {CONDITION_GROUPS.map(group => (
+                    <div key={group.label}>
+                      <p className="text-xs font-semibold text-muted-foreground mb-1.5">{group.label}</p>
+                      <div className="space-y-1.5">
+                        {group.items.map(item => (
+                          <label key={item.key} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={conditions.includes(item.key)}
+                              onChange={() => toggleCondition(item.key)}
+                              className="w-4 h-4 rounded accent-primary"
+                            />
+                            <span className="text-sm">{item.label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-1 border-t border-border">
+                    <label className="text-xs font-semibold text-muted-foreground block mb-1.5">
+                      Notas adicionales (opcional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={conditionNotes}
+                      onChange={e => setConditionNotes(e.target.value)}
+                      className="w-full rounded-xl border border-input bg-background/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Drag-and-drop photo zone */}
               <div className="flex flex-col gap-1.5">

@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
+import { getMyRescueCenter } from '@/lib/api/rescue-centers'
+import { LogoUpload } from './logo-upload'
 
 export function SettingsTab() {
   const { user, logout } = useAuth()
@@ -19,7 +21,14 @@ export function SettingsTab() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const [rcLogoUrl, setRcLogoUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    getMyRescueCenter().then(({ data }) => {
+      if (data) setRcLogoUrl(data.logo_url ?? null)
+    })
+  }, [])
 
   const handleLogout = async () => {
     await logout()
@@ -88,6 +97,15 @@ export function SettingsTab() {
             />
           </div>
         </div>
+      </div>
+
+      {/* Logo del centro */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold">Logo del centro</h2>
+        <p className="text-xs text-muted-foreground">
+          Aparece en el banner de tu formulario de adopción. Tamaño recomendado: 1600x400px.
+        </p>
+        <LogoUpload logoUrl={rcLogoUrl} onUpdate={url => setRcLogoUrl(url)} />
       </div>
 
       {/* Display name */}
