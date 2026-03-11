@@ -67,4 +67,9 @@ client_secret.json
 
 pelu.pdf
 
-hooks/read_hooks.js.superpowers/
+hooks/read_hooks.js
+
+.superpowers/
+
+# Transcriptions for prompts
+*.txt
