@@ -29,5 +29,36 @@
     "dog": "Perro",
     "cat": "Gato",
     "other": "Otro"
+  },
+  "gender": {
+    "male": "Macho",
+    "female": "Hembra"
+  },
+  "grid": {
+    "all": "Todos",
+    "dogs": "Perros",
+    "cats": "Gatos",
+    "males": "Machos",
+    "females": "Hembras",
+    "nearby": "Cercanos",
+    "empty": "No hay mascotas disponibles",
+    "error": "Error al cargar mascotas",
+    "loading": "Cargando mascotas..."
+  },
+  "header": {
+    "pets": "Mascotas",
+    "about": "Acerca de",
+    "login": "Iniciar sesión",
+    "register": "Registrarse",
+    "dashboard": "Mi panel",
+    "my_account": "Mi cuenta"
+  },
+  "detail": {
+    "adopt": "Adoptar",
+    "coming_soon": "Próximamente",
+    "login_prompt": "Inicia sesión para adoptar",
+    "years_one": "{{count}} año",
+    "years_other": "{{count}} años",
+    "select_pet": "Selecciona una mascota para ver sus detalles"
   }
 }

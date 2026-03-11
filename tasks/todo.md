@@ -1,44 +1,29 @@
-# Register Flow + Onboarding Wizards
+# Plan 4: Pet Discovery Page
 
 ## Tasks
 
-- [x] 1. Update `landing-page.tsx` — unauthenticated CTA points to `/auth/register`
-- [x] 2. Create `components/auth/register-page.tsx` — registration-only form (email/password + Google OAuth, "already have an account?" link to `/auth/login`)
-- [x] 3. Create `app/auth/register/page.tsx` — route file
-- [x] 4. Update `components/auth/role-selection.tsx` — after `setRole` succeeds, redirect to `/auth/onboarding/${role}` instead of dashboard
-- [x] 5. Create `app/auth/onboarding/[role]/page.tsx` — dynamic route (protected: must be authenticated + have a role)
-- [x] 6. Create `components/auth/onboarding/adopter-wizard.tsx` — steps: name → pet preference (cat/dog/both) → has pets? → thank you → `/`
-- [x] 7. Create `components/auth/onboarding/owner-wizard.tsx` — steps: name → pet name → pet age → wants adoption? → thank you → `/`
-- [x] 8. Create `components/auth/onboarding/rescue-center-wizard.tsx` — steps: center name → phone → address → RNC (optional) → website (optional) → instagram (required) → calls `createRescueCenter` → thank you (pending state) → `/`
+- [x] Task 1: Move landing page to `/about`, redirect `/` to `/pets`
+- [x] Task 2: Create `lib/api/pets-public.ts`
+- [x] Task 3: Create `components/pets/pets-header.tsx`
+- [x] Task 4: Create `components/pets/pet-grid.tsx`
+- [x] Task 5: Create `components/pets/pet-detail.tsx`
+- [x] Task 6: Create `components/pets/pets-page.tsx`
+- [x] Task 7: Create route `app/pets/page.tsx`
+- [x] Task 8: Add i18n keys for discovery page
+- [x] Task 9: Type-check and commit
 
 ## Review
 
 ### Changes made
-- **Landing CTA** — unauthenticated users now go to `/auth/register` instead of `/auth/login`
-- **`register-page.tsx`** — new registration-only form; mirrors login-page structure but signup-only, with "ya tienes cuenta?" link back to login
-- **`app/auth/register/page.tsx`** — simple route wrapper
-- **`role-selection.tsx`** — added `submitted` ref to prevent the auto-redirect `useEffect` from firing when the form submit already handles navigation; redirects to `/auth/onboarding/${role}` on success
-- **`app/auth/onboarding/[role]/page.tsx`** — async server component with `generateStaticParams` (required by `output: export`); awaits `params` (Next.js 15+ Promise params); renders `OnboardingClient`
-- **`onboarding-client.tsx`** — client-side auth guard + role routing; all redirects inside `useEffect` to avoid "setState during render" error
-- **`adopter-wizard.tsx`** — 3-step wizard: name → pet preference (cat/dog/both) → has pets; data local only
-- **`owner-wizard.tsx`** — 4-step wizard: name → pet name → pet age → wants adoption; data local only
-- **`rescue-center-wizard.tsx`** — 6-step wizard: center name → phone → address → RNC (opt) → website (opt) → instagram (required); calls `createRescueCenter` on complete; shows pending thank-you screen on success
+- **`app/page.tsx`** — replaced LandingPage render with client-side redirect to `/pets`
+- **`app/about/page.tsx`** — new route that renders the original LandingPage component
+- **`app/pets/page.tsx`** — new route rendering PetsPage
+- **`lib/api/pets-public.ts`** — unauthenticated `listPublicPets()` using plain fetch, returns `{ data, error }` pattern, supports species/gender/sort/proximity filters
+- **`components/pets/pets-header.tsx`** — public header with Logo, nav links (Mascotas, Acerca de), conditional CTA (login/register for guests, dashboard link for authenticated users)
+- **`components/pets/pet-grid.tsx`** — 2-col (mobile) / 3-col (desktop) grid with filter pills (Todos, Perros, Gatos, Machos, Hembras, Cercanos), selected card outline, photo overlay with pet name, loading/empty/error states
+- **`components/pets/pet-detail.tsx`** — 360px right panel with hero photo carousel (prev/next click areas, dots), pet name, species/gender/age badges, description, adopt button (or login prompt for guests)
+- **`components/pets/pets-page.tsx`** — main orchestrator owning all state, renders header + split layout (flex-1 grid + 360px detail panel hidden on mobile)
+- **`public/locales/es/pets.json`** and **`en/pets.json`** — added `gender`, `grid`, `header`, and `detail` i18n keys
 
-### Key bug fixes during implementation
-- `useParams` returns `null` in Next.js 16 → split into async server page + client component
-- `params` is a Promise in Next.js 15+ server components → added `async/await`
-- `router.replace` called during render → moved all redirects into `useEffect`
-- `useEffect` auto-redirect in role-selection fired after `setRole` updated user → added `submitted` ref to suppress it
-
----
-
-# Pets Tab — Three-dot menu, Photo Upload, View Profile Modal, Adopted Overlay
-
-## Tasks
-
-- [x] 1. Create `packages/hooks.ts` — `useOnClickOutside` hook (needed by `animated-modal.tsx`)
-- [x] 2. Update `pets-tab.tsx` — local `pets` state (copy of mockPets) so pets can be removed
-- [x] 3. Add hidden `<input type="file">` ref + "Subir Fotos" handler (max 5 MB per file, accept images/videos)
-- [x] 4. Add `PetProfileModal` component — controlled (open/onClose/petId props), uses framer-motion animations matching `animated-modal` style; list view → detail view for interested users
-- [x] 5. Add three-dot `DropdownMenu` to each pet card footer with: Subir Fotos, Ver Perfil
-- [x] 6. Add adopted-pet hover overlay (muted/50% bg + `faCircleXmark` in pop-450); click removes pet from grid
+### Bug fix during implementation
+- Used `member`/`business` roles (not `owner`) to match the renamed UserRole type

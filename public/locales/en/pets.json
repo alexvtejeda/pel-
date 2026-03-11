@@ -29,5 +29,36 @@
     "dog": "Dog",
     "cat": "Cat",
     "other": "Other"
+  },
+  "gender": {
+    "male": "Male",
+    "female": "Female"
+  },
+  "grid": {
+    "all": "All",
+    "dogs": "Dogs",
+    "cats": "Cats",
+    "males": "Males",
+    "females": "Females",
+    "nearby": "Nearby",
+    "empty": "No pets available",
+    "error": "Error loading pets",
+    "loading": "Loading pets..."
+  },
+  "header": {
+    "pets": "Pets",
+    "about": "About",
+    "login": "Log in",
+    "register": "Sign up",
+    "dashboard": "Dashboard",
+    "my_account": "My account"
+  },
+  "detail": {
+    "adopt": "Adopt",
+    "coming_soon": "Coming soon",
+    "login_prompt": "Log in to adopt",
+    "years_one": "{{count}} year",
+    "years_other": "{{count}} years",
+    "select_pet": "Select a pet to see its details"
   }
 }
