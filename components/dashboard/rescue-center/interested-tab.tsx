@@ -1,290 +1,391 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faEye, faEyeSlash, faEllipsis, faRotateLeft, faCalendarDays, faTrash } from '@fortawesome/free-solid-svg-icons'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+  faArrowLeft,
+  faCheck,
+  faChevronDown,
+  faSpinner,
+  faTimes,
+  faPaw,
+  faComments,
+} from '@fortawesome/free-solid-svg-icons'
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu'
-import { mockInterestedUsers, mockPets, MockInterestedUser, UserStatus } from '@/lib/data/mock-rescue-center'
+  Submission,
+  listSubmissions,
+  getSubmission,
+  reviewSubmission,
+} from '@/lib/api/submissions'
+import { Form, FormField } from '@/lib/api/forms'
+import { getForm } from '@/lib/api/forms'
 import { AgendaItem } from './agenda-tab'
-import { Input } from '@/components/ui/input'
+import { formatDistanceToNow } from 'date-fns'
+import { es } from 'date-fns/locale'
 
-function Initials({ name }: { name: string }) {
-  const parts = name.trim().split(' ')
-  const letters = parts.length >= 2
-    ? parts[0][0] + parts[1][0]
-    : parts[0].slice(0, 2)
+type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected'
+
+const STATUS_LABELS: Record<Submission['status'], string> = {
+  pending: 'Pendiente',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+}
+
+const STATUS_CLASSES: Record<Submission['status'], string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-destructive/10 text-destructive',
+}
+
+// ─── List View ────────────────────────────────────────────────
+
+interface ListViewProps {
+  submissions: Submission[]
+  loading: boolean
+  filter: StatusFilter
+  onFilterChange: (f: StatusFilter) => void
+  onSelect: (id: string) => void
+}
+
+function ListView({ submissions, loading, filter, onFilterChange, onSelect }: ListViewProps) {
   return (
-    <div className="w-9 h-9 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center text-sm font-semibold shrink-0">
-      {letters.toUpperCase()}
+    <div className="space-y-4">
+      {/* Filter */}
+      <div className="flex justify-end">
+        <div className="relative">
+          <select
+            value={filter}
+            onChange={e => onFilterChange(e.target.value as StatusFilter)}
+            className="appearance-none pl-3 pr-8 py-1.5 border border-input rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
+          >
+            <option value="all">Todas</option>
+            <option value="pending">Pendiente</option>
+            <option value="approved">Aprobado</option>
+            <option value="rejected">Rechazado</option>
+          </select>
+          <FontAwesomeIcon
+            icon={faChevronDown}
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground pointer-events-none"
+          />
+        </div>
+      </div>
+
+      {loading && (
+        <div className="flex justify-center py-12">
+          <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-muted-foreground animate-spin" />
+        </div>
+      )}
+
+      {!loading && submissions.length === 0 && (
+        <div className="text-center py-12 text-muted-foreground text-sm">
+          No hay solicitudes{filter !== 'all' ? ` con estado "${STATUS_LABELS[filter as Submission['status']]}"` : ''}.
+        </div>
+      )}
+
+      {!loading && submissions.map(sub => (
+        <button
+          key={sub.id}
+          onClick={() => onSelect(sub.id)}
+          className="w-full text-left rounded-2xl border bg-card p-4 flex items-center gap-4 hover:bg-accent/50 transition-colors"
+        >
+          {/* Pet photo */}
+          {sub.pet_photo_url ? (
+            <img
+              src={sub.pet_photo_url}
+              alt={sub.pet_name || ''}
+              className="w-10 h-10 rounded-xl object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+              <FontAwesomeIcon icon={faPaw} className="w-4 h-4 text-muted-foreground/40" />
+            </div>
+          )}
+
+          {/* Info */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">
+              {sub.pet_name || 'Mascota'}
+              {sub.form_name && (
+                <span className="text-muted-foreground font-normal"> &middot; {sub.form_name}</span>
+              )}
+            </p>
+            <p className="text-xs text-muted-foreground truncate">
+              {sub.member_name || 'Solicitante'}
+              {' &middot; '}
+              {formatDistanceToNow(new Date(sub.submitted_at), { addSuffix: true, locale: es })}
+            </p>
+          </div>
+
+          {/* Status pill */}
+          <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-xl ${STATUS_CLASSES[sub.status]}`}>
+            {STATUS_LABELS[sub.status]}
+          </span>
+        </button>
+      ))}
     </div>
   )
 }
 
-function getPetName(petId: string) {
-  return mockPets.find((p) => p.id === petId)?.name ?? petId
+// ─── Detail View ──────────────────────────────────────────────
+
+interface DetailViewProps {
+  submission: Submission
+  form: Form | null
+  onBack: () => void
+  onReview: (status: 'approved' | 'rejected', note?: string) => Promise<void>
 }
 
-interface ProfileSheetProps {
-  user: MockInterestedUser | null
-  open: boolean
-  onClose: () => void
-}
+function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
+  const [reviewing, setReviewing] = useState(false)
+  const [showRejectBox, setShowRejectBox] = useState(false)
+  const [rejectNote, setRejectNote] = useState('')
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null)
 
-function ProfileSheet({ user, open, onClose }: ProfileSheetProps) {
-  if (!user) return null
-  return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Perfil del interesado</SheetTitle>
-        </SheetHeader>
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center gap-3">
-            <Initials name={user.name} />
-            <span className="font-semibold text-lg">{user.name}</span>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between border-b py-2">
-              <span className="text-muted-foreground">Mascota</span>
-              <span className="font-medium">{getPetName(user.petId)}</span>
-            </div>
-            <div className="flex justify-between border-b py-2">
-              <span className="text-muted-foreground">Formulario</span>
-              <span>{user.formFilled ? 'Enviado' : 'Pendiente'}</span>
-            </div>
-            <div className="flex justify-between border-b py-2">
-              <span className="text-muted-foreground">Transporte</span>
-              <span>{user.waitingTransport ? 'Solicitado' : 'No solicitado'}</span>
-            </div>
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">Estado</span>
-              <span className="capitalize">{user.status}</span>
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
-}
-
-interface AgendaSheetProps {
-  user: MockInterestedUser | null
-  open: boolean
-  onClose: () => void
-  onConfirm: (item: Omit<AgendaItem, 'id'>) => void
-}
-
-function AgendaSheet({ user, open, onClose, onConfirm }: AgendaSheetProps) {
-  const today = new Date().toISOString().split('T')[0]
-  const [date, setDate] = useState(today)
-  const [type, setType] = useState<AgendaItem['type']>('meeting')
-
-  if (!user) return null
-
-  const handleConfirm = () => {
-    onConfirm({
-      personName: user.name,
-      petName: getPetName(user.petId),
-      date: new Date(date + 'T12:00:00'),
-      type,
-    })
-    onClose()
+  const handleApprove = async () => {
+    setReviewing(true)
+    await onReview('approved')
+    setReviewing(false)
   }
 
+  const handleReject = async () => {
+    setReviewing(true)
+    await onReview('rejected', rejectNote || undefined)
+    setReviewing(false)
+    setShowRejectBox(false)
+  }
+
+  // Build a map from field.id -> FormField for labels/sections
+  const fieldMap = new Map<string, FormField>()
+  if (form) {
+    for (const f of form.fields) {
+      fieldMap.set(f.id, f)
+    }
+  }
+
+  // Group answers by section
+  let lastSection = ''
+
   return (
-    <Sheet open={open} onOpenChange={(v) => { if (!v) onClose() }}>
-      <SheetContent>
-        <SheetHeader>
-          <SheetTitle>Agregar en la agenda</SheetTitle>
-        </SheetHeader>
-        <div className="mt-6 space-y-5">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Persona</p>
-            <p className="text-sm font-medium">{user.name}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">Mascota</p>
-            <p className="text-sm font-medium">{getPetName(user.petId)}</p>
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Fecha</label>
-            <Input
-              type="date"
-              value={date}
-              onChange={e => setDate(e.target.value)}
-              className="rounded-xl"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Tipo</label>
-            <select
-              value={type}
-              onChange={e => setType(e.target.value as AgendaItem['type'])}
-              className="w-full px-3 py-2 border border-input rounded-xl text-sm bg-background focus:outline-hidden focus:ring-2 focus:ring-ring"
-            >
-              <option value="meeting">Reunión</option>
-              <option value="transport">Transporte</option>
-              <option value="followup">Seguimiento</option>
-            </select>
-          </div>
-          <button
-            onClick={handleConfirm}
-            className="w-full px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
-          >
-            Agregar
-          </button>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <button
+          onClick={onBack}
+          className="p-1.5 hover:bg-accent rounded-xl transition-colors"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
+        </button>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-semibold truncate">
+            {submission.pet_name || 'Mascota'}
+            <span className="text-muted-foreground font-normal"> &middot; {submission.member_name || 'Solicitante'}</span>
+          </p>
         </div>
-      </SheetContent>
-    </Sheet>
+        <span className={`shrink-0 text-xs font-medium px-2.5 py-1 rounded-xl ${STATUS_CLASSES[submission.status]}`}>
+          {STATUS_LABELS[submission.status]}
+        </span>
+      </div>
+
+      {/* Answers */}
+      <div className="space-y-4">
+        {Object.entries(submission.answers).map(([fieldId, answer]) => {
+          const field = fieldMap.get(fieldId)
+          const section = field?.section || ''
+          const showSectionHeader = section && section !== lastSection
+          if (section) lastSection = section
+
+          // Check if answer looks like a file URL
+          const answerStr = Array.isArray(answer) ? answer.join(', ') : answer
+          const isImage = /\.(jpg|jpeg|png|webp|gif)$/i.test(answerStr)
+
+          return (
+            <div key={fieldId}>
+              {showSectionHeader && (
+                <div className="flex items-center gap-3 mt-6 mb-2">
+                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    {section}
+                  </span>
+                  <div className="flex-1 border-t border-border" />
+                </div>
+              )}
+              <div className="space-y-1">
+                <p className="text-xs text-muted-foreground">{field?.label || fieldId}</p>
+                {isImage ? (
+                  <img
+                    src={answerStr}
+                    alt={field?.label || 'Archivo'}
+                    className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    onClick={() => setLightboxUrl(answerStr)}
+                  />
+                ) : (
+                  <p className="text-sm">{answerStr || '—'}</p>
+                )}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Actions */}
+      {submission.status === 'pending' && (
+        <div className="border-t border-border pt-4 space-y-3">
+          {showRejectBox && (
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Motivo del rechazo (opcional)</label>
+              <textarea
+                rows={2}
+                value={rejectNote}
+                onChange={e => setRejectNote(e.target.value)}
+                className="w-full rounded-xl border border-input px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
+              />
+              <button
+                onClick={handleReject}
+                disabled={reviewing}
+                className="px-6 py-2.5 rounded-xl border border-destructive/30 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors disabled:opacity-40"
+              >
+                {reviewing ? 'Procesando...' : 'Confirmar rechazo'}
+              </button>
+            </div>
+          )}
+
+          {!showRejectBox && (
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => setShowRejectBox(true)}
+                disabled={reviewing}
+                className="px-6 py-2.5 rounded-xl border border-destructive/30 text-destructive text-sm font-medium hover:bg-destructive/10 transition-colors disabled:opacity-40"
+              >
+                Rechazar
+              </button>
+              <button
+                onClick={handleApprove}
+                disabled={reviewing}
+                className="px-6 py-2.5 bg-pop-550 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-40"
+              >
+                {reviewing ? 'Procesando...' : 'Aprobar solicitud'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {submission.status === 'approved' && (
+        <div className="border-t border-border pt-4">
+          <p className="text-sm text-green-700 flex items-center gap-2">
+            <FontAwesomeIcon icon={faComments} className="w-4 h-4" />
+            Chat iniciado
+            <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />
+          </p>
+        </div>
+      )}
+
+      {submission.status === 'rejected' && submission.rejection_note && (
+        <div className="border-t border-border pt-4">
+          <p className="text-xs text-muted-foreground">Motivo del rechazo</p>
+          <p className="text-sm text-destructive">{submission.rejection_note}</p>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxUrl && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <button
+            className="absolute top-4 right-4 text-white hover:text-white/80 transition-colors"
+            onClick={() => setLightboxUrl(null)}
+          >
+            <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
+          </button>
+          <img
+            src={lightboxUrl}
+            alt="Vista ampliada"
+            className="max-w-full max-h-full object-contain rounded-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
+    </div>
   )
 }
+
+// ─── Main Tab ─────────────────────────────────────────────────
 
 interface InterestedTabProps {
   onAddToAgenda: (item: Omit<AgendaItem, 'id'>) => void
 }
 
-export function InterestedTab({ onAddToAgenda }: InterestedTabProps) {
-  const [users, setUsers] = useState(mockInterestedUsers)
-  const [selectedUser, setSelectedUser] = useState<MockInterestedUser | null>(null)
-  const [agendaUser, setAgendaUser] = useState<MockInterestedUser | null>(null)
+export function InterestedTab({ onAddToAgenda: _onAddToAgenda }: InterestedTabProps) {
+  const [submissions, setSubmissions] = useState<Submission[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState<StatusFilter>('all')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [selectedSub, setSelectedSub] = useState<Submission | null>(null)
+  const [selectedForm, setSelectedForm] = useState<Form | null>(null)
 
-  const setStatus = (id: string, status: UserStatus) => {
-    setUsers((prev) => prev.map((u) => u.id === id ? { ...u, status } : u))
+  const fetchList = useCallback(async () => {
+    setLoading(true)
+    const params = filter === 'all' ? undefined : { status: filter as Submission['status'] }
+    const { data } = await listSubmissions(params)
+    setSubmissions(data || [])
+    setLoading(false)
+  }, [filter])
+
+  useEffect(() => {
+    fetchList()
+  }, [fetchList])
+
+  const handleSelect = async (id: string) => {
+    setSelectedId(id)
+    const { data } = await getSubmission(id)
+    if (data) {
+      setSelectedSub(data)
+      // Load form for field labels
+      const { data: formData } = await getForm(data.form_id)
+      setSelectedForm(formData)
+    }
   }
 
-  const deleteUser = (id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
+  const handleBack = () => {
+    setSelectedId(null)
+    setSelectedSub(null)
+    setSelectedForm(null)
+  }
+
+  const handleReview = async (status: 'approved' | 'rejected', note?: string) => {
+    if (!selectedId) return
+    const { data } = await reviewSubmission(selectedId, {
+      status,
+      rejection_note: note,
+    })
+    if (data) {
+      setSelectedSub(data)
+      // Update in list
+      setSubmissions(prev =>
+        prev.map(s => (s.id === selectedId ? { ...s, status: data.status } : s))
+      )
+    }
+  }
+
+  if (selectedId && selectedSub) {
+    return (
+      <DetailView
+        submission={selectedSub}
+        form={selectedForm}
+        onBack={handleBack}
+        onReview={handleReview}
+      />
+    )
   }
 
   return (
-    <div className="space-y-3">
-      {users.map((user) => (
-        <div
-          key={user.id}
-          className={`rounded-2xl border bg-card p-4 flex items-center gap-4 transition-opacity ${
-            user.status === 'rejected' ? 'opacity-60 bg-muted' : ''
-          }`}
-        >
-          {/* Left: avatar + info */}
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <Initials name={user.name} />
-            <div className="min-w-0 flex flex-col gap-0.5">
-              <p className="font-medium text-sm truncate">{user.name}</p>
-              <p className="text-xs text-muted-foreground">
-                Interesado en <span className="font-medium">{getPetName(user.petId)}</span>
-              </p>
-              {user.status === 'approved' && (
-                <span className="mt-1 w-fit text-xs font-medium px-2 py-0.5 rounded-xl bg-green-100 text-green-800">
-                  Aprobado
-                </span>
-              )}
-              {user.status === 'rejected' && (
-                <span className="mt-1 w-fit text-xs font-medium px-2 py-0.5 rounded-xl bg-red-100 text-red-800">
-                  Rechazado
-                </span>
-              )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mt-1 h-6 px-2 text-xs rounded-xl w-fit"
-                onClick={() => setSelectedUser(user)}
-              >
-                Ver perfil
-              </Button>
-            </div>
-          </div>
-
-          {/* Middle: form state */}
-          <div className="hidden sm:flex items-center gap-1 shrink-0">
-            {user.formFilled ? (
-              <>
-                <FontAwesomeIcon icon={faEye} className="w-3.5 h-3.5 text-foreground" />
-                <span className="text-xs text-foreground">Ver formulario</span>
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faEyeSlash} className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Formulario incompleto</span>
-              </>
-            )}
-          </div>
-
-          {/* Right: actions */}
-          <div className="flex items-center gap-2 shrink-0">
-            {user.status === 'pending' && (
-              <ButtonGroup>
-                <Button
-                  size="sm"
-                  className="bg-green-100 text-green-800 hover:bg-green-600 hover:text-white transition-colors"
-                  onClick={() => setStatus(user.id, 'approved')}
-                >
-                  Aprobar
-                </Button>
-                <Button
-                  size="sm"
-                  className="bg-red-100 text-red-700 hover:bg-red-600 hover:text-white transition-colors"
-                  onClick={() => setStatus(user.id, 'rejected')}
-                >
-                  Rechazar
-                </Button>
-              </ButtonGroup>
-            )}
-
-            <Button variant="outline" size="sm" className="rounded-xl">
-              Abrir Chat
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-xl">
-                  <FontAwesomeIcon icon={faEllipsis} className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setStatus(user.id, 'pending')}>
-                  <FontAwesomeIcon icon={faRotateLeft} className="w-4 h-4" /> Revertir estado
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setAgendaUser(user)}>
-                  <FontAwesomeIcon icon={faCalendarDays} className="w-4 h-4" /> Agregar en la agenda
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                  onClick={() => deleteUser(user.id)}
-                >
-                  <FontAwesomeIcon icon={faTrash} className="w-4 h-4" /> Eliminar
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      ))}
-
-      <ProfileSheet
-        user={selectedUser}
-        open={selectedUser !== null}
-        onClose={() => setSelectedUser(null)}
-      />
-      <AgendaSheet
-        user={agendaUser}
-        open={agendaUser !== null}
-        onClose={() => setAgendaUser(null)}
-        onConfirm={onAddToAgenda}
-      />
-    </div>
+    <ListView
+      submissions={submissions}
+      loading={loading}
+      filter={filter}
+      onFilterChange={setFilter}
+      onSelect={handleSelect}
+    />
   )
 }

@@ -1,0 +1,158 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowLeft, faPaw } from '@fortawesome/free-solid-svg-icons'
+import { Pet } from '@/lib/api/pets'
+import { getPublicPet, getPetForm, PetFormResponse } from '@/lib/api/pets-public'
+import { submitAdoptionForm, uploadSubmissionFile } from '@/lib/api/submissions'
+import { FormRenderer } from '@/components/forms/form-renderer'
+
+export default function AdoptPetPage() {
+  const params = useParams()
+  const router = useRouter()
+  const petId = typeof params?.['pet-id'] === 'string' ? params['pet-id'] : ''
+
+  const [pet, setPet] = useState<Pet | null>(null)
+  const [formData, setFormData] = useState<PetFormResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!petId) {
+      router.replace('/pets')
+      return
+    }
+
+    Promise.all([getPublicPet(petId), getPetForm(petId)]).then(
+      ([petRes, formRes]) => {
+        if (!petRes.data || !formRes.data) {
+          router.replace('/pets')
+          return
+        }
+        setPet(petRes.data)
+        setFormData(formRes.data)
+        setLoading(false)
+      }
+    )
+  }, [petId, router])
+
+  const handleSubmit = async (
+    answers: Record<string, string | string[]>,
+    files: Record<string, File>
+  ) => {
+    if (!formData) return
+
+    const { data, error: submitErr } = await submitAdoptionForm(petId, {
+      form_id: formData.form.id,
+      answers,
+    })
+
+    if (submitErr || !data) {
+      throw new Error(submitErr || 'Error al enviar solicitud')
+    }
+
+    // Upload files sequentially
+    for (const [fieldId, file] of Object.entries(files)) {
+      const { error: fileErr } = await uploadSubmissionFile(
+        data.submission_id,
+        fieldId,
+        file
+      )
+      if (fileErr) {
+        setError(fileErr)
+        // Don't throw — submission is already created
+        break
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="w-8 h-8 border-2 border-pop-550 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (!pet || !formData) return null
+
+  const rc = formData.rc
+  const firstPhoto = pet.photos?.[0]?.url
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Sticky RC logo banner */}
+      <div className="sticky top-0 z-10 w-full aspect-[4/1] overflow-hidden">
+        {rc.logo_url ? (
+          <img
+            src={rc.logo_url}
+            alt={rc.name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-gradient-to-r from-pop-500 to-pop-550 flex items-center justify-center">
+            <span className="text-white text-2xl font-bold">{rc.name}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 py-8">
+        {/* Back link */}
+        <button
+          onClick={() => router.back()}
+          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+        >
+          <FontAwesomeIcon icon={faArrowLeft} className="w-3.5 h-3.5" />
+          Volver a {pet.name}
+        </button>
+
+        {/* Pet context chip */}
+        <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border mb-8">
+          {firstPhoto ? (
+            <Image
+              src={firstPhoto}
+              alt={pet.name}
+              width={48}
+              height={48}
+              className="w-12 h-12 rounded-xl object-cover shrink-0"
+            />
+          ) : (
+            <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
+              <FontAwesomeIcon icon={faPaw} className="w-5 h-5 text-muted-foreground/40" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-semibold text-sm truncate">{pet.name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {rc.name}
+              {rc.city && <span> &middot; {rc.city}</span>}
+            </p>
+          </div>
+        </div>
+
+        {/* Advisory banner */}
+        {formData.advisory && (
+          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800">
+            Esta mascota tiene condiciones especiales. El centro revisará tu solicitud con atención adicional.
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm animate-wiggle">
+            {error}
+          </div>
+        )}
+
+        {/* Form */}
+        <FormRenderer
+          form={formData.form}
+          rc={{ name: rc.name, logo_url: rc.logo_url }}
+          onSubmit={handleSubmit}
+        />
+      </div>
+    </div>
+  )
+}

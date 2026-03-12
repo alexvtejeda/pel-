@@ -1,29 +1,18 @@
-# Plan 4: Pet Discovery Page
+# Plan 7: Adoption Flow
 
 ## Tasks
 
-- [x] Task 1: Move landing page to `/about`, redirect `/` to `/pets`
-- [x] Task 2: Create `lib/api/pets-public.ts`
-- [x] Task 3: Create `components/pets/pets-header.tsx`
-- [x] Task 4: Create `components/pets/pet-grid.tsx`
-- [x] Task 5: Create `components/pets/pet-detail.tsx`
-- [x] Task 6: Create `components/pets/pets-page.tsx`
-- [x] Task 7: Create route `app/pets/page.tsx`
-- [x] Task 8: Add i18n keys for discovery page
-- [x] Task 9: Type-check and commit
+- [x] Task 1: Create `lib/api/submissions.ts` — API module with Submission interface and CRUD functions
+- [x] Task 2: Add `getPublicPet` and `getPetForm` to `lib/api/pets-public.ts`, then create `app/adopt/[pet-id]/page.tsx`
+- [x] Task 3: Replace `interested-tab.tsx` with real API-backed submission review UI
+- [x] Task 4: Wire adopt button in `pet-detail.tsx` to navigate to `/adopt/${pet.id}`
+- [x] Task 5: Type-check and commit
 
 ## Review
 
 ### Changes made
-- **`app/page.tsx`** — replaced LandingPage render with client-side redirect to `/pets`
-- **`app/about/page.tsx`** — new route that renders the original LandingPage component
-- **`app/pets/page.tsx`** — new route rendering PetsPage
-- **`lib/api/pets-public.ts`** — unauthenticated `listPublicPets()` using plain fetch, returns `{ data, error }` pattern, supports species/gender/sort/proximity filters
-- **`components/pets/pets-header.tsx`** — public header with Logo, nav links (Mascotas, Acerca de), conditional CTA (login/register for guests, dashboard link for authenticated users)
-- **`components/pets/pet-grid.tsx`** — 2-col (mobile) / 3-col (desktop) grid with filter pills (Todos, Perros, Gatos, Machos, Hembras, Cercanos), selected card outline, photo overlay with pet name, loading/empty/error states
-- **`components/pets/pet-detail.tsx`** — 360px right panel with hero photo carousel (prev/next click areas, dots), pet name, species/gender/age badges, description, adopt button (or login prompt for guests)
-- **`components/pets/pets-page.tsx`** — main orchestrator owning all state, renders header + split layout (flex-1 grid + 360px detail panel hidden on mobile)
-- **`public/locales/es/pets.json`** and **`en/pets.json`** — added `gender`, `grid`, `header`, and `detail` i18n keys
-
-### Bug fix during implementation
-- Used `member`/`business` roles (not `owner`) to match the renamed UserRole type
+- **`lib/api/submissions.ts`** — New API module with `Submission` interface and 5 functions: `submitAdoptionForm`, `uploadSubmissionFile` (raw fetch for multipart), `listSubmissions`, `getSubmission`, `reviewSubmission`. All follow `{ data, error }` pattern.
+- **`lib/api/pets-public.ts`** — Added `getPublicPet(id)` and `getPetForm(petId)` with `PetFormResponse` interface (form + rc branding + advisory flag).
+- **`app/adopt/[pet-id]/page.tsx`** — New client-side adopt page: fetches pet + form in parallel, sticky RC logo banner (4:1 aspect, gradient fallback), back link, pet context chip with photo, advisory banner for special-needs pets, renders `<FormRenderer>` with file upload support.
+- **`components/dashboard/rescue-center/interested-tab.tsx`** — Replaced mock-data UI with real API-backed submission review: `ListView` with status filter dropdown + submission cards, `DetailView` with section-grouped answers + image lightbox + approve/reject actions. Approve shows "Chat iniciado" confirmation; reject expands inline textarea for optional rejection note.
+- **`components/pets/pet-detail.tsx`** — Wired adopt button to navigate to `/adopt/${pet.id}` via `window.location.href`.

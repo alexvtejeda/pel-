@@ -1,4 +1,5 @@
 import { Pet } from './pets'
+import { Form } from './forms'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -26,6 +27,40 @@ export async function listPublicPets(
     const res = await fetch(url)
     const json = await res.json()
     if (!res.ok) return { data: null, error: json.error || 'Error al cargar mascotas' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function getPublicPet(
+  id: string
+): Promise<{ data: Pet | null; error: string | null }> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/pets/${encodeURIComponent(id)}`)
+    if (res.status === 404) return { data: null, error: null }
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar mascota' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export interface PetFormResponse {
+  form: Form
+  rc: { id: string; name: string; logo_url: string | null; city: string | null }
+  advisory: boolean
+}
+
+export async function getPetForm(
+  petId: string
+): Promise<{ data: PetFormResponse | null; error: string | null }> {
+  try {
+    const res = await fetch(`${BASE_URL}/api/v1/pets/${encodeURIComponent(petId)}/form`)
+    if (res.status === 404) return { data: null, error: null }
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar formulario' }
     return { data: json, error: null }
   } catch {
     return { data: null, error: 'Error de conexión' }

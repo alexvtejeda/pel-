@@ -53,7 +53,7 @@ export function PetDetail({ pet }: PetDetailProps) {
   }
 
   const handleAdopt = () => {
-    alert(t('detail.coming_soon'))
+    window.location.href = `/adopt/${pet.id}`
   }
 
   const speciesIcon = pet.species === 'dog' ? faDog : faCat
