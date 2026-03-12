@@ -59,6 +59,8 @@
     "login_prompt": "Inicia sesión para adoptar",
     "years_one": "{{count}} año",
     "years_other": "{{count}} años",
-    "select_pet": "Selecciona una mascota para ver sus detalles"
+    "select_pet": "Selecciona una mascota para ver sus detalles",
+    "share": "Compartir",
+    "link_copied": "Enlace copiado"
   }
 }

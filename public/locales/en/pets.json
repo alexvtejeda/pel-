@@ -59,6 +59,8 @@
     "login_prompt": "Log in to adopt",
     "years_one": "{{count}} year",
     "years_other": "{{count}} years",
-    "select_pet": "Select a pet to see its details"
+    "select_pet": "Select a pet to see its details",
+    "share": "Share",
+    "link_copied": "Link copied"
   }
 }

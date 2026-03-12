@@ -26,6 +26,9 @@ export default function AdoptPetPage() {
       return
     }
 
+    const token = localStorage.getItem('pelu_access_token')
+    if (!token) { router.replace('/auth/login'); return }
+
     Promise.all([getPublicPet(petId), getPetForm(petId)]).then(
       ([petRes, formRes]) => {
         if (!petRes.data || !formRes.data) {
