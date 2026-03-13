@@ -9,7 +9,10 @@
     "age_plural": "{{count}} years old",
     "location": "Location",
     "interested": "I'm interested",
-    "pass": "Pass"
+    "pass": "Pass",
+    "share": "Share link",
+    "visitWebsite": "Visit {{name}}'s website",
+    "visitInstagram": "Visit {{name}}'s Instagram"
   },
   "details": {
     "name": "Name",
@@ -64,6 +67,8 @@
     "years_other": "{{count}} years",
     "select_pet": "Select a pet to see its details",
     "share": "Share",
-    "link_copied": "Link copied"
+    "link_copied": "Link copied",
+    "rescueCenter": "Rescue center",
+    "specialCondition": "Special condition"
   }
 }

@@ -8,6 +8,14 @@ export interface Photo {
   position: number
 }
 
+export interface PetRescueCenter {
+  id: string
+  name: string
+  logo_url?: string
+  website?: string
+  instagram?: string
+}
+
 export interface Pet {
   id: string
   rescue_center_id: string
@@ -21,6 +29,7 @@ export interface Pet {
   photos: Photo[]
   conditions: string[]
   condition_notes: string | null
+  rescue_center?: PetRescueCenter
 }
 
 export async function listPets(rescueCenterId: string): Promise<Pet[]> {
