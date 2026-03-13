@@ -13,6 +13,8 @@ import {
   faVenus,
   faDog,
   faCat,
+  faSyringe,
+  faScissors,
 } from '@fortawesome/free-solid-svg-icons'
 import Carousel from '@/components/Carousel'
 import { createRescueCenter } from '@/lib/api/rescue-centers'
@@ -77,6 +79,9 @@ export function RescueCenterWizard() {
   const [petAge, setPetAge] = useState('')
   const [petGender, setPetGender] = useState<'male' | 'female'>('male')
   const [petSpecies, setPetSpecies] = useState<'dog' | 'cat'>('dog')
+  const [petVaccinated, setPetVaccinated] = useState(false)
+  const [petCastrated, setPetCastrated] = useState(false)
+  const [petSize, setPetSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [petPhotos, setPetPhotos] = useState<PendingPhoto[]>([])
   const [dragging, setDragging] = useState(false)
   const photoInputRef = useRef<HTMLInputElement>(null)
@@ -131,6 +136,9 @@ export function RescueCenterWizard() {
           age: petAge !== '' ? parseInt(petAge, 10) : 0,
           gender: petGender,
           species: petSpecies,
+          vaccinated: petVaccinated,
+          castrated: petCastrated,
+          size: petSize,
         })
         if (petPhotos.length > 0) {
           await uploadPhotos(pet.id, petPhotos.map((p) => p.file))
@@ -409,8 +417,34 @@ export function RescueCenterWizard() {
                 </div>
               </div>
             </div>
+            {/* Vaccinated / Castrated */}
+            <div className="flex gap-4 mt-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={petVaccinated} onChange={e => setPetVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-sm text-white/70">Vacunado</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={petCastrated} onChange={e => setPetCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="text-sm text-white/70">Castrado</span>
+              </label>
+            </div>
+            {/* Size */}
+            <div className="flex flex-col gap-1.5 mt-3">
+              <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
+              <select
+                value={petSize}
+                onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large')}
+                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-pop-550"
+              >
+                <option value="small">Pequeño</option>
+                <option value="medium">Mediano</option>
+                <option value="large">Grande</option>
+              </select>
+            </div>
           </div>
-          
+
           {/* Right: Pet photo grid */}
           <div className="flex flex-col gap-2 ms-8">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
