@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -10,15 +10,52 @@ import {
   faCat,
   faMars,
   faVenus,
-  faChevronLeft,
-  faChevronRight,
   faCakeCandles,
   faShareFromSquare,
   faCheck,
+  faGlobe,
 } from '@fortawesome/free-solid-svg-icons'
+import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { useAuth } from '@/lib/contexts/auth-context'
 import Link from 'next/link'
+import Carousel from '@/components/Carousel'
+
+function DetailCarousel({ urls }: { urls: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  const items = urls.map((url, i) => ({
+    id: i,
+    image: url,
+    title: '',
+    description: '',
+    icon: null as unknown as React.ReactNode,
+  }))
+
+  useEffect(() => {
+    if (containerRef.current) setWidth(containerRef.current.offsetWidth)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="w-full aspect-square">
+      {width > 0 && (
+        <Carousel
+          items={items}
+          baseWidth={width}
+          autoplay={urls.length > 1}
+          autoplayDelay={3000}
+          pauseOnHover
+          loop={urls.length > 1}
+          containerPadding={0}
+          dotsOverlay
+          showPauseButton
+          className="relative overflow-hidden w-full h-full"
+        />
+      )}
+    </div>
+  )
+}
 
 interface PetDetailProps {
   pet: Pet
@@ -27,29 +64,23 @@ interface PetDetailProps {
 export function PetDetail({ pet }: PetDetailProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
-  const [photoIndex, setPhotoIndex] = useState(0)
   const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    setPhotoIndex(0)
-  }, [pet?.id])
 
   const photos = pet.photos
   const hasPhotos = photos.length > 0
 
-  const prev = () => setPhotoIndex((i) => (i > 0 ? i - 1 : photos.length - 1))
-  const next = () => setPhotoIndex((i) => (i < photos.length - 1 ? i + 1 : 0))
-
   const handleShare = async () => {
     if (!pet.short_slug) return
     const url = `${window.location.origin}/p/${pet.short_slug}`
+    if (navigator.share) {
+      try { await navigator.share({ url }) } catch { /* cancelled */ }
+      return
+    }
     try {
       await navigator.clipboard.writeText(url)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
-    } catch {
-      // Clipboard API not available
-    }
+    } catch { /* Clipboard API not available */ }
   }
 
   const handleAdopt = () => {
@@ -61,56 +92,13 @@ export function PetDetail({ pet }: PetDetailProps) {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Hero photo */}
-      <div className="relative aspect-square bg-secondary shrink-0">
+      {/* Carousel */}
+      <div className="relative shrink-0 bg-secondary">
         {hasPhotos ? (
-          <>
-            <Image
-              src={photos[photoIndex].url}
-              alt={pet.name}
-              fill
-              className="object-cover"
-              sizes="360px"
-            />
-
-            {photos.length > 1 && (
-              <>
-                {/* Clickable prev/next areas */}
-                <button
-                  onClick={prev}
-                  className="absolute inset-y-0 left-0 w-1/3 flex items-center justify-start pl-2 opacity-0 hover:opacity-100 transition-opacity"
-                >
-                  <span className="bg-black/40 rounded-xl p-1.5">
-                    <FontAwesomeIcon icon={faChevronLeft} className="w-4 h-4 text-white" />
-                  </span>
-                </button>
-                <button
-                  onClick={next}
-                  className="absolute inset-y-0 right-0 w-1/3 flex items-center justify-end pr-2 opacity-0 hover:opacity-100 transition-opacity"
-                >
-                  <span className="bg-black/40 rounded-xl p-1.5">
-                    <FontAwesomeIcon icon={faChevronRight} className="w-4 h-4 text-white" />
-                  </span>
-                </button>
-
-                {/* Dots */}
-                <div className="absolute bottom-2 inset-x-0 flex justify-center gap-1.5">
-                  {photos.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setPhotoIndex(i)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        i === photoIndex ? 'bg-white' : 'bg-white/50'
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-          </>
+          <DetailCarousel urls={photos.map(p => p.url)} />
         ) : (
-          <div className="flex items-center justify-center h-full">
-            <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/30" />
+          <div className="aspect-square flex items-center justify-center">
+            <FontAwesomeIcon icon={faPaw} className="text-4xl text-muted-foreground/30" />
           </div>
         )}
       </div>
@@ -138,6 +126,55 @@ export function PetDetail({ pet }: PetDetailProps) {
         {/* Description */}
         {pet.description && (
           <p className="text-sm text-muted-foreground leading-relaxed">{pet.description}</p>
+        )}
+
+        {/* Condition alert */}
+        {pet.conditions?.length > 0 && (
+          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-1">
+            <p className="text-sm font-medium text-amber-800">{t('detail.specialCondition')}</p>
+            {pet.condition_notes && (
+              <p className="text-sm text-amber-700">{pet.condition_notes}</p>
+            )}
+          </div>
+        )}
+
+        <hr className="border-border" />
+
+        {/* Rescue Center */}
+        {pet.rescue_center && (
+          <div className="space-y-2">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('detail.rescueCenter')}</p>
+            <div className="flex items-center gap-3">
+              {pet.rescue_center.logo_url ? (
+                <Image
+                  src={pet.rescue_center.logo_url}
+                  alt={pet.rescue_center.name}
+                  width={40}
+                  height={40}
+                  className="rounded-xl object-cover"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+                  <FontAwesomeIcon icon={faPaw} className="text-sm text-muted-foreground" />
+                </div>
+              )}
+              <span className="font-medium text-sm">{pet.rescue_center.name}</span>
+            </div>
+            <div className="flex items-center gap-4">
+              {pet.rescue_center.website && (
+                <a href={pet.rescue_center.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                  Website
+                </a>
+              )}
+              {pet.rescue_center.instagram && (
+                <a href={pet.rescue_center.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <FontAwesomeIcon icon={faInstagram} className="text-sm" />
+                  Instagram
+                </a>
+              )}
+            </div>
+          </div>
         )}
       </div>
 
