@@ -478,7 +478,11 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ duration: 0.2 }}
-              className="rounded-2xl border bg-card overflow-hidden shadow-xs"
+              className={`rounded-2xl overflow-hidden shadow-xs ${
+                pet.conditions?.length > 0
+                  ? 'bg-amber-50 border-2 border-amber-400'
+                  : 'border bg-card'
+              }`}
             >
               <div className="relative aspect-square bg-muted/30">
                 {pet.photos.length > 0 ? (

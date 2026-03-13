@@ -3,9 +3,16 @@
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe } from '@fortawesome/free-solid-svg-icons'
+import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters } from '@/lib/api/pets-public'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
 
 type FilterKey = 'all' | 'dogs' | 'cats' | 'males' | 'females' | 'nearby'
 
@@ -61,6 +68,16 @@ export function PetGrid({
     }
   }
 
+  const handleShare = async (pet: Pet) => {
+    if (!pet.short_slug) return
+    const url = `${window.location.origin}/p/${pet.short_slug}`
+    if (navigator.share) {
+      try { await navigator.share({ url }) } catch { /* cancelled */ }
+    } else {
+      try { await navigator.clipboard.writeText(url) } catch { /* fallback */ }
+    }
+  }
+
   return (
     <div className="flex flex-col h-full">
       {/* Filter pills */}
@@ -84,9 +101,16 @@ export function PetGrid({
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-2">
         {loading && (
-          <div className="flex items-center justify-center h-48 text-muted-foreground">
-            <FontAwesomeIcon icon={faPaw} className="w-5 h-5 mr-2 animate-pulse" />
-            {t('grid.loading')}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="rounded-2xl overflow-hidden bg-secondary animate-pulse">
+                <div className="aspect-square bg-muted" />
+                <div className="p-2 space-y-1.5">
+                  <div className="h-3.5 bg-muted rounded w-2/3" />
+                  <div className="h-3 bg-muted rounded w-1/3" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -104,12 +128,19 @@ export function PetGrid({
         )}
 
         {!loading && !error && pets.length > 0 && (
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {pets.map((pet) => (
-              <button
+              <div
                 key={pet.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => onSelect(pet)}
-                className={`relative group rounded-2xl overflow-hidden aspect-square bg-secondary transition-all ${
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pet) }}
+                className={`relative group rounded-2xl overflow-hidden aspect-square cursor-pointer transition-all ${
+                  pet.conditions?.length > 0
+                    ? 'bg-amber-50 border-2 border-amber-400'
+                    : 'bg-secondary'
+                } ${
                   selectedId === pet.id
                     ? 'outline outline-[2.5px] outline-pop-550'
                     : 'hover:outline hover:outline-2 hover:outline-border'
@@ -121,7 +152,7 @@ export function PetGrid({
                     alt={pet.name}
                     fill
                     className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                    sizes="(max-width: 768px) 50vw, 33vw"
+                    sizes="(max-width: 768px) 50vw, 25vw"
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
@@ -129,11 +160,54 @@ export function PetGrid({
                   </div>
                 )}
 
+                {/* Condition badge */}
+                {pet.conditions?.length > 0 && (
+                  <div className="absolute top-2 left-2 z-10">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                      {t('detail.specialCondition')}
+                    </span>
+                  </div>
+                )}
+
+                {/* Three-dots dropdown */}
+                <div
+                  className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 max-md:opacity-100 transition-opacity"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="w-7 h-7 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors">
+                        <FontAwesomeIcon icon={faEllipsis} className="text-white text-sm" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {pet.short_slug && (
+                        <DropdownMenuItem onClick={() => handleShare(pet)}>
+                          <FontAwesomeIcon icon={faLink} className="text-sm" />
+                          {t('card.share')}
+                        </DropdownMenuItem>
+                      )}
+                      {pet.rescue_center?.website && (
+                        <DropdownMenuItem onClick={() => window.open(pet.rescue_center!.website!, '_blank')}>
+                          <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                          {t('card.visitWebsite', { name: pet.rescue_center.name })}
+                        </DropdownMenuItem>
+                      )}
+                      {pet.rescue_center?.instagram && (
+                        <DropdownMenuItem onClick={() => window.open(pet.rescue_center!.instagram!, '_blank')}>
+                          <FontAwesomeIcon icon={faInstagram} className="text-sm" />
+                          {t('card.visitInstagram', { name: pet.rescue_center.name })}
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
                 {/* Name overlay */}
                 <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 pt-6">
                   <p className="text-white text-sm font-semibold truncate">{pet.name}</p>
                 </div>
-              </button>
+              </div>
             ))}
           </div>
         )}
