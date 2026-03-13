@@ -8,7 +8,6 @@ import { AuthResponse, UserRole } from '@/lib/types/user'
 
 const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
-  adopter: '/',
   member: '/',
   business: '/',
 }

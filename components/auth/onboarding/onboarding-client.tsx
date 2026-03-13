@@ -4,19 +4,17 @@ import { OnboardingNav } from './onboarding-nav'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { AdopterWizard } from './adopter-wizard'
 import { MemberWizard } from './member-wizard'
 import { RescueCenterWizard } from './rescue-center-wizard'
 import { BusinessWizard } from './business-wizard'
 
 const roleDashboardPaths: Record<string, string> = {
   rescue_center: '/dashboard/rescue-center',
-  adopter: '/',
   member: '/',
   business: '/',
 }
 
-const validRoles = ['adopter', 'member', 'rescue_center', 'business']
+const validRoles = ['member', 'rescue_center', 'business']
 
 export function OnboardingClient({ role }: { role: string }) {
   const { user, loading } = useAuth()
@@ -39,7 +37,6 @@ export function OnboardingClient({ role }: { role: string }) {
 
   if (loading || !user) return null
 
-  if (role === 'adopter') return <AdopterWizard />
   if (role === 'member') return <MemberWizard />
   if (role === 'rescue_center') return <RescueCenterWizard />
   if (role === 'business') return <BusinessWizard />

@@ -6,12 +6,11 @@ import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHouse, faDog, faShieldCat, faCheck, faStore } from '@fortawesome/free-solid-svg-icons'
+import { faDog, faShieldCat, faCheck, faStore } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
-  adopter: '/',
   member: '/',
   business: '/',
 }
@@ -25,13 +24,6 @@ interface RoleOption {
 }
 
 const roleOptions: RoleOption[] = [
-  {
-    value: 'adopter',
-    title: 'Adoptante',
-    description: 'Quiero adoptar una mascota',
-    icon: faHouse,
-    color: 'var(--color-pop-750)',
-  },
   {
     value: 'member',
     title: 'Miembro',

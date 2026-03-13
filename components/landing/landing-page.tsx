@@ -10,7 +10,6 @@ import { faCheck } from '@fortawesome/free-solid-svg-icons'
 
 const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
-  adopter: '/',
   member: '/',
   business: '/',
 }
