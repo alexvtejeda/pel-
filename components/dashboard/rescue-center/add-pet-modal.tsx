@@ -12,6 +12,8 @@ import {
   faCat,
   faMars,
   faVenus,
+  faSyringe,
+  faScissors,
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -26,6 +28,9 @@ export interface AddPetFormData {
   photos: File[]
   conditions: string[]
   condition_notes: string
+  vaccinated: boolean
+  castrated: boolean
+  size: 'small' | 'medium' | 'large'
 }
 
 const CONDITION_GROUPS = [
@@ -73,10 +78,10 @@ function PreviewCarousel({ urls }: { urls: string[] }) {
 }
 
 function PreviewCard({
-  name, age, ageUnit, gender, species, photos, hasConditions,
+  name, age, ageUnit, gender, species, photos, hasConditions, vaccinated, castrated, size,
 }: {
   name: string; age: string; ageUnit: 'months' | 'years'; gender: 'male' | 'female'; species: 'dog' | 'cat'
-  photos: PendingPhoto[]; hasConditions: boolean
+  photos: PendingPhoto[]; hasConditions: boolean; vaccinated: boolean; castrated: boolean; size: string
 }) {
   const urls = photos.map(p => p.url)
   return (
@@ -108,6 +113,11 @@ function PreviewCard({
           <span>·</span>
           <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
         </span>
+        <div className="flex items-center gap-2 mt-1">
+          <FontAwesomeIcon icon={faSyringe} className={`w-3 h-3 ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faScissors} className={`w-3 h-3 ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <span className="text-xs text-muted-foreground">{size === 'small' ? 'Pequeño' : size === 'medium' ? 'Mediano' : 'Grande'}</span>
+        </div>
       </div>
     </div>
   )
@@ -131,6 +141,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const [conditions, setConditions] = useState<string[]>([])
   const [conditionNotes, setConditionNotes] = useState('')
   const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
+  const [vaccinated, setVaccinated] = useState(false)
+  const [castrated, setCastrated] = useState(false)
+  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [dragging, setDragging] = useState(false)
   const [mobilePreview, setMobilePreview] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -170,6 +183,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
     setHasConditions(false)
     setConditions([])
     setConditionNotes('')
+    setVaccinated(false)
+    setCastrated(false)
+    setSize('medium')
     setMobilePreview(false)
   }
 
@@ -189,6 +205,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
       photos: photos.map((p) => p.file),
       conditions: hasConditions ? conditions : [],
       condition_notes: hasConditions ? conditionNotes.trim() : '',
+      vaccinated,
+      castrated,
+      size,
     })
     reset()
   }
@@ -337,6 +356,44 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                     <FontAwesomeIcon icon={faCat} className="text-xs" /> Gato
                   </button>
                 </div>
+              </div>
+
+              {/* Vaccinated / Castrated */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={vaccinated}
+                    onChange={(e) => setVaccinated(e.target.checked)}
+                    className="w-4 h-4 rounded accent-pop-550"
+                  />
+                  <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm">Vacunado</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={castrated}
+                    onChange={(e) => setCastrated(e.target.checked)}
+                    className="w-4 h-4 rounded accent-pop-550"
+                  />
+                  <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm">Castrado</span>
+                </label>
+              </div>
+
+              {/* Size */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
+                <select
+                  value={size}
+                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                  className="w-full rounded-xl border border-input px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
+                >
+                  <option value="small">{t('size.small')}</option>
+                  <option value="medium">{t('size.medium')}</option>
+                  <option value="large">{t('size.large')}</option>
+                </select>
               </div>
 
               {/* Description */}
@@ -491,6 +548,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                 species={species}
                 photos={photos}
                 hasConditions={hasConditions && conditions.length > 0}
+                vaccinated={vaccinated}
+                castrated={castrated}
+                size={size}
               />
             </div>
 
