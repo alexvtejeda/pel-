@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -12,7 +12,14 @@ import {
   faPenToSquare,
   faTrash,
   faPlus,
+  faMagnifyingGlass,
+  faFilter,
+  faDog,
+  faCat,
+  faMars,
+  faVenus,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -136,9 +143,11 @@ function EditPetModal({
   }) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation('pets')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [age, setAge] = useState<number | ''>('')
+  const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
   const [gender, setGender] = useState<'male' | 'female'>('male')
   const [species, setSpecies] = useState<'dog' | 'cat'>('dog')
   const [photos, setPhotos] = useState<EditPhoto[]>([])
@@ -148,7 +157,13 @@ function EditPetModal({
     if (pet) {
       setName(pet.name)
       setDescription(pet.description)
-      setAge(pet.age)
+      if (pet.age >= 12 && pet.age % 12 === 0 && pet.age > 0) {
+        setAge(pet.age / 12)
+        setAgeUnit('years')
+      } else {
+        setAge(pet.age)
+        setAgeUnit('months')
+      }
       setGender(pet.gender ?? 'male')
       setSpecies(pet.species ?? 'dog')
       setPhotos(initialPhotos)
@@ -215,15 +230,29 @@ function EditPetModal({
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-medium">Edad (meses)</label>
-                <input
-                  type="number"
-                  min={0}
-                  value={age}
-                  onChange={(e) => setAge(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
-                  placeholder="Ej: 2"
-                  className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
+                <label className="text-sm font-medium">Edad</label>
+                <div className="flex gap-2">
+                  <input
+                    type="number"
+                    min={0}
+                    value={age}
+                    onChange={(e) => setAge(e.target.value === '' ? '' : parseInt(e.target.value, 10))}
+                    placeholder="Ej: 2"
+                    className="flex-1 rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <button type="button" onClick={() => setAgeUnit('months')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                    }`}>
+                    {t('dashboard.ageUnit.months')}
+                  </button>
+                  <button type="button" onClick={() => setAgeUnit('years')}
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
+                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                    }`}>
+                    {t('dashboard.ageUnit.years')}
+                  </button>
+                </div>
                 <p className="text-xs text-muted-foreground/70">La edad aproximada está bien</p>
               </div>
 
@@ -233,11 +262,11 @@ function EditPetModal({
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setGender('male')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'male' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
-                    ♂ Macho
+                    <FontAwesomeIcon icon={faMars} className="text-xs" /> Macho
                   </button>
                   <button type="button" onClick={() => setGender('female')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'female' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
-                    ♀ Hembra
+                    <FontAwesomeIcon icon={faVenus} className="text-xs" /> Hembra
                   </button>
                 </div>
               </div>
@@ -248,11 +277,11 @@ function EditPetModal({
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setSpecies('dog')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'dog' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
-                    🐕 Perro
+                    <FontAwesomeIcon icon={faDog} className="text-xs" /> Perro
                   </button>
                   <button type="button" onClick={() => setSpecies('cat')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'cat' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
-                    🐈 Gato
+                    <FontAwesomeIcon icon={faCat} className="text-xs" /> Gato
                   </button>
                 </div>
               </div>
@@ -306,7 +335,7 @@ function EditPetModal({
               </div>
 
               <Button
-                onClick={() => { onSave(pet.id, { name, description, age: age as number, gender, species, photos }); handleClose() }}
+                onClick={() => { onSave(pet.id, { name, description, age: ageUnit === 'years' ? (age as number) * 12 : (age as number), gender, species, photos }); handleClose() }}
                 disabled={!name.trim() || age === ''}
                 className="rounded-xl"
               >
@@ -320,13 +349,90 @@ function EditPetModal({
   )
 }
 
+// --- Filter types ---
+interface Filters {
+  species: Set<'dog' | 'cat'>
+  gender: Set<'male' | 'female'>
+  conditions: Set<'with' | 'without'>
+}
+
+const emptyFilters = (): Filters => ({
+  species: new Set(),
+  gender: new Set(),
+  conditions: new Set(),
+})
+
+const countActiveFilters = (f: Filters) => f.species.size + f.gender.size + f.conditions.size
+
 export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
+  const { t } = useTranslation('pets')
   const [pets, setPets] = useState<Pet[]>([])
   const [addPetOpen, setAddPetOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [editingPet, setEditingPet] = useState<Pet | null>(null)
   const uploadMoreRef = useRef<HTMLInputElement>(null)
   const uploadPetIdRef = useRef<string | null>(null)
+
+  // Search + filter state
+  const [search, setSearch] = useState('')
+  const [showAutocomplete, setShowAutocomplete] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
+  const [filters, setFilters] = useState<Filters>(emptyFilters)
+  const [highlightIdx, setHighlightIdx] = useState(-1)
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  const activeFilterCount = countActiveFilters(filters)
+  const filtersActive = activeFilterCount > 0
+
+  // Autocomplete matches
+  const autocompleteMatches = useMemo(() => {
+    if (!search.trim()) return []
+    const q = search.toLowerCase()
+    return pets.filter(p => p.name.toLowerCase().includes(q)).slice(0, 5)
+  }, [search, pets])
+
+  // Filtered pets for grid
+  const filteredPets = useMemo(() => {
+    return pets.filter(p => {
+      // Search filter
+      if (search.trim()) {
+        if (!p.name.toLowerCase().includes(search.toLowerCase())) return false
+      }
+      // Species filter
+      if (filters.species.size > 0 && !filters.species.has(p.species)) return false
+      // Gender filter
+      if (filters.gender.size > 0 && !filters.gender.has(p.gender)) return false
+      // Conditions filter
+      if (filters.conditions.size > 0) {
+        const hasCond = p.conditions?.length > 0
+        if (filters.conditions.has('with') && !filters.conditions.has('without') && !hasCond) return false
+        if (filters.conditions.has('without') && !filters.conditions.has('with') && hasCond) return false
+      }
+      return true
+    })
+  }, [pets, search, filters])
+
+  const toggleFilter = useCallback(<K extends keyof Filters>(category: K, value: Filters[K] extends Set<infer V> ? V : never) => {
+    setFilters(prev => {
+      const next = { ...prev, [category]: new Set(prev[category]) }
+      const set = next[category] as Set<typeof value>
+      if (set.has(value)) set.delete(value)
+      else set.add(value)
+      return next
+    })
+  }, [])
+
+  // Close dropdowns on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowAutocomplete(false)
+        setShowFilterDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
 
   useImperativeHandle(ref, () => ({
     openUpload: () => setAddPetOpen(true),
@@ -450,11 +556,142 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         onChange={handleUploadMoreChange}
       />
 
-      {/* Tab header — always visible */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-base font-semibold">Mascotas</h2>
-        <Button onClick={() => setAddPetOpen(true)} className="rounded-xl gap-2">
-          <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
+      {/* Tab header — search bar + add button */}
+      <div className="flex items-center gap-3 mb-6">
+        <div ref={searchRef} className="relative flex-1">
+          <div className={`flex items-center gap-2 rounded-xl border px-3 py-2 transition-colors ${
+            showFilterDropdown || filtersActive ? 'border-pop-550' : 'border-input focus-within:ring-2 focus-within:ring-ring'
+          }`}>
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="text-sm text-muted-foreground shrink-0" />
+            <input
+              type="text"
+              placeholder={t('dashboard.searchPlaceholder')}
+              value={search}
+              onChange={e => {
+                setSearch(e.target.value)
+                setShowAutocomplete(e.target.value.trim().length > 0)
+                setShowFilterDropdown(false)
+                setHighlightIdx(-1)
+              }}
+              onFocus={() => { if (search.trim()) setShowAutocomplete(true); setShowFilterDropdown(false) }}
+              onKeyDown={e => {
+                if (!showAutocomplete || autocompleteMatches.length === 0) return
+                if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightIdx(i => Math.min(i + 1, autocompleteMatches.length - 1)) }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightIdx(i => Math.max(i - 1, 0)) }
+                else if (e.key === 'Enter' && highlightIdx >= 0) { e.preventDefault(); setSearch(autocompleteMatches[highlightIdx].name); setShowAutocomplete(false) }
+                else if (e.key === 'Escape') setShowAutocomplete(false)
+              }}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            <button
+              type="button"
+              onClick={() => { setShowFilterDropdown(prev => !prev); setShowAutocomplete(false) }}
+              className={`relative shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+                showFilterDropdown || filtersActive ? 'bg-pop-550 text-white' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <FontAwesomeIcon icon={faFilter} className="text-sm" />
+              {activeFilterCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-pop-550 text-white text-[10px] font-bold flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Autocomplete dropdown */}
+          {showAutocomplete && autocompleteMatches.length > 0 && (
+            <div className="absolute z-20 top-full mt-1 left-0 right-0 rounded-xl border bg-card shadow-lg overflow-hidden">
+              {autocompleteMatches.map((pet, i) => (
+                <button
+                  key={pet.id}
+                  type="button"
+                  onMouseDown={() => { setSearch(pet.name); setShowAutocomplete(false) }}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                    i === highlightIdx ? 'bg-accent' : 'hover:bg-accent/50'
+                  }`}
+                >
+                  {pet.name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Filter dropdown */}
+          {showFilterDropdown && (
+            <div className="absolute z-20 top-full mt-1 left-0 right-0 rounded-xl border bg-card shadow-lg p-4 space-y-3">
+              {/* Species */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.species')}</p>
+                <div className="flex gap-1.5">
+                  {(['dog', 'cat'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => toggleFilter('species', v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                        filters.species.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      }`}>
+                      <FontAwesomeIcon icon={v === 'dog' ? faDog : faCat} className="text-xs" /> {v === 'dog' ? 'Perro' : 'Gato'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Gender */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.gender')}</p>
+                <div className="flex gap-1.5">
+                  {(['male', 'female'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => toggleFilter('gender', v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                        filters.gender.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      }`}>
+                      <FontAwesomeIcon icon={v === 'male' ? faMars : faVenus} className="text-xs" /> {v === 'male' ? 'Macho' : 'Hembra'}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Conditions */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.conditions')}</p>
+                <div className="flex gap-1.5">
+                  {(['with', 'without'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => toggleFilter('conditions', v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                        filters.conditions.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      }`}>
+                      {v === 'with' ? t('dashboard.filter.withCondition') : t('dashboard.filter.withoutCondition')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Vaccinated — disabled */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.vaccinated')}</p>
+                <div className="flex gap-1.5">
+                  {[t('dashboard.filter.yes'), t('dashboard.filter.no')].map(label => (
+                    <span key={label} title={t('dashboard.filter.comingSoon')}
+                      className="px-3 py-1 rounded-xl text-xs font-medium border border-input text-muted-foreground/40 cursor-not-allowed">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+              {/* Castrated — disabled */}
+              <div>
+                <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.castrated')}</p>
+                <div className="flex gap-1.5">
+                  {[t('dashboard.filter.yes'), t('dashboard.filter.no')].map(label => (
+                    <span key={label} title={t('dashboard.filter.comingSoon')}
+                      className="px-3 py-1 rounded-xl text-xs font-medium border border-input text-muted-foreground/40 cursor-not-allowed">
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <Button onClick={() => setAddPetOpen(true)} className="rounded-xl gap-2 shrink-0">
+          <FontAwesomeIcon icon={faPlus} className="text-sm" />
           Agregar mascota
         </Button>
       </div>
@@ -471,7 +708,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         <AnimatePresence>
-          {pets.map((pet) => (
+          {filteredPets.map((pet) => (
             <motion.div
               key={pet.id}
               initial={{ opacity: 0, scale: 0.92 }}
@@ -516,14 +753,12 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-muted-foreground">
-                    {[
-                      pet.age != null && `${pet.age} meses`,
-                      pet.gender === 'male' ? '♂' : pet.gender === 'female' ? '♀' : null,
-                      pet.species === 'dog' ? '🐕' : pet.species === 'cat' ? '🐈' : null,
-                    ]
-                      .filter(Boolean)
-                      .join(' · ')}
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    {pet.age != null && <span>{pet.age >= 12 ? `${Math.floor(pet.age / 12)} año${Math.floor(pet.age / 12) !== 1 ? 's' : ''}` : `${pet.age} meses`}</span>}
+                    {pet.age != null && <span>·</span>}
+                    <FontAwesomeIcon icon={pet.gender === 'male' ? faMars : faVenus} className="text-xs" />
+                    <span>·</span>
+                    <FontAwesomeIcon icon={pet.species === 'dog' ? faDog : faCat} className="text-xs" />
                   </span>
                 </div>
                 <DropdownMenu>

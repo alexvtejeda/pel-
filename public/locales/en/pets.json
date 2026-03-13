@@ -59,6 +59,27 @@
   "profile": {
     "logout": "Log out"
   },
+  "dashboard": {
+    "searchPlaceholder": "Search pet...",
+    "filter": {
+      "species": "Species",
+      "gender": "Gender",
+      "conditions": "Condition",
+      "withCondition": "With special condition",
+      "withoutCondition": "Without condition",
+      "vaccinated": "Vaccinated",
+      "castrated": "Castrated",
+      "yes": "Yes",
+      "no": "No",
+      "comingSoon": "Coming soon"
+    },
+    "preview": "Preview",
+    "edit": "Edit",
+    "ageUnit": {
+      "months": "Months",
+      "years": "Years"
+    }
+  },
   "detail": {
     "adopt": "Adopt",
     "coming_soon": "Coming soon",

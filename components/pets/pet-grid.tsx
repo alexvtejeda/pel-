@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
+import { instagramUrl } from '@/lib/utils'
 import { PetFilters } from '@/lib/api/pets-public'
 import {
   DropdownMenu,
@@ -194,7 +195,7 @@ export function PetGrid({
                         </DropdownMenuItem>
                       )}
                       {pet.rescue_center?.instagram && (
-                        <DropdownMenuItem onClick={() => window.open(pet.rescue_center!.instagram!, '_blank')}>
+                        <DropdownMenuItem onClick={() => window.open(instagramUrl(pet.rescue_center!.instagram!), '_blank')}>
                           <FontAwesomeIcon icon={faInstagram} className="text-sm" />
                           {t('card.visitInstagram', { name: pet.rescue_center.name })}
                         </DropdownMenuItem>

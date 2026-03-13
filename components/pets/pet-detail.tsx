@@ -17,6 +17,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
+import { instagramUrl } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import Link from 'next/link'
 import Carousel from '@/components/Carousel'
@@ -168,7 +169,7 @@ export function PetDetail({ pet }: PetDetailProps) {
                 </a>
               )}
               {pet.rescue_center.instagram && (
-                <a href={pet.rescue_center.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faInstagram} className="text-sm" />
                   Instagram
                 </a>

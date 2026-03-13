@@ -59,6 +59,27 @@
   "profile": {
     "logout": "Cerrar sesión"
   },
+  "dashboard": {
+    "searchPlaceholder": "Buscar mascota...",
+    "filter": {
+      "species": "Especie",
+      "gender": "Género",
+      "conditions": "Condición",
+      "withCondition": "Con condición especial",
+      "withoutCondition": "Sin condición",
+      "vaccinated": "Vacunado",
+      "castrated": "Castrado",
+      "yes": "Sí",
+      "no": "No",
+      "comingSoon": "Próximamente"
+    },
+    "preview": "Vista previa",
+    "edit": "Editar",
+    "ageUnit": {
+      "months": "Meses",
+      "years": "Años"
+    }
+  },
   "detail": {
     "adopt": "Adoptar",
     "coming_soon": "Próximamente",

@@ -7,8 +7,15 @@ import {
   faXmark,
   faCloudArrowUp,
   faPlus,
+  faPaw,
+  faDog,
+  faCat,
+  faMars,
+  faVenus,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import Carousel from '@/components/Carousel'
 
 export interface AddPetFormData {
   name: string
@@ -34,6 +41,78 @@ interface PendingPhoto {
   file: File
 }
 
+function PreviewCarousel({ urls }: { urls: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  const items = urls.map((url, i) => ({
+    id: i,
+    image: url,
+    title: '',
+    description: '',
+    icon: null as unknown as React.ReactNode,
+  }))
+
+  return (
+    <div ref={(el) => { if (el && width === 0) setWidth(el.offsetWidth) }} className="w-full h-full">
+      {width > 0 && (
+        <Carousel
+          items={items}
+          baseWidth={width}
+          autoplay={urls.length > 1}
+          autoplayDelay={3000}
+          pauseOnHover
+          loop={urls.length > 1}
+          containerPadding={0}
+          dotsOverlay
+          className="relative overflow-hidden w-full h-full"
+        />
+      )}
+    </div>
+  )
+}
+
+function PreviewCard({
+  name, age, ageUnit, gender, species, photos, hasConditions,
+}: {
+  name: string; age: string; ageUnit: 'months' | 'years'; gender: 'male' | 'female'; species: 'dog' | 'cat'
+  photos: PendingPhoto[]; hasConditions: boolean
+}) {
+  const urls = photos.map(p => p.url)
+  return (
+    <div className={`rounded-2xl overflow-hidden shadow-xs ${
+      hasConditions ? 'bg-amber-50 border-2 border-amber-400' : 'border bg-card'
+    }`}>
+      <div className="relative aspect-square bg-muted/30">
+        {urls.length > 0 ? (
+          <PreviewCarousel urls={urls} />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />
+          </div>
+        )}
+      </div>
+      <div className="p-3">
+        <div className="flex items-center gap-1.5">
+          <span className="font-medium text-sm truncate">{name.trim() || 'Nombre'}</span>
+          {hasConditions && (
+            <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 shrink-0">
+              Condición especial
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-muted-foreground flex items-center gap-1">
+          {age && <span>{age} {ageUnit === 'years' ? 'años' : 'meses'}</span>}
+          {age && <span>·</span>}
+          <FontAwesomeIcon icon={gender === 'male' ? faMars : faVenus} className="text-xs" />
+          <span>·</span>
+          <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
+        </span>
+      </div>
+    </div>
+  )
+}
+
 interface AddPetModalProps {
   open: boolean
   onConfirm: (data: AddPetFormData) => void
@@ -41,6 +120,7 @@ interface AddPetModalProps {
 }
 
 export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
+  const { t } = useTranslation('pets')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [age, setAge] = useState('')
@@ -50,7 +130,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const [hasConditions, setHasConditions] = useState(false)
   const [conditions, setConditions] = useState<string[]>([])
   const [conditionNotes, setConditionNotes] = useState('')
+  const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
   const [dragging, setDragging] = useState(false)
+  const [mobilePreview, setMobilePreview] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const toggleCondition = (key: string) =>
@@ -81,12 +163,14 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
     setName('')
     setDescription('')
     setAge('')
+    setAgeUnit('months')
     setGender('male')
     setSpecies('dog')
     setPhotos([])
     setHasConditions(false)
     setConditions([])
     setConditionNotes('')
+    setMobilePreview(false)
   }
 
   const handleClose = () => {
@@ -99,7 +183,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
     onConfirm({
       name: name.trim(),
       description: description.trim(),
-      age: parseInt(age, 10),
+      age: ageUnit === 'years' ? parseInt(age, 10) * 12 : parseInt(age, 10),
       gender,
       species,
       photos: photos.map((p) => p.file),
@@ -125,14 +209,24 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
             transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-130 flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-3xl flex flex-col overflow-hidden max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
             <div className="flex items-start justify-between p-6 pb-0">
-              <div>
-                <h2 className="text-base font-semibold">Agregar mascota</h2>
-                <p className="text-xs text-muted-foreground mt-0.5">Completa los datos antes de subir fotos</p>
+              <div className="flex items-center gap-3">
+                <div>
+                  <h2 className="text-base font-semibold">Agregar mascota</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">Completa los datos antes de subir fotos</p>
+                </div>
+                {/* Mobile toggle */}
+                <button
+                  type="button"
+                  onClick={() => setMobilePreview(prev => !prev)}
+                  className="md:hidden text-xs font-medium text-pop-300 hover:text-pop-550 transition-colors"
+                >
+                  {mobilePreview ? t('dashboard.edit') : t('dashboard.preview')}
+                </button>
               </div>
               <button type="button" className="group mt-0.5" onClick={handleClose}>
                 <FontAwesomeIcon
@@ -142,8 +236,10 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
               </button>
             </div>
 
-            {/* Body */}
-            <div className="flex flex-col gap-4 p-6 overflow-y-auto">
+            {/* Body — two-panel on desktop */}
+            <div className="flex gap-6 p-6 overflow-y-auto">
+            {/* Left panel: form (hidden on mobile when preview is active) */}
+            <div className={`flex flex-col gap-4 flex-1 min-w-0 ${mobilePreview ? 'hidden md:flex' : 'flex'}`}>
 
               {/* Name */}
               <div className="flex flex-col gap-1.5">
@@ -158,21 +254,36 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                 />
               </div>
 
-              {/* Age + Gender */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Edad (meses)</label>
+              {/* Age */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Edad</label>
+                <div className="flex gap-2">
                   <input
                     type="number"
                     min={0}
                     placeholder="ej. 6"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                    className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
                   />
+                  <button type="button" onClick={() => setAgeUnit('months')}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                    }`}>
+                    {t('dashboard.ageUnit.months')}
+                  </button>
+                  <button type="button" onClick={() => setAgeUnit('years')}
+                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                    }`}>
+                    {t('dashboard.ageUnit.years')}
+                  </button>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Género</label>
+              </div>
+
+              {/* Gender */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Género</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -183,7 +294,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
-                      ♂ Macho
+                      <FontAwesomeIcon icon={faMars} className="text-xs" /> Macho
                     </button>
                     <button
                       type="button"
@@ -194,10 +305,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
-                      ♀ Hembra
+                      <FontAwesomeIcon icon={faVenus} className="text-xs" /> Hembra
                     </button>
                   </div>
-                </div>
               </div>
 
               {/* Species */}
@@ -213,7 +323,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
-                    🐕 Perro
+                    <FontAwesomeIcon icon={faDog} className="text-xs" /> Perro
                   </button>
                   <button
                     type="button"
@@ -224,7 +334,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
-                    🐈 Gato
+                    <FontAwesomeIcon icon={faCat} className="text-xs" /> Gato
                   </button>
                 </div>
               </div>
@@ -368,6 +478,22 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                   Guardar mascota
                 </Button>
               </div>
+            </div>
+
+            {/* Right panel: live preview (always visible on desktop, toggle on mobile) */}
+            <div className={`w-64 shrink-0 ${mobilePreview ? 'block md:block' : 'hidden md:block'}`}>
+              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('dashboard.preview')}</p>
+              <PreviewCard
+                name={name}
+                age={age}
+                ageUnit={ageUnit}
+                gender={gender}
+                species={species}
+                photos={photos}
+                hasConditions={hasConditions && conditions.length > 0}
+              />
+            </div>
+
             </div>
           </motion.div>
         </motion.div>
