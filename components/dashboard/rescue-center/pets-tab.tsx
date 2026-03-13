@@ -18,6 +18,8 @@ import {
   faCat,
   faMars,
   faVenus,
+  faSyringe,
+  faScissors,
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -139,6 +141,9 @@ function EditPetModal({
     age: number
     gender: 'male' | 'female'
     species: 'dog' | 'cat'
+    vaccinated: boolean
+    castrated: boolean
+    size: 'small' | 'medium' | 'large'
     photos: EditPhoto[]
   }) => void
   onClose: () => void
@@ -150,6 +155,9 @@ function EditPetModal({
   const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
   const [gender, setGender] = useState<'male' | 'female'>('male')
   const [species, setSpecies] = useState<'dog' | 'cat'>('dog')
+  const [vaccinated, setVaccinated] = useState(false)
+  const [castrated, setCastrated] = useState(false)
+  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
   const [photos, setPhotos] = useState<EditPhoto[]>([])
   const addRef = useRef<HTMLInputElement>(null)
 
@@ -167,6 +175,9 @@ function EditPetModal({
       setGender(pet.gender ?? 'male')
       setSpecies(pet.species ?? 'dog')
       setPhotos(initialPhotos)
+      setVaccinated(pet.vaccinated ?? false)
+      setCastrated(pet.castrated ?? false)
+      setSize(pet.size ?? 'medium')
     }
   }, [pet, initialPhotos])
 
@@ -286,6 +297,34 @@ function EditPetModal({
                 </div>
               </div>
 
+              {/* Vaccinated / Castrated */}
+              <div className="grid grid-cols-2 gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={vaccinated} onChange={(e) => setVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                  <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm">Vacunado</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" checked={castrated} onChange={(e) => setCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                  <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-sm">Castrado</span>
+                </label>
+              </div>
+
+              {/* Size */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium">Tamaño</label>
+                <select
+                  value={size}
+                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                  className="w-full rounded-xl border border-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
+                >
+                  <option value="small">Pequeño</option>
+                  <option value="medium">Mediano</option>
+                  <option value="large">Grande</option>
+                </select>
+              </div>
+
               <div className="flex flex-col gap-1.5">
                 <label className="text-sm font-medium">Descripción</label>
                 <textarea
@@ -335,7 +374,7 @@ function EditPetModal({
               </div>
 
               <Button
-                onClick={() => { onSave(pet.id, { name, description, age: ageUnit === 'years' ? (age as number) * 12 : (age as number), gender, species, photos }); handleClose() }}
+                onClick={() => { onSave(pet.id, { name, description, age: ageUnit === 'years' ? (age as number) * 12 : (age as number), gender, species, vaccinated, castrated, size, photos }); handleClose() }}
                 disabled={!name.trim() || age === ''}
                 className="rounded-xl"
               >
@@ -354,15 +393,19 @@ interface Filters {
   species: Set<'dog' | 'cat'>
   gender: Set<'male' | 'female'>
   conditions: Set<'with' | 'without'>
+  vaccinated: Set<string>
+  castrated: Set<string>
 }
 
 const emptyFilters = (): Filters => ({
   species: new Set(),
   gender: new Set(),
   conditions: new Set(),
+  vaccinated: new Set(),
+  castrated: new Set(),
 })
 
-const countActiveFilters = (f: Filters) => f.species.size + f.gender.size + f.conditions.size
+const countActiveFilters = (f: Filters) => f.species.size + f.gender.size + f.conditions.size + f.vaccinated.size + f.castrated.size
 
 export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
   const { t } = useTranslation('pets')
@@ -407,6 +450,16 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         const hasCond = p.conditions?.length > 0
         if (filters.conditions.has('with') && !filters.conditions.has('without') && !hasCond) return false
         if (filters.conditions.has('without') && !filters.conditions.has('with') && hasCond) return false
+      }
+      // Vaccinated filter
+      if (filters.vaccinated.size > 0) {
+        const wantVaccinated = filters.vaccinated.has('yes')
+        if (p.vaccinated !== wantVaccinated) return false
+      }
+      // Castrated filter
+      if (filters.castrated.size > 0) {
+        const wantCastrated = filters.castrated.has('yes')
+        if (p.castrated !== wantCastrated) return false
       }
       return true
     })
@@ -456,6 +509,9 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
         age: data.age,
         gender: data.gender,
         species: data.species,
+        vaccinated: data.vaccinated,
+        castrated: data.castrated,
+        size: data.size,
         conditions: data.conditions.length > 0 ? data.conditions : undefined,
         condition_notes: data.condition_notes?.trim() || undefined,
       })
@@ -503,11 +559,11 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
 
   const handleEditSave = async (
     id: string,
-    updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; photos: EditPhoto[] }
+    updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; vaccinated: boolean; castrated: boolean; size: 'small' | 'medium' | 'large'; photos: EditPhoto[] }
   ) => {
     try {
       // 1. Update metadata
-      const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age, gender: updates.gender, species: updates.species })
+      const updated = await updatePet(id, { name: updates.name, description: updates.description, age: updates.age, gender: updates.gender, species: updates.species, vaccinated: updates.vaccinated, castrated: updates.castrated, size: updates.size })
 
       // 2. Delete removed existing photos
       const original = pets.find((p) => p.id === id)?.photos ?? []
@@ -662,27 +718,31 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
                   ))}
                 </div>
               </div>
-              {/* Vaccinated — disabled */}
+              {/* Vaccinated */}
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.vaccinated')}</p>
                 <div className="flex gap-1.5">
-                  {[t('dashboard.filter.yes'), t('dashboard.filter.no')].map(label => (
-                    <span key={label} title={t('dashboard.filter.comingSoon')}
-                      className="px-3 py-1 rounded-xl text-xs font-medium border border-input text-muted-foreground/40 cursor-not-allowed">
-                      {label}
-                    </span>
+                  {(['yes', 'no'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => toggleFilter('vaccinated', v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                        filters.vaccinated.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      }`}>
+                      {v === 'yes' ? t('dashboard.filter.yes') : t('dashboard.filter.no')}
+                    </button>
                   ))}
                 </div>
               </div>
-              {/* Castrated — disabled */}
+              {/* Castrated */}
               <div>
                 <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('dashboard.filter.castrated')}</p>
                 <div className="flex gap-1.5">
-                  {[t('dashboard.filter.yes'), t('dashboard.filter.no')].map(label => (
-                    <span key={label} title={t('dashboard.filter.comingSoon')}
-                      className="px-3 py-1 rounded-xl text-xs font-medium border border-input text-muted-foreground/40 cursor-not-allowed">
-                      {label}
-                    </span>
+                  {(['yes', 'no'] as const).map(v => (
+                    <button key={v} type="button" onClick={() => toggleFilter('castrated', v)}
+                      className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                        filters.castrated.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      }`}>
+                      {v === 'yes' ? t('dashboard.filter.yes') : t('dashboard.filter.no')}
+                    </button>
                   ))}
                 </div>
               </div>
@@ -760,6 +820,10 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
                     <span>·</span>
                     <FontAwesomeIcon icon={pet.species === 'dog' ? faDog : faCat} className="text-xs" />
                   </span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
+                    <FontAwesomeIcon icon={faSyringe} className={`w-3 h-3 ${pet.vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faScissors} className={`w-3 h-3 ${pet.castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                  </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
