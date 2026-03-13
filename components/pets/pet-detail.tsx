@@ -181,21 +181,21 @@ export function PetDetail({ pet }: PetDetailProps) {
 
       {/* Adopt button + share */}
       <div className="p-4 border-t border-border shrink-0 space-y-2">
-        {user ? (
+        {user && user.role !== 'rescue_center' && user.role !== 'business' ? (
           <button
             onClick={handleAdopt}
             className="w-full py-2.5 bg-pop-550 text-white font-semibold rounded-xl hover:bg-pop-500 transition-colors"
           >
             {t('detail.adopt')}
           </button>
-        ) : (
+        ) : !user ? (
           <Link
             href="/auth/login"
             className="block w-full py-2.5 text-center bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-colors"
           >
             {t('detail.login_prompt')}
           </Link>
-        )}
+        ) : null}
         {pet.short_slug && (
           <button
             onClick={handleShare}
