@@ -46,7 +46,9 @@
     "nearby": "Cercanos",
     "empty": "No hay mascotas disponibles",
     "error": "Error al cargar mascotas",
-    "loading": "Cargando mascotas..."
+    "loading": "Cargando mascotas...",
+    "vaccinated": "Vacunado",
+    "castrated": "Castrado"
   },
   "header": {
     "pets": "Mascotas",

@@ -46,7 +46,9 @@
     "nearby": "Nearby",
     "empty": "No pets available",
     "error": "Error loading pets",
-    "loading": "Loading pets..."
+    "loading": "Loading pets...",
+    "vaccinated": "Vaccinated",
+    "castrated": "Castrated"
   },
   "header": {
     "pets": "Pets",

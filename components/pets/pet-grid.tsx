@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl } from '@/lib/utils'
@@ -34,6 +34,10 @@ interface PetGridProps {
   activeFilter: FilterKey
   onSelect: (pet: Pet) => void
   onFilterChange: (filter: FilterKey, params: PetFilters) => void
+  vaccinatedFilter: boolean
+  castratedFilter: boolean
+  onVaccinatedChange: (v: boolean) => void
+  onCastratedChange: (v: boolean) => void
 }
 
 export type { FilterKey }
@@ -46,6 +50,10 @@ export function PetGrid({
   activeFilter,
   onSelect,
   onFilterChange,
+  vaccinatedFilter,
+  castratedFilter,
+  onVaccinatedChange,
+  onCastratedChange,
 }: PetGridProps) {
   const { t } = useTranslation('pets')
 
@@ -97,6 +105,32 @@ export function PetGrid({
             {t(`grid.${f.key}`)}
           </button>
         ))}
+      </div>
+
+      {/* Additive toggle pills */}
+      <div className="flex items-center gap-2 px-2 pb-2">
+        <button
+          onClick={() => onVaccinatedChange(!vaccinatedFilter)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+            vaccinatedFilter
+              ? 'bg-pop-550 text-white border-pop-550'
+              : 'bg-background text-muted-foreground border-border hover:bg-accent'
+          }`}
+        >
+          <FontAwesomeIcon icon={faSyringe} className="w-3 h-3" />
+          {t('grid.vaccinated')}
+        </button>
+        <button
+          onClick={() => onCastratedChange(!castratedFilter)}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+            castratedFilter
+              ? 'bg-pop-550 text-white border-pop-550'
+              : 'bg-background text-muted-foreground border-border hover:bg-accent'
+          }`}
+        >
+          <FontAwesomeIcon icon={faScissors} className="w-3 h-3" />
+          {t('grid.castrated')}
+        </button>
       </div>
 
       {/* Grid */}

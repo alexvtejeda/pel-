@@ -24,6 +24,8 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
   const isDesktop = useMediaQuery('(min-width: 768px)')
   const [open, setOpen] = useState(false)
+  const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
+  const [castratedFilter, setCastratedFilter] = useState(false)
 
   const fetchPets = useCallback(async (filters?: PetFilters) => {
     setLoading(true)
@@ -39,17 +41,32 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   }, [])
 
   useEffect(() => {
-    fetchPets()
-  }, [fetchPets])
+    fetchPets({
+      ...(vaccinatedFilter ? { vaccinated: true } : {}),
+      ...(castratedFilter ? { castrated: true } : {}),
+    })
+  }, [fetchPets, vaccinatedFilter, castratedFilter])
 
   const handleFilterChange = useCallback(
     (filter: FilterKey, params: PetFilters) => {
       setActiveFilter(filter)
       setSelected(null)
-      fetchPets(params)
+      fetchPets({
+        ...params,
+        ...(vaccinatedFilter ? { vaccinated: true } : {}),
+        ...(castratedFilter ? { castrated: true } : {}),
+      })
     },
-    [fetchPets]
+    [fetchPets, vaccinatedFilter, castratedFilter]
   )
+
+  const handleVaccinatedToggle = useCallback((v: boolean) => {
+    setVaccinatedFilter(v)
+  }, [])
+
+  const handleCastratedToggle = useCallback((v: boolean) => {
+    setCastratedFilter(v)
+  }, [])
 
   const handleSelect = useCallback((pet: Pet) => {
     setSelected(pet)
@@ -69,6 +86,10 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           activeFilter={activeFilter}
           onSelect={handleSelect}
           onFilterChange={handleFilterChange}
+          vaccinatedFilter={vaccinatedFilter}
+          castratedFilter={castratedFilter}
+          onVaccinatedChange={handleVaccinatedToggle}
+          onCastratedChange={handleCastratedToggle}
         />
       </div>
 
