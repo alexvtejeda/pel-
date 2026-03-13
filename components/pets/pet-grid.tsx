@@ -71,7 +71,7 @@ export function PetGrid({
 
   const handleShare = async (pet: Pet) => {
     if (!pet.short_slug) return
-    const url = `${window.location.origin}/p/${pet.short_slug}`
+    const url = `${window.location.origin}/p?slug=${pet.short_slug}`
     if (navigator.share) {
       try { await navigator.share({ url }) } catch { /* cancelled */ }
     } else {

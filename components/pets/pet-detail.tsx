@@ -72,7 +72,7 @@ export function PetDetail({ pet }: PetDetailProps) {
 
   const handleShare = async () => {
     if (!pet.short_slug) return
-    const url = `${window.location.origin}/p/${pet.short_slug}`
+    const url = `${window.location.origin}/p?slug=${pet.short_slug}`
     if (navigator.share) {
       try { await navigator.share({ url }) } catch { /* cancelled */ }
       return
@@ -85,7 +85,7 @@ export function PetDetail({ pet }: PetDetailProps) {
   }
 
   const handleAdopt = () => {
-    window.location.href = `/adopt/${pet.id}`
+    window.location.href = `/adopt?id=${pet.id}`
   }
 
   const speciesIcon = pet.species === 'dog' ? faDog : faCat
