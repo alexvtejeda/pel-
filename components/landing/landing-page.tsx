@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Header } from './header'
+import { PetsHeader } from '@/components/pets/pets-header'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
@@ -25,10 +25,10 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <PetsHeader />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-4">
+      <section className="pt-16 pb-20 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="text-center mb-12">
             <h1 className="text-5xl md:text-6xl font-bold mb-6">

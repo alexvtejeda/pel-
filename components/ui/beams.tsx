@@ -51,7 +51,7 @@ export const BackgroundBeams = React.memo(({ className }: BackgroundBeamsProps) 
         {/* Static faint paths for depth */}
         <g opacity="0.03">
           {pathData.map((d, i) => (
-            <path key={`static-${i}`} d={d} stroke="var(--input)" strokeWidth="0.5" />
+            <path key={`static-${i}`} d={d} stroke="var(--foreground)" strokeWidth="0.5" />
           ))}
         </g>
 

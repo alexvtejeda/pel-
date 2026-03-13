@@ -53,6 +53,9 @@
     "dashboard": "Dashboard",
     "my_account": "My account"
   },
+  "profile": {
+    "logout": "Log out"
+  },
   "detail": {
     "adopt": "Adopt",
     "coming_soon": "Coming soon",

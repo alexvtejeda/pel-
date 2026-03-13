@@ -53,6 +53,9 @@
     "dashboard": "Mi panel",
     "my_account": "Mi cuenta"
   },
+  "profile": {
+    "logout": "Cerrar sesión"
+  },
   "detail": {
     "adopt": "Adoptar",
     "coming_soon": "Próximamente",

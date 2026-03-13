@@ -263,7 +263,7 @@ export default function Carousel({
     <div
       ref={containerRef}
       className={className ?? `relative overflow-hidden p-4 ${
-        round ? 'rounded-full border border-white' : 'rounded-3xl border border-[#222]'
+        round ? 'rounded-full border border-background' : 'rounded-3xl border border-foreground'
       }`}
       style={{
         width: `${baseWidth}px`,
@@ -308,11 +308,11 @@ export default function Carousel({
               className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
                 activeIndex === index
                   ? round || dotsOverlay
-                    ? 'bg-white'
-                    : 'bg-[#333333]'
+                    ? 'bg-background'
+                    : 'bg-foreground'
                   : round || dotsOverlay
-                    ? 'bg-white/50'
-                    : 'bg-[rgba(51,51,51,0.4)]'
+                    ? 'bg-background/50'
+                    : 'bg-foreground/40'
               }`}
               animate={{
                 scale: activeIndex === index ? 1.2 : 1

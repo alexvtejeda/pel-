@@ -122,7 +122,7 @@ export function MemberWizard() {
   const totalSteps = hasPets === true ? 4 : 3
 
   return (
-    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+    <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
       <OnboardingNav
         items={[
@@ -133,7 +133,7 @@ export function MemberWizard() {
         ]}
       />
 
-      <div className="relative z-10 w-full max-w-lg">
+      <div className="relative z-10 w-full max-w-lg mx-auto mt-12 px-4">
         <div className="mx-auto w-full max-w-lg rounded-2xl shadow-xl border border-input bg-background">
 
           {/* Header */}

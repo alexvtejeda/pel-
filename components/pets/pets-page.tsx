@@ -60,7 +60,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     <div className="flex flex-col h-screen">
       <PetsHeader />
 
-      <div className="flex flex-1 min-h-0">
+      <div className="container mx-auto flex flex-1 min-h-0 px-4">
         {/* Grid — takes remaining space */}
         <div className="flex-1 min-w-0">
           <PetGrid
@@ -75,12 +75,12 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
         </div>
 
         {/* Detail panel — fixed 360px on desktop, hidden on mobile */}
-        <div className="hidden md:flex w-[360px] shrink-0 border-l border-border flex-col">
+        <div className="hidden md:flex w-90 mx-auto shrink-0 border-l border-border flex-col">
           {selected ? (
             <PetDetail pet={selected} />
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground gap-3 p-6">
-              <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-20" />
+              <FontAwesomeIcon icon={faPaw} className="text-lg opacity-20" />
               <p className="text-sm text-center">{t('detail.select_pet')}</p>
             </div>
           )}

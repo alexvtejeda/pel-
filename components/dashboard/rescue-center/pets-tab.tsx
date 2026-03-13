@@ -556,7 +556,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
 
       <EditPetModal
         pet={editingPet}
-        initialPhotos={editingPet?.photos.map((p) => ({ id: p.id, url: p.url })) ?? []}
+        initialPhotos={editingPet?.photos.filter((p) => p.url).map((p) => ({ id: p.id, url: p.url })) ?? []}
         onSave={handleEditSave}
         onClose={() => setEditingPet(null)}
       />

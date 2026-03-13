@@ -22,17 +22,17 @@ export function AdopterWizard() {
   }
 
   return (
-    <div className="dark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+    <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
-      <OnboardingNav 
+      <OnboardingNav
         items={[
-          {label: 'Inicio', current: false, href: "/"}, 
+          {label: 'Inicio', current: false, href: "/"},
           {label: 'Registro', current: false, href: "/auth/register"},
           {label: 'Rol', current: false, href: "/auth/role-selection", changeRole: true},
           {label: 'Individuo', current: true}
         ]}
       />
-      <div className="relative z-10 w-full max-w-lg">
+      <div className="relative z-10 w-full max-w-lg mx-auto mt-12 px-4">
         <Stepper
           title="Cuéntanos sobre ti"
           subtitle="Solo unos pasos para personalizar tu experiencia"

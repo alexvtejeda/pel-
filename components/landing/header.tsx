@@ -13,6 +13,15 @@ export function Header() {
         <div className="flex items-center justify-between">
           <Logo />
 
+          <nav className="flex items-center">
+            <Link
+              href="/pets"
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {t('nav.pets')}
+            </Link>
+          </nav>
+
           <div className="flex items-center gap-6">
             <Link
               href="/auth/login"

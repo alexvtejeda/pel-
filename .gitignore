@@ -74,6 +74,9 @@ hooks/read_hooks.js
 # Transcriptions for prompts
 *.txt
 
+# Worktrees from superpower plugin (Claude)
+.worktrees/
 #Form examples (tmp)
 form-template/
 successful-form/.worktrees
+successful-form/

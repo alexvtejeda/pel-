@@ -1,5 +1,6 @@
 {
   "nav": {
+    "pets": "Mascotas",
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "how_it_works": "Cómo funciona",
