@@ -74,7 +74,7 @@ export async function updateForm(
 ): Promise<{ data: Form | null; error: string | null }> {
   try {
     const res = await apiClient(`/api/v1/forms/${id}`, {
-      method: 'PUT',
+      method: 'PATCH',
       body: JSON.stringify(input),
     })
     const json = await res.json()
