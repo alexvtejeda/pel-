@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react';
 import React, { JSX } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 
 // replace icons with your own if needed
 import { FiCircle, FiCode, FiFileText, FiLayers, FiLayout } from 'react-icons/fi';
@@ -23,6 +25,7 @@ export interface CarouselProps {
   className?: string;
   containerPadding?: number;
   dotsOverlay?: boolean;
+  showPauseButton?: boolean;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -136,6 +139,7 @@ export default function Carousel({
   className,
   containerPadding = 16,
   dotsOverlay = false,
+  showPauseButton = false,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -150,6 +154,7 @@ export default function Carousel({
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [isJumping, setIsJumping] = useState<boolean>(false);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [paused, setPaused] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -168,6 +173,7 @@ export default function Carousel({
 
   useEffect(() => {
     if (!autoplay || itemsForRender.length <= 1) return undefined;
+    if (paused) return undefined;
     if (pauseOnHover && isHovered) return undefined;
 
     const timer = setInterval(() => {
@@ -175,7 +181,7 @@ export default function Carousel({
     }, autoplayDelay);
 
     return () => clearInterval(timer);
-  }, [autoplay, autoplayDelay, isHovered, pauseOnHover, itemsForRender.length]);
+  }, [autoplay, autoplayDelay, isHovered, pauseOnHover, paused, itemsForRender.length]);
 
   useEffect(() => {
     const startingPosition = loop ? 1 : 0;
@@ -323,6 +329,18 @@ export default function Carousel({
           ))}
         </div>
       </div>
+      {showPauseButton && items.length > 1 && (
+        <button
+          type="button"
+          onClick={() => setPaused(p => !p)}
+          className="absolute top-2 right-2 z-10 w-7 h-7 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors"
+        >
+          <FontAwesomeIcon
+            icon={paused ? faPlay : faPause}
+            className="text-white text-xs"
+          />
+        </button>
+      )}
     </div>
   );
 }

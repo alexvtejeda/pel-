@@ -43,7 +43,7 @@ export interface PetsTabHandle {
 type EditPhoto = { id?: string; url: string; file?: File }
 
 
-function CardCarousel({ urls }: { urls: string[] }) {
+function CardCarousel({ urls, showPauseButton }: { urls: string[]; showPauseButton?: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -71,6 +71,7 @@ function CardCarousel({ urls }: { urls: string[] }) {
           loop={urls.length > 1}
           containerPadding={0}
           dotsOverlay
+          showPauseButton={showPauseButton}
           className="relative overflow-hidden w-full h-full"
         />
       )}
@@ -482,7 +483,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
               <div className="relative aspect-square bg-muted/30">
                 {pet.photos.length > 0 ? (
                   <>
-                    <CardCarousel urls={pet.photos.map((p) => p.url)} />
+                    <CardCarousel urls={pet.photos.map((p) => p.url)} showPauseButton />
                     <button
                       type="button"
                       onClick={() => setEditingPet(pet)}
