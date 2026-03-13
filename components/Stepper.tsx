@@ -16,6 +16,8 @@ interface StepperProps extends HTMLAttributes<HTMLDivElement> {
   nextButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
   backButtonText?: string;
   nextButtonText?: string;
+  completeButtonText?: string;
+  disableNext?: boolean;
   disableStepIndicators?: boolean;
   title?: string;
   subtitle?: string;
@@ -40,6 +42,8 @@ export default function Stepper({
   nextButtonProps = {},
   backButtonText = 'Back',
   nextButtonText = 'Continue',
+  completeButtonText = 'Complete',
+  disableNext = false,
   disableStepIndicators = false,
   title,
   subtitle,
@@ -71,6 +75,7 @@ export default function Stepper({
   };
 
   const handleNext = () => {
+    if (disableNext) return;
     if (!isLastStep) {
       setDirection(1);
       updateStep(currentStep + 1);
@@ -78,6 +83,7 @@ export default function Stepper({
   };
 
   const handleComplete = () => {
+    if (disableNext) return;
     setDirection(1);
     updateStep(totalSteps + 1);
   };
@@ -88,7 +94,7 @@ export default function Stepper({
       {...rest}
     >
       <div
-        className={`mx-auto w-full max-w-lg rounded-4xl shadow-xl ${stepCircleContainerClassName} border border-input bg-background`}
+        className={`mx-auto w-full max-w-lg rounded-2xl shadow-xl ${stepCircleContainerClassName} border border-input bg-background`}
       >
         {(title || subtitle || headerLeft) && (
           <div className="relative text-center p-8">
@@ -160,10 +166,11 @@ export default function Stepper({
               )}
               <button
                 onClick={isLastStep ? handleComplete : handleNext}
-                className="duration-350 flex items-center justify-center rounded-full bg-pop-550 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:opacity-90 active:opacity-80"
+                disabled={disableNext}
+                className="duration-350 flex items-center justify-center rounded-full bg-pop-550 py-1.5 px-3.5 font-medium tracking-tight text-white transition hover:opacity-90 active:opacity-80 disabled:opacity-40 disabled:cursor-not-allowed"
                 {...nextButtonProps}
               >
-                {isLastStep ? 'Complete' : nextButtonText}
+                {isLastStep ? completeButtonText : nextButtonText}
               </button>
             </div>
           </div>
