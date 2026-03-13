@@ -9,6 +9,8 @@ export interface PetFilters {
   sort?: 'proximity'
   lat?: number
   lng?: number
+  vaccinated?: boolean
+  castrated?: boolean
 }
 
 export async function listPublicPets(
@@ -21,6 +23,8 @@ export async function listPublicPets(
     if (params?.sort) query.set('sort', params.sort)
     if (params?.lat != null) query.set('lat', String(params.lat))
     if (params?.lng != null) query.set('lng', String(params.lng))
+    if (params?.vaccinated != null) query.set('vaccinated', String(params.vaccinated))
+    if (params?.castrated != null) query.set('castrated', String(params.castrated))
 
     const qs = query.toString()
     const url = `${BASE_URL}/api/v1/pets${qs ? '?' + qs : ''}`
