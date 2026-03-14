@@ -12,6 +12,7 @@ import {
 import Carousel from '@/components/Carousel'
 import { createBusiness, uploadBusinessPhoto, OperatingHours } from '@/lib/api/businesses'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 const SERVICE_OPTIONS = [
   { key: 'grooming', label: 'Grooming' },
@@ -101,6 +102,7 @@ export function BusinessWizard() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
 
   const toggleService = (key: string) => {
     setServices((prev) =>
@@ -161,7 +163,7 @@ export function BusinessWizard() {
     }
 
     setSubmitting(false)
-    setSubmitted(true)
+    setShowMfaEnrollment(true)
   }
 
   const canSubmit =
@@ -171,6 +173,24 @@ export function BusinessWizard() {
     rnc.trim() !== '' &&
     services.length > 0 &&
     !submitting
+
+  if (showMfaEnrollment) {
+    return (
+      <MfaEnrollment
+        onComplete={() => {
+          setShowMfaEnrollment(false)
+          setSubmitted(true)
+        }}
+        breadcrumbItems={[
+          { label: 'Inicio', href: '/' },
+          { label: 'Registro', href: '/auth/register' },
+          { label: 'Rol', href: '/auth/role-selection', changeRole: true },
+          { label: 'Negocio' },
+          { label: 'Seguridad', current: true },
+        ]}
+      />
+    )
+  }
 
   if (submitted) {
     return (
