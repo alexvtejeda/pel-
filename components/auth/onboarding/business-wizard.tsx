@@ -13,6 +13,7 @@ import Carousel from '@/components/Carousel'
 import { createBusiness, uploadBusinessPhoto, OperatingHours } from '@/lib/api/businesses'
 import { BackgroundBeams } from '@/components/ui/beams'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
+import { getMethods } from '@/lib/api/mfa'
 
 const SERVICE_OPTIONS = [
   { key: 'grooming', label: 'Grooming' },
@@ -163,7 +164,14 @@ export function BusinessWizard() {
     }
 
     setSubmitting(false)
-    setShowMfaEnrollment(true)
+
+    // Skip MFA enrollment if already configured (e.g. during post-registration prompt)
+    const { data: mfaData } = await getMethods()
+    if (mfaData?.mfa_enabled) {
+      setSubmitted(true)
+    } else {
+      setShowMfaEnrollment(true)
+    }
   }
 
   const canSubmit =
