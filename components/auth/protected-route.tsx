@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
+import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -16,7 +17,7 @@ export function ProtectedRoute({
   requireRole,
   redirectTo = '/auth/login',
 }: ProtectedRouteProps) {
-  const { user, loading } = useAuth()
+  const { user, loading, mfaSetupRequired } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
@@ -51,6 +52,22 @@ export function ProtectedRoute({
 
   if (!user || (requireRole && !user.role) || (requireRole && user.role && !requireRole.includes(user.role))) {
     return null
+  }
+
+  if (mfaSetupRequired && user?.role && ['rescue_center', 'business'].includes(user.role)) {
+    return (
+      <MfaEnrollment
+        onComplete={async () => {
+          const { logout } = await import('@/lib/api/auth')
+          await logout()
+          window.location.href = '/auth/login'
+        }}
+        breadcrumbItems={[
+          { label: 'Inicio', href: '/' },
+          { label: 'Seguridad', current: true },
+        ]}
+      />
+    )
   }
 
   return <>{children}</>
