@@ -1,9 +1,9 @@
-import { AuthResponse, UserRole } from '@/lib/types/user'
+import { AuthResponse, UserRole, LoginResponse, isMfaChallenge } from '@/lib/types/user'
 import { apiClient, storeSession, clearSession, getStoredRefreshToken, getStoredUser } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-export async function login(email: string, password: string): Promise<{ data: AuthResponse | null; error: string | null }> {
+export async function login(email: string, password: string): Promise<{ data: LoginResponse | null; error: string | null }> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -11,6 +11,12 @@ export async function login(email: string, password: string): Promise<{ data: Au
   })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al iniciar sesión' }
+
+  // If MFA is required, don't store session — return challenge data
+  if (isMfaChallenge(json)) {
+    return { data: json, error: null }
+  }
+
   storeSession(json.access_token, json.refresh_token, json.user)
   return { data: json, error: null }
 }
