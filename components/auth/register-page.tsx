@@ -7,12 +7,14 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
+import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 export function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
   const router = useRouter()
   const { register } = useAuth()
 
@@ -29,8 +31,22 @@ export function RegisterPage() {
       return
     }
 
-    router.push('/auth/role-selection')
+    setShowMfaEnrollment(true)
     setLoading(false)
+  }
+
+  if (showMfaEnrollment) {
+    return (
+      <MfaEnrollment
+        onComplete={() => router.push('/auth/role-selection')}
+        onSkip={() => router.push('/auth/role-selection')}
+        breadcrumbItems={[
+          { label: 'Inicio', href: '/' },
+          { label: 'Registro', href: '/auth/register' },
+          { label: 'Seguridad', current: true },
+        ]}
+      />
+    )
   }
 
   const handleGoogleSignIn = () => {
