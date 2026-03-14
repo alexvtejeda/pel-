@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react'
-import { AuthUser, UserRole } from '@/lib/types/user'
+import { AuthUser, UserRole, MfaChallengeResponse, isMfaChallenge } from '@/lib/types/user'
 import { storeSession, clearSession, getStoredUser, getStoredAccessToken, getStoredRefreshToken } from '@/lib/api/client'
 import * as authApi from '@/lib/api/auth'
 
@@ -10,7 +10,8 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
-  login: (email: string, password: string) => Promise<{ error: string | null }>
+  mfaSetupRequired: boolean
+  login: (email: string, password: string) => Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null }>
   register: (email: string, password: string) => Promise<{ error: string | null }>
   logout: () => Promise<void>
   setRole: (role: UserRole) => Promise<{ error: string | null }>
@@ -20,7 +21,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
-  login: async () => ({ error: null }),
+  mfaSetupRequired: false,
+  login: async () => ({ error: null, mfaChallenge: null }),
   register: async () => ({ error: null }),
   logout: async () => {},
   setRole: async () => ({ error: null }),
@@ -42,9 +44,19 @@ function isTokenExpired(accessToken: string): boolean {
   }
 }
 
+function hasMfaSetupRequired(accessToken: string): boolean {
+  try {
+    const payload = JSON.parse(atob(accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')))
+    return payload.mfa_setup_required === true
+  } catch {
+    return false
+  }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mfaSetupRequired, setMfaSetupRequired] = useState(false)
 
   useEffect(() => {
     // Listen for session cleared by apiClient on hard 401
@@ -66,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (!isTokenExpired(accessToken)) {
         setUser(storedUser)
+        setMfaSetupRequired(hasMfaSetupRequired(accessToken))
         setLoading(false)
         return
       }
@@ -81,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const data = await res.json()
         storeSession(data.access_token, data.refresh_token, data.user)
         setUser(data.user)
+        setMfaSetupRequired(hasMfaSetupRequired(data.access_token))
       } else {
         clearSession()
       }
@@ -91,10 +105,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init()
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ error: string | null }> => {
+  const login = async (email: string, password: string): Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null }> => {
     const { data, error } = await authApi.login(email, password)
-    if (data) setUser(data.user)
-    return { error }
+    if (error || !data) return { error, mfaChallenge: null }
+
+    if (isMfaChallenge(data)) {
+      return { error: null, mfaChallenge: data }
+    }
+
+    setUser(data.user)
+    return { error: null, mfaChallenge: null }
   }
 
   const register = async (email: string, password: string): Promise<{ error: string | null }> => {
@@ -121,7 +141,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, setRole, updateSession }}>
+    <AuthContext.Provider value={{ user, loading, mfaSetupRequired, login, register, logout, setRole, updateSession }}>
       {children}
     </AuthContext.Provider>
   )
