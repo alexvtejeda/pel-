@@ -7,12 +7,15 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
+import { MfaVerify } from '@/components/auth/mfa/mfa-verify'
+import { MfaChallengeResponse } from '@/lib/types/user'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mfaChallenge, setMfaChallenge] = useState<MfaChallengeResponse | null>(null)
   const router = useRouter()
   const { login } = useAuth()
 
@@ -21,10 +24,16 @@ export function LoginPage() {
     setLoading(true)
     setError(null)
 
-    const { error: authError } = await login(email, password)
+    const { error: authError, mfaChallenge: challenge } = await login(email, password)
 
     if (authError) {
       setError(authError)
+      setLoading(false)
+      return
+    }
+
+    if (challenge) {
+      setMfaChallenge(challenge)
       setLoading(false)
       return
     }
@@ -111,6 +120,17 @@ export function LoginPage() {
           )}
         </div>
       </div>
+      {mfaChallenge && (
+        <MfaVerify
+          challenge={mfaChallenge}
+          loginEmail={email}
+          onSuccess={() => router.push('/auth/role-selection')}
+          onExpired={() => {
+            setMfaChallenge(null)
+            setError('Tu sesión expiró, inicia sesión de nuevo')
+          }}
+        />
+      )}
     </div>
   )
 }
