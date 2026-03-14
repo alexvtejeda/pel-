@@ -14,6 +14,7 @@ export interface RescueCenter {
   city: string
   status: string
   logo_url: string | null
+  reject_reason?: string
 }
 
 export interface CreateRescueCenterInput {
