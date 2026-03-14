@@ -20,6 +20,7 @@ import Carousel from '@/components/Carousel'
 import { createRescueCenter } from '@/lib/api/rescue-centers'
 import { createPet, uploadPhotos } from '@/lib/api/pets'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 
 interface PendingPhoto {
@@ -89,6 +90,7 @@ export function RescueCenterWizard() {
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
+  const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
 
   const MAX_PHOTOS = 5
 
@@ -150,7 +152,7 @@ export function RescueCenterWizard() {
 
     petPhotos.forEach((p) => URL.revokeObjectURL(p.url))
     setSubmitting(false)
-    setSubmitted(true)
+    setShowMfaEnrollment(true)
   }
 
   const canSubmit =
@@ -158,6 +160,24 @@ export function RescueCenterWizard() {
     phone.trim() !== '' &&
     address.trim() !== '' &&
     !submitting
+
+  if (showMfaEnrollment) {
+    return (
+      <MfaEnrollment
+        onComplete={() => {
+          setShowMfaEnrollment(false)
+          setSubmitted(true)
+        }}
+        breadcrumbItems={[
+          { label: 'Inicio', href: '/' },
+          { label: 'Registro', href: '/auth/register' },
+          { label: 'Rol', href: '/auth/role-selection', changeRole: true },
+          { label: 'Centro de Rescate' },
+          { label: 'Seguridad', current: true },
+        ]}
+      />
+    )
+  }
 
   if (submitted) {
     return (
