@@ -13,7 +13,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 
 export function AdoptPetPage({ petId }: { petId: string }) {
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
 
   const [pet, setPet] = useState<Pet | null>(null)
   const [formData, setFormData] = useState<PetFormResponse | null>(null)
@@ -21,6 +21,8 @@ export function AdoptPetPage({ petId }: { petId: string }) {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (authLoading) return
+
     if (!petId) {
       router.replace('/pets')
       return
@@ -39,7 +41,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
         setLoading(false)
       }
     )
-  }, [petId, router, user])
+  }, [petId, router, user, authLoading])
 
   const handleSubmit = async (
     answers: Record<string, string | string[]>,
