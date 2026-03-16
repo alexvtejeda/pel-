@@ -85,7 +85,7 @@ export function MemberWizard() {
       setSubmitting(false)
       return
     }
-    if (json.user && json.access_token) updateSession(json.user, json.access_token)
+    if (json.user) updateSession(json.user)
 
     if (!hasPets) {
       if (motivation) localStorage.setItem('pelu_motivation', motivation)

@@ -9,9 +9,11 @@ import { Pet } from '@/lib/api/pets'
 import { getPublicPet, getPetForm, PetFormResponse } from '@/lib/api/pets-public'
 import { submitAdoptionForm, uploadSubmissionFile } from '@/lib/api/submissions'
 import { FormRenderer } from '@/components/forms/form-renderer'
+import { useAuth } from '@/lib/contexts/auth-context'
 
 export function AdoptPetPage({ petId }: { petId: string }) {
   const router = useRouter()
+  const { user } = useAuth()
 
   const [pet, setPet] = useState<Pet | null>(null)
   const [formData, setFormData] = useState<PetFormResponse | null>(null)
@@ -24,8 +26,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
       return
     }
 
-    const token = localStorage.getItem('pelu_access_token')
-    if (!token) { router.replace('/auth/login'); return }
+    if (!user) { router.replace('/auth/login'); return }
 
     Promise.all([getPublicPet(petId), getPetForm(petId)]).then(
       ([petRes, formRes]) => {
@@ -38,7 +39,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
         setLoading(false)
       }
     )
-  }, [petId, router])
+  }, [petId, router, user])
 
   const handleSubmit = async (
     answers: Record<string, string | string[]>,

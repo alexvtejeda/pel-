@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faMapMarkerAlt, faPhone } from '@fortawesome/free-solid-svg-icons'
 import { RescueCenter } from '@/lib/api/rescue-centers'
 import * as adminApi from '@/lib/api/admin'
+import { MfaCodeInput } from '@/components/auth/mfa/mfa-code-input'
 
 type StatusFilter = 'all' | 'pending' | 'active' | 'rejected'
 
@@ -39,6 +40,7 @@ export function RescueCentersTab() {
 
   // Delete state
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteCode, setDeleteCode] = useState('')
 
   useEffect(() => {
     adminApi.listAllRescueCenters().then(({ data, error: err }) => {
@@ -66,10 +68,11 @@ export function RescueCentersTab() {
   }
 
   const handleDelete = async (id: string) => {
-    const { error: err } = await adminApi.deleteRescueCenter(id)
+    const { error: err } = await adminApi.deleteRescueCenter(id, deleteCode)
     if (err) return
     setCenters(prev => prev.filter(c => c.id !== id))
     setDeletingId(null)
+    setDeleteCode('')
   }
 
   if (loading) {
@@ -205,21 +208,26 @@ export function RescueCentersTab() {
       {/* Delete confirmation dialog */}
       {deletingId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDeletingId(null)} />
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setDeletingId(null); setDeleteCode('') }} />
           <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-4 border shadow-lg">
             <h3 className="font-semibold">¿Eliminar centro de rescate?</h3>
             <p className="text-sm text-muted-foreground">
               Esta acción no se puede deshacer. Se eliminará el centro de rescate y todos sus datos.
             </p>
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Ingresa el código de tu app de autenticación:</p>
+              <MfaCodeInput onComplete={(code) => setDeleteCode(code)} error={null} />
+            </div>
             <div className="flex gap-2">
               <button
                 onClick={() => handleDelete(deletingId)}
-                className="flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors"
+                disabled={!deleteCode}
+                className="flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
               >
                 Eliminar
               </button>
               <button
-                onClick={() => setDeletingId(null)}
+                onClick={() => { setDeletingId(null); setDeleteCode('') }}
                 className="flex-1 py-2 px-4 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
               >
                 Cancelar

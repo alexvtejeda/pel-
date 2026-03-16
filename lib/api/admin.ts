@@ -40,9 +40,12 @@ export async function rejectRescueCenter(id: string, reason: string): Promise<{ 
   }
 }
 
-export async function deleteRescueCenter(id: string): Promise<{ data: true | null; error: string | null }> {
+export async function deleteRescueCenter(id: string, mfaCode: string): Promise<{ data: true | null; error: string | null }> {
   try {
-    const res = await apiClient(`/api/v1/admin/rescue-centers/${id}`, { method: 'DELETE' })
+    const res = await apiClient(`/api/v1/admin/rescue-centers/${id}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ mfa_method: 'totp', mfa_code: mfaCode }),
+    })
     if (res.status === 204) return { data: true, error: null }
     const json = await res.json()
     return { data: null, error: json.error || 'Error al eliminar' }

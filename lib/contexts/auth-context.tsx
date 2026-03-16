@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (email: string, password: string): Promise<{ error: string | null }> => {
     const { data, error } = await authApi.register(email, password)
-    if (data) setUser(data.user)
+    if (data) setUser(data.user as AuthUser)
     return { error }
   }
 
@@ -96,7 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const setRole = async (role: UserRole): Promise<{ error: string | null }> => {
     const { data, error } = await authApi.setRole(role)
-    if (data) setUser(data.user)
+    if (data) setUser(prev => prev ? { ...prev, role: data.user.role } : prev)
     return { error }
   }
 
