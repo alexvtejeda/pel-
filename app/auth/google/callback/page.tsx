@@ -3,8 +3,8 @@
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { storeSession } from '@/lib/api/client'
-import { AuthResponse, UserRole } from '@/lib/types/user'
+import { apiClient } from '@/lib/api/client'
+import { UserRole } from '@/lib/types/user'
 
 const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -17,29 +17,27 @@ export default function GoogleCallbackPage() {
   const { updateSession } = useAuth()
 
   useEffect(() => {
-    const hash = window.location.hash.slice(1) // strip leading #
-    const params = new URLSearchParams(hash)
-    const sessionB64 = params.get('session')
+    const init = async () => {
+      try {
+        const res = await apiClient('/api/v1/auth/me')
+        if (!res.ok) {
+          router.push('/auth/login')
+          return
+        }
+        const user = await res.json()
+        updateSession(user)
 
-    if (!sessionB64) {
-      router.push('/auth/login')
-      return
-    }
-
-    try {
-      const session: AuthResponse = JSON.parse(atob(sessionB64))
-      storeSession(session.access_token, session.refresh_token, session.user)
-      updateSession(session.user, session.access_token)
-
-      // Redirect based on role
-      if (session.user.role) {
-        router.push(rolePaths[session.user.role])
-      } else {
-        router.push('/auth/role-selection')
+        if (user.role) {
+          router.push(rolePaths[user.role as UserRole])
+        } else {
+          router.push('/auth/role-selection')
+        }
+      } catch {
+        router.push('/auth/login')
       }
-    } catch {
-      router.push('/auth/login')
     }
+
+    init()
   }, [router, updateSession])
 
   return (
