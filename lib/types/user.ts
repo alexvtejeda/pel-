@@ -8,17 +8,15 @@ export interface AuthUser {
   auth_provider: string
   preferred_lang: string
   display_name: string | null
+  mfa_setup_required?: boolean
 }
 
 export interface AuthResponse {
-  access_token: string
-  refresh_token: string
   user: AuthUser
 }
 
 export interface MfaChallengeResponse {
   mfa_required: true
-  mfa_token: string
   preferred_method: MfaMethod
   available_methods: MfaMethod[]
 }
@@ -27,8 +25,8 @@ export type MfaMethod = 'webauthn' | 'totp' | 'email' | 'recovery'
 
 export interface MfaMethodInfo {
   type: MfaMethod
-  id?: string       // only for webauthn
-  name?: string     // only for webauthn (e.g. "MacBook Touch ID")
+  id?: string
+  name?: string
   created_at: string
 }
 
