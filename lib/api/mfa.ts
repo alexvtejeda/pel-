@@ -3,19 +3,6 @@ import { AuthUser, MfaMethodsResponse } from '@/lib/types/user'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-// --- Helper for mfa_token requests (raw fetch, NOT apiClient) ---
-
-async function mfaFetch(path: string, mfaToken: string, options: RequestInit = {}): Promise<Response> {
-  return fetch(`${BASE_URL}${path}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${mfaToken}`,
-      ...(options.headers as Record<string, string> || {}),
-    },
-  })
-}
-
 // --- Enrollment (authenticated via apiClient) ---
 
 export async function totpSetup(): Promise<{ data: { secret: string; qr_uri: string } | null; error: string | null }> {
@@ -66,14 +53,16 @@ export async function regenerateRecoveryCodes(): Promise<{ data: { recovery_code
   return { data: json, error: null }
 }
 
-// --- Verification (uses mfa_token, raw fetch) ---
+// --- Verification (uses mfa_token cookie — credentials: 'include') ---
 
-export async function mfaVerify(mfaToken: string, method: string, codeOrAssertion: string | unknown): Promise<{ data: { access_token: string; refresh_token: string; user: AuthUser } | null; error: string | null }> {
+export async function mfaVerify(method: string, codeOrAssertion: string | unknown): Promise<{ data: { user: AuthUser } | null; error: string | null }> {
   const body = method === 'webauthn'
     ? { method, assertion: codeOrAssertion }
     : { method, code: codeOrAssertion }
-  const res = await mfaFetch('/api/v1/auth/mfa/verify', mfaToken, {
+  const res = await fetch(`${BASE_URL}/api/v1/auth/mfa/verify`, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify(body),
   })
   const json = await res.json()
@@ -81,15 +70,23 @@ export async function mfaVerify(mfaToken: string, method: string, codeOrAssertio
   return { data: json, error: null }
 }
 
-export async function mfaEmailSend(mfaToken: string): Promise<{ data: unknown | null; error: string | null }> {
-  const res = await mfaFetch('/api/v1/auth/mfa/email/send', mfaToken, { method: 'POST' })
+export async function mfaEmailSend(): Promise<{ data: unknown | null; error: string | null }> {
+  const res = await fetch(`${BASE_URL}/api/v1/auth/mfa/email/send`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al enviar código' }
   return { data: json, error: null }
 }
 
-export async function webauthnAssertBegin(mfaToken: string): Promise<{ data: unknown | null; error: string | null }> {
-  const res = await mfaFetch('/api/v1/auth/mfa/webauthn/assert/begin', mfaToken, { method: 'POST' })
+export async function webauthnAssertBegin(): Promise<{ data: unknown | null; error: string | null }> {
+  const res = await fetch(`${BASE_URL}/api/v1/auth/mfa/webauthn/assert/begin`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al iniciar verificación' }
   return { data: json, error: null }
