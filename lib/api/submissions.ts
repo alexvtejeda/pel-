@@ -1,4 +1,4 @@
-import { apiClient, getStoredAccessToken } from './client'
+import { apiClient } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -43,13 +43,12 @@ export async function uploadSubmissionFile(
   file: File
 ): Promise<{ data: { url: string } | null; error: string | null }> {
   try {
-    const token = getStoredAccessToken()
     const form = new FormData()
     form.append('file', file)
     form.append('field_id', fieldId)
     const res = await fetch(`${BASE_URL}/api/v1/submissions/${submissionId}/files`, {
       method: 'POST',
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      credentials: 'include',
       body: form,
     })
     const json = await res.json()

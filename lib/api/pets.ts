@@ -1,4 +1,4 @@
-import { apiClient, getStoredAccessToken } from './client'
+import { apiClient } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -59,12 +59,11 @@ export async function deletePet(id: string): Promise<void> {
 
 // Uses raw fetch because multipart/form-data must not have Content-Type set manually
 export async function uploadPhotos(petId: string, files: File[]): Promise<Photo[]> {
-  const token = getStoredAccessToken()
   const form = new FormData()
   files.forEach((f) => form.append('photos', f))
   const res = await fetch(`${BASE_URL}/api/v1/pets/${petId}/photos`, {
     method: 'POST',
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    credentials: 'include',
     body: form,
   })
   if (!res.ok) throw new Error('Failed to upload photos')

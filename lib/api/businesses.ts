@@ -1,4 +1,4 @@
-import { apiClient, getStoredAccessToken } from './client'
+import { apiClient } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -68,15 +68,12 @@ export async function getMyBusiness(): Promise<{ data: Business | null; error: s
 export async function uploadBusinessPhoto(
   file: File,
 ): Promise<{ data: { url: string } | null; error: string | null }> {
-  const token = getStoredAccessToken()
-  if (!token) return { data: null, error: 'No autenticado' }
-
   const form = new FormData()
   form.append('photo', file)
 
   const res = await fetch(`${BASE_URL}/api/v1/businesses/me/photo`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: 'include',
     body: form,
   })
   const json = await res.json()
