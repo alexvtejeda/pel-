@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleUser, faTableColumns, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons'
@@ -54,6 +55,18 @@ export function PetsHeader() {
     : user?.role === 'business'
       ? '/dashboard/business'
       : null
+
+  // Fetch is_admin from /auth/me on mount — not stored in AuthUser to prevent spoofing
+  const [isAdmin, setIsAdmin] = useState(false)
+  useEffect(() => {
+    if (!user) return
+    apiClient('/api/v1/auth/me').then(async (res) => {
+      if (res.ok) {
+        const data = await res.json()
+        setIsAdmin(data.is_admin === true)
+      }
+    }).catch(() => {})
+  }, [user])
 
   const lang = (i18n.language?.startsWith('en') ? 'en' : 'es') as 'es' | 'en'
   const roleLabel = user?.role ? ROLE_LABELS[user.role]?.[lang] ?? user.role : null
@@ -158,6 +171,16 @@ export function PetsHeader() {
               >
                 <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
                 {t('header.dashboard')}
+              </Link>
+            )}
+            {isAdmin && (
+              <Link
+                href="/dashboard/admin"
+                onClick={() => setSheetOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              >
+                <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
+                Admin
               </Link>
             )}
             <button
