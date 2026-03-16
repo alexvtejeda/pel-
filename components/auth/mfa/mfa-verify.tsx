@@ -7,7 +7,6 @@ import { faShieldHalved, faKey, faMobileScreen, faEnvelope } from '@fortawesome/
 import { MfaCodeInput } from './mfa-code-input'
 import * as mfaApi from '@/lib/api/mfa'
 import { MfaChallengeResponse, MfaMethod } from '@/lib/types/user'
-import { storeSession } from '@/lib/api/client'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 interface MfaVerifyProps {
@@ -33,7 +32,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
   const handleVerify = async (codeOrAssertion: string | unknown) => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await mfaApi.mfaVerify(challenge.mfa_token, activeMethod, codeOrAssertion)
+    const { data, error: err } = await mfaApi.mfaVerify(activeMethod, codeOrAssertion)
     setLoading(false)
 
     if (err) {
@@ -46,8 +45,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
     }
 
     if (data) {
-      storeSession(data.access_token, data.refresh_token, data.user)
-      updateSession(data.user, data.access_token)
+      updateSession(data.user)
       onSuccess()
     }
   }
@@ -58,7 +56,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
     setError(null)
 
     if (method === 'email') {
-      const { error: sendErr } = await mfaApi.mfaEmailSend(challenge.mfa_token)
+      const { error: sendErr } = await mfaApi.mfaEmailSend()
       if (sendErr) {
         setError(sendErr)
         return
@@ -71,7 +69,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
     setLoading(true)
     setError(null)
 
-    const { data: options, error: beginErr } = await mfaApi.webauthnAssertBegin(challenge.mfa_token)
+    const { data: options, error: beginErr } = await mfaApi.webauthnAssertBegin()
     if (beginErr || !options) {
       setError(beginErr || 'Error')
       setLoading(false)
