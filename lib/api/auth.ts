@@ -1,5 +1,5 @@
-import { AuthResponse, UserRole, LoginResponse, isMfaChallenge } from '@/lib/types/user'
-import { apiClient, storeSession, clearSession, getStoredRefreshToken, getStoredUser } from './client'
+import { UserRole, LoginResponse } from '@/lib/types/user'
+import { apiClient } from './client'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -7,56 +7,37 @@ export async function login(email: string, password: string): Promise<{ data: Lo
   const res = await fetch(`${BASE_URL}/api/v1/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ email, password }),
   })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al iniciar sesión' }
-
-  // If MFA is required, don't store session — return challenge data
-  if (isMfaChallenge(json)) {
-    return { data: json, error: null }
-  }
-
-  storeSession(json.access_token, json.refresh_token, json.user)
   return { data: json, error: null }
 }
 
-export async function register(email: string, password: string): Promise<{ data: AuthResponse | null; error: string | null }> {
+export async function register(email: string, password: string): Promise<{ data: { user: { id: string; email: string; role: null } } | null; error: string | null }> {
   const res = await fetch(`${BASE_URL}/api/v1/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
     body: JSON.stringify({ email, password }),
   })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al crear cuenta' }
-  storeSession(json.access_token, json.refresh_token, json.user)
   return { data: json, error: null }
 }
 
 export async function logout(): Promise<void> {
-  const refreshToken = getStoredRefreshToken()
-  if (refreshToken) {
-    // Best-effort: don't block on server response
-    apiClient('/api/v1/auth/logout', {
-      method: 'DELETE',
-      body: JSON.stringify({ refresh_token: refreshToken }),
-    }).catch(() => {})
-  }
-  clearSession()
+  apiClient('/api/v1/auth/logout', { method: 'DELETE' }).catch(() => {})
 }
 
-export async function setRole(role: UserRole): Promise<{ data: { access_token: string; user: AuthResponse['user'] } | null; error: string | null }> {
+export async function setRole(role: UserRole): Promise<{ data: { user: { role: UserRole } } | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/role', {
     method: 'PATCH',
     body: JSON.stringify({ role }),
   })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al seleccionar rol' }
-
-  // Update stored access token and user
-  const refreshToken = getStoredRefreshToken()
-  if (refreshToken) storeSession(json.access_token, refreshToken, json.user)
-
   return { data: json, error: null }
 }
 
