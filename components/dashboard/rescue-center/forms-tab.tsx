@@ -180,9 +180,6 @@ export function FormsTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Logo upload */}
-      <LogoUpload logoUrl={logoUrl} onUpdate={url => setLogoUrl(url)} />
-
       {/* Top bar: form selector + Edit/Preview tabs + Save */}
       <div className="flex flex-wrap items-center gap-3">
         {/* Form selector */}
@@ -235,10 +232,12 @@ export function FormsTab() {
           <FormRenderer
             form={{ ...activeForm, fields }}
             rc={{ name: rcName, logo_url: logoUrl }}
-            preview
           />
         </div>
       )}
+
+      {/* Logo upload */}
+      <LogoUpload logoUrl={logoUrl} onUpdate={url => setLogoUrl(url)} />
 
       {/* Edit mode */}
       {view === 'edit' && (
