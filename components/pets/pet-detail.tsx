@@ -125,8 +125,11 @@ export function PetDetail({ pet }: PetDetailProps) {
             {t(`gender.${pet.gender}`)}
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={faCakeCandles} className="w-3 h-3" />
-            {t('detail.years', { count: pet.age })}
+            <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
+            {pet.age >= 12
+              ? t('detail.years', { count: Math.floor(pet.age / 12) })
+              : `${pet.age} ${t('dashboard.ageUnit.months').toLowerCase()}`
+            }
           </span>
         </div>
 
