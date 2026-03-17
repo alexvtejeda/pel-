@@ -273,7 +273,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     onClick={() => setSpecies('dog')}
                     className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                       species === 'dog'
-                        ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -284,7 +284,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     onClick={() => setSpecies('cat')}
                     className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                       species === 'cat'
-                        ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -302,7 +302,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                       onClick={() => setGender('male')}
                       className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                         gender === 'male'
-                          ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
+                          ? 'bg-pop-550/10 border-pop-550 text-foreground'
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
@@ -313,7 +313,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                       onClick={() => setGender('female')}
                       className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                         gender === 'female'
-                          ? 'bg-pop-550/10 border-pop-550/50 text-pop-300'
+                          ? 'bg-pop-550/10 border-pop-550 text-foreground'
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
@@ -336,13 +336,13 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                   />
                   <button type="button" onClick={() => setAgeUnit('months')}
                     className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
                     {t('dashboard.ageUnit.months')}
                   </button>
                   <button type="button" onClick={() => setAgeUnit('years')}
                     className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
                     {t('dashboard.ageUnit.years')}
                   </button>
@@ -384,8 +384,8 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     onChange={(e) => setVaccinated(e.target.checked)}
                     className="w-4 h-4 rounded accent-pop-550"
                   />
-                  <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm">{t('grid.vaccinated')}</span>
+                  <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
+                  <span className="text-sm text-foreground">{t('grid.vaccinated')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -394,8 +394,8 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     onChange={(e) => setCastrated(e.target.checked)}
                     className="w-4 h-4 rounded accent-pop-550"
                   />
-                  <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm">{t('grid.castrated')}</span>
+                  <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
+                  <span className="text-sm text-foreground">{t('grid.castrated')}</span>
                 </label>
               </div>
 

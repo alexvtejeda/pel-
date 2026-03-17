@@ -261,13 +261,13 @@ function EditPetModal({
                   />
                   <button type="button" onClick={() => setAgeUnit('months')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
                     {t('dashboard.ageUnit.months')}
                   </button>
                   <button type="button" onClick={() => setAgeUnit('years')}
                     className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${
-                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
                     {t('dashboard.ageUnit.years')}
                   </button>
@@ -280,11 +280,11 @@ function EditPetModal({
                 <label className="text-sm font-medium">Género</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setGender('male')}
-                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'male' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'male' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
                     <FontAwesomeIcon icon={faMars} className="text-xs" /> Macho
                   </button>
                   <button type="button" onClick={() => setGender('female')}
-                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'female' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${gender === 'female' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
                     <FontAwesomeIcon icon={faVenus} className="text-xs" /> Hembra
                   </button>
                 </div>
@@ -295,11 +295,11 @@ function EditPetModal({
                 <label className="text-sm font-medium">Tipo</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button type="button" onClick={() => setSpecies('dog')}
-                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'dog' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'dog' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
                     <FontAwesomeIcon icon={faDog} className="text-xs" /> Perro
                   </button>
                   <button type="button" onClick={() => setSpecies('cat')}
-                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'cat' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-muted-foreground hover:border-border'}`}>
+                    className={`rounded-xl border px-3 py-2 text-sm font-medium transition-colors ${species === 'cat' ? 'bg-pop-550/10 border-pop-550/50 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
                     <FontAwesomeIcon icon={faCat} className="text-xs" /> Gato
                   </button>
                 </div>
@@ -760,7 +760,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   {(['dog', 'cat'] as const).map(v => (
                     <button key={v} type="button" onClick={() => toggleFilter('species', v)}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
-                        filters.species.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                        filters.species.has(v) ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                       }`}>
                       <FontAwesomeIcon icon={v === 'dog' ? faDog : faCat} className="text-xs" /> {v === 'dog' ? 'Perro' : 'Gato'}
                     </button>
@@ -774,7 +774,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   {(['male', 'female'] as const).map(v => (
                     <button key={v} type="button" onClick={() => toggleFilter('gender', v)}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
-                        filters.gender.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                        filters.gender.has(v) ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                       }`}>
                       <FontAwesomeIcon icon={v === 'male' ? faMars : faVenus} className="text-xs" /> {v === 'male' ? 'Macho' : 'Hembra'}
                     </button>
@@ -788,7 +788,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   {(['with', 'without'] as const).map(v => (
                     <button key={v} type="button" onClick={() => toggleFilter('conditions', v)}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
-                        filters.conditions.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                        filters.conditions.has(v) ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                       }`}>
                       {v === 'with' ? t('dashboard.filter.withCondition') : t('dashboard.filter.withoutCondition')}
                     </button>
@@ -802,7 +802,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   {(['yes', 'no'] as const).map(v => (
                     <button key={v} type="button" onClick={() => toggleFilter('vaccinated', v)}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
-                        filters.vaccinated.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                        filters.vaccinated.has(v) ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                       }`}>
                       {v === 'yes' ? t('dashboard.filter.yes') : t('dashboard.filter.no')}
                     </button>
@@ -816,7 +816,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   {(['yes', 'no'] as const).map(v => (
                     <button key={v} type="button" onClick={() => toggleFilter('castrated', v)}
                       className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
-                        filters.castrated.has(v) ? 'bg-pop-550/10 border-pop-550 text-pop-300' : 'border-input text-muted-foreground hover:border-border'
+                        filters.castrated.has(v) ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                       }`}>
                       {v === 'yes' ? t('dashboard.filter.yes') : t('dashboard.filter.no')}
                     </button>
