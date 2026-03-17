@@ -133,6 +133,12 @@
       "years": "Years"
     }
   },
+  "chat": {
+    "empty": "You have no conversations yet",
+    "placeholder": "Type a message...",
+    "today": "Today",
+    "yesterday": "Yesterday"
+  },
   "detail": {
     "adopt": "Adopt",
     "coming_soon": "Coming soon",
