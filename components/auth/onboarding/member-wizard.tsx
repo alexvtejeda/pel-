@@ -173,7 +173,7 @@ export function MemberWizard() {
                     onClick={() => setHasPets(opt.value)}
                     className={`p-6 rounded-2xl border-2 text-lg font-semibold transition-all ${
                       hasPets === opt.value
-                        ? 'border-pop-550 bg-pop-550/10 text-pop-300'
+                        ? 'border-pop-550 bg-pop-550/10 text-foreground'
                         : 'border-border hover:border-input'
                     }`}
                   >
@@ -236,7 +236,7 @@ export function MemberWizard() {
                             <button key={s} type="button" onClick={() => updatePet(i, { species: s })}
                               className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-colors ${
                                 pet.species === s
-                                  ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                                  ? 'bg-pop-550/10 border-pop-550 text-foreground'
                                   : 'border-input text-muted-foreground'
                               }`}>
                               <FontAwesomeIcon icon={s === 'dog' ? faDog : faCat} className="mr-1" />
@@ -252,7 +252,7 @@ export function MemberWizard() {
                             <button key={g} type="button" onClick={() => updatePet(i, { gender: g })}
                               className={`flex-1 py-2 rounded-xl border text-xs font-medium transition-colors ${
                                 pet.gender === g
-                                  ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                                  ? 'bg-pop-550/10 border-pop-550 text-foreground'
                                   : 'border-input text-muted-foreground'
                               }`}>
                               <FontAwesomeIcon icon={g === 'male' ? faMars : faVenus} className="mr-1" />

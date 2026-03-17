@@ -332,7 +332,7 @@ export function BusinessWizard() {
                   onClick={() => toggleService(svc.key)}
                   className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                     services.includes(svc.key)
-                      ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                      ? 'bg-pop-550/10 border-pop-550 text-foreground'
                       : 'border-input text-muted-foreground hover:border-border'
                   }`}
                 >
@@ -395,7 +395,7 @@ export function BusinessWizard() {
                       onClick={() => toggleDay(key)}
                       className={`w-12 text-xs font-semibold rounded-xl border px-2 py-1.5 transition-colors ${
                         hours[key]?.open
-                          ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                          ? 'bg-pop-550/10 border-pop-550 text-foreground'
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
