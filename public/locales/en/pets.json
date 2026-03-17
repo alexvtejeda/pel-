@@ -137,7 +137,9 @@
     "empty": "You have no conversations yet",
     "placeholder": "Type a message...",
     "today": "Today",
-    "yesterday": "Yesterday"
+    "yesterday": "Yesterday",
+    "my_conversations": "My conversations",
+    "send": "Send"
   },
   "notifications": {
     "title": "Notifications",

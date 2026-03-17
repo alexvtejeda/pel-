@@ -137,7 +137,9 @@
     "empty": "No tienes conversaciones aún",
     "placeholder": "Escribe un mensaje...",
     "today": "Hoy",
-    "yesterday": "Ayer"
+    "yesterday": "Ayer",
+    "my_conversations": "Mis conversaciones",
+    "send": "Enviar"
   },
   "notifications": {
     "title": "Notificaciones",

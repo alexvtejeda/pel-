@@ -8,7 +8,8 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments } from '@fortawesome/free-solid-svg-icons'
+import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import {
   Sheet,
@@ -27,6 +28,7 @@ const ROLE_LABELS: Record<string, { es: string; en: string }> = {
 
 export function PetsHeader() {
   const { user, logout } = useAuth()
+  const { unreadChatCount } = useWebSocket()
   const { t, i18n } = useTranslation('pets')
   const router = useRouter()
   const pathname = usePathname()
@@ -193,6 +195,21 @@ export function PetsHeader() {
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-pop-550" />
                 {t('member.publish_pet')}
               </button>
+            )}
+            {user?.role === 'member' && (
+              <Link
+                href="/chat"
+                onClick={() => setSheetOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              >
+                <FontAwesomeIcon icon={faComments} className="text-lg text-muted-foreground" />
+                {t('chat.my_conversations')}
+                {unreadChatCount > 0 && (
+                  <span className="ml-auto bg-pop-550 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </Link>
             )}
             <button
               onClick={handleLogout}
