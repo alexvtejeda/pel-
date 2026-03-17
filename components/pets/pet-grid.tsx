@@ -232,9 +232,9 @@ export function PetGrid({
 
                 {/* Verified badge */}
                 {pet.rescue_center && (
-                  <span className="absolute top-2 right-2 w-5 h-5 drop-shadow-md z-10">
-                    <FontAwesomeIcon icon={faCertificate} className="absolute inset-0 w-full h-full text-pop-550" />
-                    <FontAwesomeIcon icon={faCheck} className="absolute inset-0 w-full h-full text-white p-1" />
+                  <span className="absolute top-2 right-2 drop-shadow-md z-10 text-xl">
+                    <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
+                    <FontAwesomeIcon icon={faCheck} className="text-white text-[0.5em] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </span>
                 )}
 

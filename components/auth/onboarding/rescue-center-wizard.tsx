@@ -388,7 +388,7 @@ export function RescueCenterWizard() {
                   type="button"
                   onClick={() => setPetAgeUnit('months')}
                   className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petAgeUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-white/50 hover:border-border'
+                    petAgeUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}
                 >
                   Meses
@@ -397,7 +397,7 @@ export function RescueCenterWizard() {
                   type="button"
                   onClick={() => setPetAgeUnit('years')}
                   className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    petAgeUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-white/50 hover:border-border'
+                    petAgeUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}
                 >
                   Años
@@ -417,7 +417,7 @@ export function RescueCenterWizard() {
                     onClick={() => setPetGender('male')}
                     className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                       petGender === 'male'
-                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -428,7 +428,7 @@ export function RescueCenterWizard() {
                     onClick={() => setPetGender('female')}
                     className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ease-in duration-300 ${
                       petGender === 'female'
-                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -446,7 +446,7 @@ export function RescueCenterWizard() {
                     onClick={() => setPetSpecies('dog')}
                     className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                       petSpecies === 'dog'
-                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -457,7 +457,7 @@ export function RescueCenterWizard() {
                     onClick={() => setPetSpecies('cat')}
                     className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
                       petSpecies === 'cat'
-                        ? 'bg-pop-550/10 border-pop-550 text-pop-300'
+                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
@@ -470,13 +470,13 @@ export function RescueCenterWizard() {
             <div className="flex gap-4 mt-3">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={petVaccinated} onChange={e => setPetVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
-                <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-sm text-white/70">Vacunado</span>
+                <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
+                <span className="text-sm text-foreground">Vacunado</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={petCastrated} onChange={e => setPetCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
-                <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="text-sm text-white/70">Castrado</span>
+                <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
+                <span className="text-sm text-foreground">Castrado</span>
               </label>
             </div>
             {/* Size */}
@@ -547,7 +547,7 @@ export function RescueCenterWizard() {
                 onDragLeave={() => setDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}
               >
-                <div className={`relative aspect-square border-b-2 border-dashed flex items-center justify-center transition-colors ${dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
+                <div className={`relative aspect-square border-b-2 border-dashed flex items-center justify-center transition-colors ${dragging ? 'border-pop-550 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
                   <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-5xl text-muted-foreground/20" />
                 </div>
                 <div className="p-3">

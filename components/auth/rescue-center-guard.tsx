@@ -15,15 +15,32 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
   const [center, setCenter] = useState<RescueCenter | null>(null)
 
   useEffect(() => {
-    getMyRescueCenter().then(({ data, error }) => {
-      if (error || !data) {
-        setStatus('missing')
-        return
-      }
-      setCenter(data)
-      setStatus(data.status as Status)
-    })
+    const check = () => {
+      getMyRescueCenter().then(({ data, error }) => {
+        if (error || !data) {
+          setStatus('missing')
+          return
+        }
+        setCenter(data)
+        setStatus(data.status as Status)
+      })
+    }
+    check()
   }, [])
+
+  // Poll every 10s while pending so approval auto-transitions to dashboard
+  useEffect(() => {
+    if (status !== 'pending') return
+    const interval = setInterval(() => {
+      getMyRescueCenter().then(({ data }) => {
+        if (data && data.status !== 'pending') {
+          setCenter(data)
+          setStatus(data.status as Status)
+        }
+      })
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [status])
 
   useEffect(() => {
     if (status === 'missing') {
