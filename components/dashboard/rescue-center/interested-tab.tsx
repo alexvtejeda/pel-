@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -10,6 +10,8 @@ import {
   faTimes,
   faPaw,
   faComments,
+  faMagnifyingGlass,
+  faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   Submission,
@@ -39,20 +41,107 @@ const STATUS_CLASSES: Record<Submission['status'], string> = {
 
 // ─── List View ────────────────────────────────────────────────
 
+interface PetSuggestion {
+  pet_id: string
+  pet_name: string
+  pet_photo_url?: string
+  count: number
+}
+
 interface ListViewProps {
   submissions: Submission[]
   loading: boolean
   filter: StatusFilter
   onFilterChange: (f: StatusFilter) => void
   onSelect: (id: string) => void
+  petSearch: string
+  onPetSearchChange: (v: string) => void
+  selectedPetId: string | null
+  onSelectPet: (petId: string | null) => void
+  petSuggestions: PetSuggestion[]
 }
 
-function ListView({ submissions, loading, filter, onFilterChange, onSelect }: ListViewProps) {
+function ListView({ submissions, loading, filter, onFilterChange, onSelect, petSearch, onPetSearchChange, selectedPetId, onSelectPet, petSuggestions }: ListViewProps) {
+  const [showPetDropdown, setShowPetDropdown] = useState(false)
+  const searchRef = useRef<HTMLDivElement>(null)
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowPetDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [])
+
+  const filteredSuggestions = useMemo(() => {
+    if (!petSearch.trim()) return []
+    const q = petSearch.toLowerCase()
+    return petSuggestions.filter(s => s.pet_name.toLowerCase().includes(q))
+  }, [petSearch, petSuggestions])
+
   return (
     <div className="space-y-4">
-      {/* Filter */}
-      <div className="flex justify-end">
-        <div className="relative">
+      {/* Filters row */}
+      <div className="flex items-center gap-3">
+        {/* Pet search */}
+        <div ref={searchRef} className="relative flex-1">
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring">
+            <FontAwesomeIcon icon={faMagnifyingGlass} className="text-sm text-muted-foreground shrink-0" />
+            <input
+              type="text"
+              placeholder="Buscar por mascota..."
+              value={petSearch}
+              onChange={e => {
+                onPetSearchChange(e.target.value)
+                setShowPetDropdown(e.target.value.trim().length > 0)
+                if (!e.target.value.trim()) onSelectPet(null)
+              }}
+              onFocus={() => { if (petSearch.trim()) setShowPetDropdown(true) }}
+              className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+            {selectedPetId && (
+              <button
+                type="button"
+                onClick={() => { onPetSearchChange(''); onSelectPet(null) }}
+                className="shrink-0 text-muted-foreground hover:text-foreground"
+              >
+                <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+              </button>
+            )}
+          </div>
+          {showPetDropdown && filteredSuggestions.length > 0 && (
+            <div className="absolute z-20 top-full mt-1 left-0 right-0 rounded-xl border bg-card shadow-lg overflow-hidden max-h-48 overflow-y-auto">
+              {filteredSuggestions.map(s => (
+                <button
+                  key={s.pet_id}
+                  type="button"
+                  onMouseDown={() => {
+                    onSelectPet(s.pet_id)
+                    onPetSearchChange(s.pet_name)
+                    setShowPetDropdown(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent/50 transition-colors"
+                >
+                  {s.pet_photo_url ? (
+                    <img src={s.pet_photo_url} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                      <FontAwesomeIcon icon={faPaw} className="w-3 h-3 text-muted-foreground/40" />
+                    </div>
+                  )}
+                  <span className="text-sm font-medium flex-1 truncate">{s.pet_name}</span>
+                  <span className="text-xs text-muted-foreground">{s.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Status filter */}
+        <div className="relative shrink-0">
           <select
             value={filter}
             onChange={e => onFilterChange(e.target.value as StatusFilter)}
@@ -314,15 +403,19 @@ function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
 
 interface InterestedTabProps {
   onAddToAgenda: (item: Omit<AgendaItem, 'id'>) => void
+  targetSubmissionId?: string | null
+  onTargetHandled?: () => void
 }
 
-export function InterestedTab({ onAddToAgenda: _onAddToAgenda }: InterestedTabProps) {
+export function InterestedTab({ onAddToAgenda: _onAddToAgenda, targetSubmissionId, onTargetHandled }: InterestedTabProps) {
   const [submissions, setSubmissions] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<StatusFilter>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [selectedSub, setSelectedSub] = useState<Submission | null>(null)
   const [selectedForm, setSelectedForm] = useState<Form | null>(null)
+  const [petSearch, setPetSearch] = useState('')
+  const [selectedPetId, setSelectedPetId] = useState<string | null>(null)
 
   const fetchList = useCallback(async () => {
     setLoading(true)
@@ -335,6 +428,42 @@ export function InterestedTab({ onAddToAgenda: _onAddToAgenda }: InterestedTabPr
   useEffect(() => {
     fetchList()
   }, [fetchList])
+
+  // Auto-open target submission when navigating from PetsTab
+  useEffect(() => {
+    if (targetSubmissionId && !loading && submissions.length > 0) {
+      const found = submissions.find(s => s.id === targetSubmissionId)
+      if (found) {
+        handleSelect(targetSubmissionId)
+      }
+      onTargetHandled?.()
+    }
+  }, [targetSubmissionId, loading, submissions]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Build pet suggestions from submissions (deduplicated)
+  const petSuggestions = useMemo<PetSuggestion[]>(() => {
+    const map = new Map<string, PetSuggestion>()
+    for (const sub of submissions) {
+      const existing = map.get(sub.pet_id)
+      if (existing) {
+        existing.count++
+      } else {
+        map.set(sub.pet_id, {
+          pet_id: sub.pet_id,
+          pet_name: sub.pet_name || 'Mascota',
+          pet_photo_url: sub.pet_photo_url,
+          count: 1,
+        })
+      }
+    }
+    return Array.from(map.values())
+  }, [submissions])
+
+  // Filter submissions by selected pet
+  const displayedSubmissions = useMemo(() => {
+    if (!selectedPetId) return submissions
+    return submissions.filter(s => s.pet_id === selectedPetId)
+  }, [submissions, selectedPetId])
 
   const handleSelect = async (id: string) => {
     setSelectedId(id)
@@ -381,11 +510,16 @@ export function InterestedTab({ onAddToAgenda: _onAddToAgenda }: InterestedTabPr
 
   return (
     <ListView
-      submissions={submissions}
+      submissions={displayedSubmissions}
       loading={loading}
       filter={filter}
       onFilterChange={setFilter}
       onSelect={handleSelect}
+      petSearch={petSearch}
+      onPetSearchChange={setPetSearch}
+      selectedPetId={selectedPetId}
+      onSelectPet={setSelectedPetId}
+      petSuggestions={petSuggestions}
     />
   )
 }

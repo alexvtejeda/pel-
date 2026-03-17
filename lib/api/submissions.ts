@@ -16,6 +16,7 @@ export interface Submission {
   pet_name?: string
   pet_photo_url?: string
   member_name?: string
+  member_email?: string
   form_name?: string
 }
 
@@ -60,11 +61,12 @@ export async function uploadSubmissionFile(
 }
 
 export async function listSubmissions(
-  params?: { status?: 'pending' | 'approved' | 'rejected' }
+  params?: { status?: 'pending' | 'approved' | 'rejected'; pet_id?: string }
 ): Promise<{ data: Submission[] | null; error: string | null }> {
   try {
     const query = new URLSearchParams()
     if (params?.status) query.set('status', params.status)
+    if (params?.pet_id) query.set('pet_id', params.pet_id)
     const qs = query.toString()
     const res = await apiClient(`/api/v1/submissions${qs ? '?' + qs : ''}`)
     const json = await res.json()

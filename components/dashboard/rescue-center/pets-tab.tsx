@@ -20,6 +20,9 @@ import {
   faVenus,
   faSyringe,
   faScissors,
+  faHeart,
+  faCircleUser,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -42,6 +45,10 @@ import {
   type Pet,
   type Photo,
 } from '@/lib/api/pets'
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover'
+import { listSubmissions, type Submission } from '@/lib/api/submissions'
+import { formatDistanceToNow } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { AddPetModal, type AddPetFormData } from './add-pet-modal'
 
 export interface PetsTabHandle {
@@ -388,6 +395,70 @@ function EditPetModal({
   )
 }
 
+// --- InterestedDropdown ---
+
+const STATUS_BADGE: Record<Submission['status'], string> = {
+  pending: 'bg-amber-100 text-amber-700',
+  approved: 'bg-green-100 text-green-700',
+  rejected: 'bg-destructive/10 text-destructive',
+}
+
+function InterestedDropdown({ petId, onSelectSubmission }: { petId: string; onSelectSubmission: (id: string) => void }) {
+  const [subs, setSubs] = useState<Submission[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const { data } = await listSubmissions({ pet_id: petId })
+      if (!cancelled) {
+        setSubs(data || [])
+        setLoading(false)
+      }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [petId])
+
+  if (loading) {
+    return (
+      <div className="flex justify-center py-6">
+        <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 text-muted-foreground animate-spin" />
+      </div>
+    )
+  }
+
+  if (subs.length === 0) {
+    return <p className="text-sm text-muted-foreground p-4">Sin solicitudes.</p>
+  }
+
+  return (
+    <div className="max-h-64 overflow-y-auto">
+      {subs.map(sub => (
+        <button
+          key={sub.id}
+          type="button"
+          onClick={() => onSelectSubmission(sub.id)}
+          className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors"
+        >
+          <FontAwesomeIcon icon={faCircleUser} className="w-6 h-6 text-muted-foreground/40 shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">
+              {sub.member_name || sub.member_email || 'Solicitante'}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {formatDistanceToNow(new Date(sub.submitted_at), { addSuffix: true, locale: es })}
+            </p>
+          </div>
+          <span className={`shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-xl ${STATUS_BADGE[sub.status]}`}>
+            {sub.status === 'pending' ? 'Pendiente' : sub.status === 'approved' ? 'Aprobado' : 'Rechazado'}
+          </span>
+        </button>
+      ))}
+    </div>
+  )
+}
+
 // --- Filter types ---
 interface Filters {
   species: Set<'dog' | 'cat'>
@@ -407,7 +478,11 @@ const emptyFilters = (): Filters => ({
 
 const countActiveFilters = (f: Filters) => f.species.size + f.gender.size + f.conditions.size + f.vaccinated.size + f.castrated.size
 
-export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
+interface PetsTabProps {
+  onNavigateToSubmission?: (submissionId: string) => void
+}
+
+export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab({ onNavigateToSubmission }, ref) {
   const { t } = useTranslation('pets')
   const [pets, setPets] = useState<Pet[]>([])
   const [addPetOpen, setAddPetOpen] = useState(false)
@@ -758,7 +833,7 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
 
       {/* Empty state — only when no pets */}
       {pets.length === 0 && (
-        <div className="flex items-center justify-center min-h-[320px]">
+        <div className="flex items-center justify-center min-h-80">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-20" />
             <p className="text-sm">Aún no hay mascotas. ¡Agrega la primera!</p>
@@ -801,6 +876,19 @@ export const PetsTab = forwardRef<PetsTabHandle>(function PetsTab(_, ref) {
                   >
                     <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
                   </button>
+                )}
+                {(pet.submission_count ?? 0) > 0 && (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <button className="absolute bottom-2 left-2 flex items-center gap-1 bg-pop-550/90 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-xl cursor-pointer z-10">
+                        <FontAwesomeIcon icon={faHeart} className="w-3 h-3" />
+                        {pet.submission_count} interesado{(pet.submission_count ?? 0) > 1 ? 's' : ''}
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-72 p-0 rounded-2xl" align="start">
+                      <InterestedDropdown petId={pet.id} onSelectSubmission={(id) => onNavigateToSubmission?.(id)} />
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
               <div className="p-3 flex items-center justify-between gap-2">

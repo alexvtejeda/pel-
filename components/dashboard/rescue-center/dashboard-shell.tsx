@@ -29,6 +29,12 @@ export function DashboardShell() {
   const petsTabRef = useRef<PetsTabHandle>(null)
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [agendaItems, setAgendaItems] = useState<AgendaItem[]>([])
+  const [targetSubmissionId, setTargetSubmissionId] = useState<string | null>(null)
+
+  const handleNavigateToSubmission = (submissionId: string) => {
+    setTargetSubmissionId(submissionId)
+    setActiveTab('interested')
+  }
 
   const addAgendaItem = (item: Omit<AgendaItem, 'id'>) => {
     setAgendaItems(prev => [...prev, { ...item, id: crypto.randomUUID() }])
@@ -77,8 +83,14 @@ export function DashboardShell() {
           )}
         </header>
         <main className="p-4 pb-20 md:pb-4">
-          {activeTab === 'pets' && <PetsTab ref={petsTabRef} />}
-          {activeTab === 'interested' && <InterestedTab onAddToAgenda={addAgendaItem} />}
+          {activeTab === 'pets' && <PetsTab ref={petsTabRef} onNavigateToSubmission={handleNavigateToSubmission} />}
+          {activeTab === 'interested' && (
+            <InterestedTab
+              onAddToAgenda={addAgendaItem}
+              targetSubmissionId={targetSubmissionId}
+              onTargetHandled={() => setTargetSubmissionId(null)}
+            />
+          )}
           {activeTab === 'forms' && <FormsTab />}
           {activeTab === 'agenda' && <AgendaTab items={agendaItems} />}
           {activeTab === 'notifications' && <NotificationsTab notifications={notifications} />}

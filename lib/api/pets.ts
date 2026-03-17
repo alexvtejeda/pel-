@@ -33,6 +33,7 @@ export interface Pet {
   castrated: boolean
   size: 'small' | 'medium' | 'large'
   rescue_center?: PetRescueCenter
+  submission_count?: number
 }
 
 export async function listPets(rescueCenterId: string): Promise<Pet[]> {
