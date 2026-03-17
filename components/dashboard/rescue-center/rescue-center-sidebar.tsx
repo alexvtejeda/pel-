@@ -1,7 +1,7 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faUsers, faClipboardList, faCalendarDays, faBell, faChartLine, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faUsers, faClipboardList, faCalendarDays, faComments, faChartLine, faGear } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   Sidebar,
@@ -24,7 +24,7 @@ function nameFromEmail(email: string): string {
     .join(' ')
 }
 
-type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'metrics' | 'settings'
+type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'chat' | 'metrics' | 'settings'
 
 interface RescueCenterSidebarProps {
   activeTab: Tab
@@ -36,7 +36,7 @@ const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
   { tab: 'interested',    label: 'Interesados',    icon: faUsers },
   { tab: 'forms',         label: 'Formulario',     icon: faClipboardList },
   { tab: 'agenda',        label: 'Agenda',         icon: faCalendarDays },
-  { tab: 'notifications', label: 'Notificaciones', icon: faBell },
+  { tab: 'chat',          label: 'Chat',            icon: faComments },
   { tab: 'metrics',       label: 'Métricas',       icon: faChartLine },
   { tab: 'settings',      label: 'Ajustes',        icon: faGear },
 ]

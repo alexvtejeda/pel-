@@ -139,6 +139,10 @@
     "today": "Today",
     "yesterday": "Yesterday"
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications"
+  },
   "detail": {
     "adopt": "Adopt",
     "coming_soon": "Coming soon",

@@ -139,6 +139,10 @@
     "today": "Hoy",
     "yesterday": "Ayer"
   },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "Sin notificaciones"
+  },
   "detail": {
     "adopt": "Adoptar",
     "coming_soon": "Próximamente",
