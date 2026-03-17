@@ -79,7 +79,7 @@ export function NotificationBell() {
     <>
       <button
         type="button"
-        className="relative text-muted-foreground hover:text-foreground transition-colors"
+        className="relative text-sidebar-foreground hover:text-sidebar-primary transition-colors"
         onClick={() => setOpen(true)}
       >
         <FontAwesomeIcon icon={faBell} className="text-lg" />
@@ -114,7 +114,7 @@ export function NotificationBell() {
                   className={`text-left rounded-xl p-3 transition-colors ${
                     n.is_read
                       ? 'text-muted-foreground'
-                      : 'border-l-[3px] border-pop-550 bg-pop-550/5 pl-3'
+                      : 'border-l-0.5 border-pop-550 bg-pop-550/5 pl-3'
                   }`}
                 >
                   <p className="font-medium text-sm">{n.title}</p>
