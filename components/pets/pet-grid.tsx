@@ -103,8 +103,8 @@ export function PetGrid({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Filter pills */}
-      <div className="flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0">
+      {/* Filter pills — single inline row */}
+      <div className="flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0 flex-wrap">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -115,50 +115,47 @@ export function PetGrid({
                 : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
             }`}
           >
-            <FontAwesomeIcon icon={f.icon} className="w-3.5 h-3.5" />
+            <FontAwesomeIcon icon={f.icon} className="text-xs" />
             {t(`grid.${f.key}`)}
           </button>
         ))}
-      </div>
-
-      {/* Additive toggle pills */}
-      <div className="flex items-center gap-2 px-2 pb-2 overflow-x-auto">
+        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             vaccinatedFilter
-              ? 'bg-pop-550 text-white border-pop-550'
-              : 'bg-background text-muted-foreground border-border hover:bg-accent'
+              ? 'bg-pop-550 text-white'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           }`}
         >
-          <FontAwesomeIcon icon={faSyringe} className="w-3 h-3" />
+          <FontAwesomeIcon icon={faSyringe} className="text-xs" />
           {t('grid.vaccinated')}
         </button>
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors whitespace-nowrap ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             castratedFilter
-              ? 'bg-pop-550 text-white border-pop-550'
-              : 'bg-background text-muted-foreground border-border hover:bg-accent'
+              ? 'bg-pop-550 text-white'
+              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
           }`}
         >
-          <FontAwesomeIcon icon={faScissors} className="w-3 h-3" />
+          <FontAwesomeIcon icon={faScissors} className="text-xs" />
           {t('grid.castrated')}
         </button>
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
         >
-          <FontAwesomeIcon icon={faHouseChimney} className="w-3 h-3" />
-          Centros
+          <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
+          {t('grid.centers')}
         </button>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
         >
-          <FontAwesomeIcon icon={faUser} className="w-3 h-3" />
-          Miembros
+          <FontAwesomeIcon icon={faUser} className="text-xs" />
+          {t('grid.members')}
         </button>
       </div>
 

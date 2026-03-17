@@ -48,7 +48,9 @@
     "error": "Error al cargar mascotas",
     "loading": "Cargando mascotas...",
     "vaccinated": "Vacunado",
-    "castrated": "Castrado"
+    "castrated": "Castrado",
+    "centers": "Centros",
+    "members": "Miembros"
   },
   "header": {
     "pets": "Mascotas",
@@ -60,6 +62,55 @@
   },
   "profile": {
     "logout": "Cerrar sesión"
+  },
+  "member": {
+    "publish_pet": "Publicar mascota",
+    "publish_title": "Publicar mascota",
+    "publish_subtitle": "Completa los datos de tu mascota",
+    "publish_button": "Publicar mascota",
+    "publishing": "Guardando...",
+    "cancel": "Cancelar",
+    "upload_text": "Haz clic para subir",
+    "upload_hint": "PNG, JPG, WEBP · Máx. {{max}} fotos",
+    "error_create": "Error al crear mascota",
+    "placeholder_name": "ej. Luna",
+    "placeholder_age": "ej. 6",
+    "placeholder_description": "ej. Muy juguetona, buena con niños…"
+  },
+  "interested": {
+    "search_placeholder": "Buscar por mascota...",
+    "count_one": "{{count}} interesado",
+    "count_other": "{{count}} interesados",
+    "no_interested": "No hay personas interesadas aún.",
+    "people_title": "Personas Interesadas",
+    "fallback_name": "Solicitante"
+  },
+  "metrics": {
+    "title": "Métricas",
+    "period_7d": "7 días",
+    "period_30d": "30 días",
+    "period_all": "Todo",
+    "total_views": "Total vistas",
+    "adopt_clicks": "Clics en adoptar",
+    "conversion_rate": "Tasa de conversión",
+    "chart_title": "Vistas en el tiempo",
+    "chart_views": "Vistas",
+    "chart_clicks": "Clics adoptar",
+    "table_title": "Por mascota",
+    "table_pet": "Mascota",
+    "table_views": "Vistas",
+    "table_adopt": "Adoptar",
+    "table_conversion": "Conversión",
+    "empty_title": "Sin datos aún",
+    "empty_subtitle": "Las métricas aparecerán cuando tus mascotas reciban visitas",
+    "tip_low_conversion": "Considera mejorar las fotos o descripción"
+  },
+  "submission": {
+    "pending": "Pendiente",
+    "approved": "Aprobado",
+    "rejected": "Rechazado",
+    "empty": "Sin solicitudes.",
+    "all": "Todas"
   },
   "dashboard": {
     "searchPlaceholder": "Buscar mascota...",

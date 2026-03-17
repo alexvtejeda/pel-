@@ -21,6 +21,7 @@ import {
 } from '@/lib/api/submissions'
 import { Form, FormField } from '@/lib/api/forms'
 import { getForm } from '@/lib/api/forms'
+import { useTranslation } from 'react-i18next'
 import { AgendaItem } from './agenda-tab'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
@@ -62,6 +63,7 @@ interface ListViewProps {
 }
 
 function ListView({ submissions, loading, filter, onFilterChange, onSelect, petSearch, onPetSearchChange, selectedPetId, onSelectPet, petSuggestions }: ListViewProps) {
+  const { t } = useTranslation('pets')
   const [showPetDropdown, setShowPetDropdown] = useState(false)
   const searchRef = useRef<HTMLDivElement>(null)
 
@@ -92,7 +94,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
             <FontAwesomeIcon icon={faMagnifyingGlass} className="text-sm text-muted-foreground shrink-0" />
             <input
               type="text"
-              placeholder="Buscar por mascota..."
+              placeholder={t('interested.search_placeholder')}
               value={petSearch}
               onChange={e => {
                 onPetSearchChange(e.target.value)

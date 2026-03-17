@@ -61,6 +61,7 @@ function PreviewCard({
   name: string; age: string; ageUnit: 'months' | 'years'; gender: 'male' | 'female'; species: 'dog' | 'cat'
   photos: PendingPhoto[]; vaccinated: boolean; castrated: boolean; size: string
 }) {
+  const { t } = useTranslation('pets')
   const urls = photos.map(p => p.url)
   return (
     <div className="rounded-2xl overflow-hidden shadow-xs border bg-card">
@@ -75,10 +76,10 @@ function PreviewCard({
       </div>
       <div className="p-3">
         <div className="flex items-center gap-1.5">
-          <span className="font-medium text-sm truncate">{name.trim() || 'Nombre'}</span>
+          <span className="font-medium text-sm truncate">{name.trim() || t('details.name')}</span>
         </div>
         <span className="text-xs text-muted-foreground flex items-center gap-1">
-          {age && <span>{age} {ageUnit === 'years' ? 'años' : 'meses'}</span>}
+          {age && <span>{age} {ageUnit === 'years' ? t('dashboard.ageUnit.years') : t('dashboard.ageUnit.months')}</span>}
           {age && <span>·</span>}
           <FontAwesomeIcon icon={gender === 'male' ? faMars : faVenus} className="text-xs" />
           <span>·</span>
@@ -87,7 +88,7 @@ function PreviewCard({
         <div className="flex items-center gap-2 mt-1">
           <FontAwesomeIcon icon={faSyringe} className={`w-3 h-3 ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
           <FontAwesomeIcon icon={faScissors} className={`w-3 h-3 ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-          <span className="text-xs text-muted-foreground">{size === 'small' ? 'Pequeño' : size === 'medium' ? 'Mediano' : 'Grande'}</span>
+          <span className="text-xs text-muted-foreground">{size === 'small' ? t('size.small') : size === 'medium' ? t('size.medium') : t('size.large')}</span>
         </div>
       </div>
     </div>
@@ -179,7 +180,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
     }])
 
     if (createError || !data || data.length === 0) {
-      setError(createError || 'Error al crear mascota')
+      setError(createError || t('member.error_create'))
       setSaving(false)
       return
     }
@@ -225,8 +226,8 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
             <div className="flex items-start justify-between p-6 pb-0">
               <div className="flex items-center gap-3">
                 <div>
-                  <h2 className="text-base font-semibold">Publicar mascota</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">Completa los datos de tu mascota</p>
+                  <h2 className="text-base font-semibold">{t('member.publish_title')}</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{t('member.publish_subtitle')}</p>
                 </div>
                 {/* Mobile toggle */}
                 <button
@@ -252,11 +253,11 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
 
               {/* Name */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Nombre</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.name')}</label>
                 <input
                   autoFocus
                   type="text"
-                  placeholder="ej. Luna"
+                  placeholder={t('member.placeholder_name')}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -265,7 +266,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
 
               {/* Species */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Especie</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.species')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
@@ -276,7 +277,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
-                    <FontAwesomeIcon icon={faDog} className="text-xs" /> Perro
+                    <FontAwesomeIcon icon={faDog} className="text-xs" /> {t('species.dog')}
                   </button>
                   <button
                     type="button"
@@ -287,14 +288,14 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                         : 'border-input text-muted-foreground hover:border-border'
                     }`}
                   >
-                    <FontAwesomeIcon icon={faCat} className="text-xs" /> Gato
+                    <FontAwesomeIcon icon={faCat} className="text-xs" /> {t('species.cat')}
                   </button>
                 </div>
               </div>
 
               {/* Gender */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Género</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('dashboard.filter.gender')}</label>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
@@ -305,7 +306,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
-                      <FontAwesomeIcon icon={faMars} className="text-xs" /> Macho
+                      <FontAwesomeIcon icon={faMars} className="text-xs" /> {t('gender.male')}
                     </button>
                     <button
                       type="button"
@@ -316,19 +317,19 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
-                      <FontAwesomeIcon icon={faVenus} className="text-xs" /> Hembra
+                      <FontAwesomeIcon icon={faVenus} className="text-xs" /> {t('gender.female')}
                     </button>
                   </div>
               </div>
 
               {/* Age */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Edad</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.age')}</label>
                 <div className="flex gap-2">
                   <input
                     type="number"
                     min={0}
-                    placeholder="ej. 6"
+                    placeholder={t('member.placeholder_age')}
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
                     className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -350,7 +351,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
 
               {/* Size */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.size')}</label>
                 <select
                   value={size}
                   onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
@@ -364,9 +365,9 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
 
               {/* Description */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Descripción</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.description')}</label>
                 <textarea
-                  placeholder="ej. Muy juguetona, buena con niños…"
+                  placeholder={t('member.placeholder_description')}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   rows={3}
@@ -384,7 +385,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     className="w-4 h-4 rounded accent-pop-550"
                   />
                   <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm">Vacunado</span>
+                  <span className="text-sm">{t('grid.vaccinated')}</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -394,7 +395,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                     className="w-4 h-4 rounded accent-pop-550"
                   />
                   <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span className="text-sm">Castrado</span>
+                  <span className="text-sm">{t('grid.castrated')}</span>
                 </label>
               </div>
 
@@ -424,9 +425,9 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                 >
                   <FontAwesomeIcon icon={faCloudArrowUp} className="w-8 h-8 text-muted-foreground/40" />
                   <p className="text-sm text-muted-foreground">
-                    <span className="text-pop-300 font-medium">Haz clic para subir</span> o arrastra y suelta
+                    <span className="text-pop-300 font-medium">{t('member.upload_text')}</span>
                   </p>
-                  <p className="text-xs text-muted-foreground/50">PNG, JPG, WEBP · Máx. {MAX_PHOTOS} fotos</p>
+                  <p className="text-xs text-muted-foreground/50">{t('member.upload_hint', { max: MAX_PHOTOS })}</p>
                 </div>
 
                 {/* Thumbnails */}
@@ -475,10 +476,10 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
               {/* Footer */}
               <div className="flex justify-end gap-2 pt-2">
                 <Button variant="outline" onClick={handleClose} disabled={saving} className="rounded-xl">
-                  Cancelar
+                  {t('member.cancel')}
                 </Button>
                 <Button onClick={handleSubmit} disabled={!canSave} className="rounded-xl">
-                  {saving ? 'Guardando...' : 'Publicar mascota'}
+                  {saving ? t('member.publishing') : t('member.publish_button')}
                 </Button>
               </div>
             </div>

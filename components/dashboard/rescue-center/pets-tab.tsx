@@ -97,6 +97,7 @@ function CardCarousel({ urls, showPauseButton }: { urls: string[]; showPauseButt
 
 
 function PetProfileModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useTranslation('pets')
   return (
     <AnimatePresence>
       {open && (
@@ -123,8 +124,8 @@ function PetProfileModal({ open, onClose }: { open: boolean; onClose: () => void
               />
             </button>
             <div className="p-8 md:p-10">
-              <h2 className="text-lg font-semibold mb-4">Personas Interesadas</h2>
-              <p className="text-muted-foreground text-sm">No hay personas interesadas aún.</p>
+              <h2 className="text-lg font-semibold mb-4">{t('interested.people_title')}</h2>
+              <p className="text-muted-foreground text-sm">{t('interested.no_interested')}</p>
             </div>
           </motion.div>
         </motion.div>
@@ -404,6 +405,7 @@ const STATUS_BADGE: Record<Submission['status'], string> = {
 }
 
 function InterestedDropdown({ petId, onSelectSubmission }: { petId: string; onSelectSubmission: (id: string) => void }) {
+  const { t } = useTranslation('pets')
   const [subs, setSubs] = useState<Submission[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -444,7 +446,7 @@ function InterestedDropdown({ petId, onSelectSubmission }: { petId: string; onSe
           <FontAwesomeIcon icon={faCircleUser} className="w-6 h-6 text-muted-foreground/40 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
-              {sub.member_name || sub.member_email || 'Solicitante'}
+              {sub.member_name || sub.member_email || t('interested.fallback_name')}
             </p>
             <p className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(sub.submitted_at), { addSuffix: true, locale: es })}
@@ -882,7 +884,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                     <PopoverTrigger asChild>
                       <button className="absolute bottom-2 left-2 flex items-center gap-1 bg-pop-550/90 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-xl cursor-pointer z-10">
                         <FontAwesomeIcon icon={faHeart} className="w-3 h-3" />
-                        {pet.submission_count} interesado{(pet.submission_count ?? 0) > 1 ? 's' : ''}
+                        {t('interested.count', { count: pet.submission_count })}
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-72 p-0 rounded-2xl" align="start">

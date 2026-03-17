@@ -191,7 +191,7 @@ export function PetsHeader() {
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors w-full text-left"
               >
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-pop-550" />
-                Publicar mascota
+                {t('member.publish_pet')}
               </button>
             )}
             <button

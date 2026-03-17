@@ -13,6 +13,7 @@ import {
   faDog,
   faCat,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next'
 import {
   AreaChart,
   Area,
@@ -34,11 +35,7 @@ import { getMetrics, MetricsResponse } from '@/lib/api/metrics'
 
 type Period = '7d' | '30d' | 'all'
 
-const periodLabels: { value: Period; label: string }[] = [
-  { value: '7d', label: '7 días' },
-  { value: '30d', label: '30 días' },
-  { value: 'all', label: 'Todo' },
-]
+const PERIODS: Period[] = ['7d', '30d', 'all']
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr)
@@ -48,6 +45,7 @@ function formatDate(dateStr: string): string {
 }
 
 export function MetricsTab() {
+  const { t } = useTranslation('pets')
   const [period, setPeriod] = useState<Period>('30d')
   const [data, setData] = useState<MetricsResponse | null>(null)
   const [loading, setLoading] = useState(true)
@@ -95,7 +93,7 @@ export function MetricsTab() {
     <div className="space-y-6">
       {/* Period toggle */}
       <div className="flex gap-2">
-        {periodLabels.map(({ value, label }) => (
+        {PERIODS.map((value) => (
           <button
             key={value}
             onClick={() => setPeriod(value)}
@@ -105,7 +103,7 @@ export function MetricsTab() {
                 : 'bg-muted text-muted-foreground hover:bg-muted/80'
             }`}
           >
-            {label}
+            {t(`metrics.period_${value}`)}
           </button>
         ))}
       </div>
@@ -113,9 +111,9 @@ export function MetricsTab() {
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
           <FontAwesomeIcon icon={faChartLine} className="w-12 h-12 text-muted-foreground/30" />
-          <p className="text-lg font-medium text-muted-foreground">Sin datos aún</p>
+          <p className="text-lg font-medium text-muted-foreground">{t('metrics.empty_title')}</p>
           <p className="text-sm text-muted-foreground/70">
-            Las métricas aparecerán cuando tus mascotas reciban visitas
+            {t('metrics.empty_subtitle')}
           </p>
         </div>
       ) : (
@@ -126,7 +124,7 @@ export function MetricsTab() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                   <FontAwesomeIcon icon={faEye} className="w-4 h-4" />
-                  Total vistas
+                  {t('metrics.total_views')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -140,7 +138,7 @@ export function MetricsTab() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                   <FontAwesomeIcon icon={faHandPointer} className="w-4 h-4" />
-                  Clics en adoptar
+                  {t('metrics.adopt_clicks')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -154,7 +152,7 @@ export function MetricsTab() {
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
                   <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4" />
-                  Tasa de conversión
+                  {t('metrics.conversion_rate')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -169,7 +167,7 @@ export function MetricsTab() {
           {data!.daily.length > 0 && (
             <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-sm">Vistas en el tiempo</CardTitle>
+                <CardTitle className="text-sm">{t('metrics.chart_title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -197,7 +195,7 @@ export function MetricsTab() {
                       labelFormatter={(label) => formatDate(String(label))}
                       formatter={(value, name) => [
                         Number(value).toLocaleString(),
-                        name === 'views' ? 'Vistas' : 'Clics adoptar',
+                        name === 'views' ? t('metrics.chart_views') : t('metrics.chart_clicks'),
                       ]}
                     />
                     <Area
@@ -226,7 +224,7 @@ export function MetricsTab() {
           {data!.pets.length > 0 && (
             <Card className="rounded-2xl">
               <CardHeader>
-                <CardTitle className="text-sm">Por mascota</CardTitle>
+                <CardTitle className="text-sm">{t('metrics.table_title')}</CardTitle>
               </CardHeader>
               <CardContent className="p-0">
                 <PetMetricsTable pets={data!.pets} />
@@ -240,6 +238,7 @@ export function MetricsTab() {
 }
 
 function PetMetricsTable({ pets }: { pets: MetricsResponse['pets'] }) {
+  const { t } = useTranslation('pets')
   const sorted = [...pets].sort((a, b) => b.views - a.views)
   const maxViews = sorted[0]?.views || 1
 
@@ -247,10 +246,10 @@ function PetMetricsTable({ pets }: { pets: MetricsResponse['pets'] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Mascota</TableHead>
-          <TableHead className="text-right">Vistas</TableHead>
-          <TableHead className="text-right">Adoptar</TableHead>
-          <TableHead className="text-right">Conversión</TableHead>
+          <TableHead>{t('metrics.table_pet')}</TableHead>
+          <TableHead className="text-right">{t('metrics.table_views')}</TableHead>
+          <TableHead className="text-right">{t('metrics.table_adopt')}</TableHead>
+          <TableHead className="text-right">{t('metrics.table_conversion')}</TableHead>
           <TableHead className="w-32">Tendencia</TableHead>
         </TableRow>
       </TableHeader>
@@ -278,7 +277,7 @@ function PetMetricsTable({ pets }: { pets: MetricsResponse['pets'] }) {
                 <div>
                   <p className="text-sm font-medium">{pet.pet_name}</p>
                   <p className="text-xs text-muted-foreground capitalize">
-                    {pet.species === 'dog' ? 'Perro' : 'Gato'} · {pet.gender === 'male' ? 'Macho' : 'Hembra'}
+                    {pet.species === 'dog' ? t('species.dog') : t('species.cat')} · {pet.gender === 'male' ? t('gender.male') : t('gender.female')}
                   </p>
                 </div>
               </div>
@@ -293,7 +292,7 @@ function PetMetricsTable({ pets }: { pets: MetricsResponse['pets'] }) {
                 <FontAwesomeIcon
                   icon={faLightbulb}
                   className="w-3 h-3 text-amber-500 ml-1.5"
-                  title="Baja conversión — considera mejorar fotos o descripción"
+                  title={t('metrics.tip_low_conversion')}
                 />
               )}
             </TableCell>

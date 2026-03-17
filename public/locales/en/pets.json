@@ -48,7 +48,9 @@
     "error": "Error loading pets",
     "loading": "Loading pets...",
     "vaccinated": "Vaccinated",
-    "castrated": "Castrated"
+    "castrated": "Castrated",
+    "centers": "Centers",
+    "members": "Members"
   },
   "header": {
     "pets": "Pets",
@@ -60,6 +62,55 @@
   },
   "profile": {
     "logout": "Log out"
+  },
+  "member": {
+    "publish_pet": "Publish pet",
+    "publish_title": "Publish pet",
+    "publish_subtitle": "Fill in your pet's details",
+    "publish_button": "Publish pet",
+    "publishing": "Saving...",
+    "cancel": "Cancel",
+    "upload_text": "Click to upload",
+    "upload_hint": "PNG, JPG, WEBP · Max. {{max}} photos",
+    "error_create": "Error creating pet",
+    "placeholder_name": "e.g. Luna",
+    "placeholder_age": "e.g. 6",
+    "placeholder_description": "e.g. Very playful, good with kids…"
+  },
+  "interested": {
+    "search_placeholder": "Search by pet...",
+    "count_one": "{{count}} interested",
+    "count_other": "{{count}} interested",
+    "no_interested": "No interested people yet.",
+    "people_title": "Interested People",
+    "fallback_name": "Applicant"
+  },
+  "metrics": {
+    "title": "Metrics",
+    "period_7d": "7 days",
+    "period_30d": "30 days",
+    "period_all": "All",
+    "total_views": "Total views",
+    "adopt_clicks": "Adopt clicks",
+    "conversion_rate": "Conversion rate",
+    "chart_title": "Views over time",
+    "chart_views": "Views",
+    "chart_clicks": "Adopt clicks",
+    "table_title": "Per pet",
+    "table_pet": "Pet",
+    "table_views": "Views",
+    "table_adopt": "Adopt",
+    "table_conversion": "Conversion",
+    "empty_title": "No data yet",
+    "empty_subtitle": "Metrics will appear when your pets get visits",
+    "tip_low_conversion": "Consider improving photos or description"
+  },
+  "submission": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "empty": "No submissions.",
+    "all": "All"
   },
   "dashboard": {
     "searchPlaceholder": "Search pet...",
