@@ -96,21 +96,21 @@ export function RoleSelection() {
           { label: 'Rol', current: true },
         ]}
       />
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-20">
+      <div className="relative z-10 flex items-start justify-center p-4 pt-20">
         <div className="w-full max-w-2xl">
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h1 className="text-3xl font-bold mb-2">¿Cómo quieres usar Pelú?</h1>
             <p className="text-muted-foreground">
               Selecciona tu rol principal
             </p>
           </div>
 
-          <div className="grid gap-4 mb-6">
+          <div className="grid gap-3 mb-4">
             {roleOptions.map((option) => (
               <button
                 key={option.value}
                 onClick={() => setSelectedRole(option.value)}
-                className={`p-6 rounded-2xl border-2 transition-all duration-300 ease-in-out text-left slide-background [--su-color:color-mix(in_oklch,var(--color-pop-450)_50%,transparent)] ${
+                className={`p-6 rounded-2xl border-2 transition-all duration-300 ease-in-out text-left slide-background [--su-color:color-mix(in_oklch,var(--color-pop-450)_50%,transparent)] bg-background ${
                   selectedRole === option.value
                     ? 'transition-all ease-in duration-300 border-pop-950/10 bg-pop-450/50 inset-shadow-decoration'
                     : 'border-border'

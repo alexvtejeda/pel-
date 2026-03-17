@@ -49,9 +49,9 @@ export const BackgroundBeams = React.memo(({ className }: BackgroundBeamsProps) 
         preserveAspectRatio="xMidYMid slice"
       >
         {/* Static faint paths for depth */}
-        <g opacity="0.03">
+        <g opacity="0.15">
           {pathData.map((d, i) => (
-            <path key={`static-${i}`} d={d} stroke="var(--foreground)" strokeWidth="0.5" />
+            <path key={`static-${i}`} d={d} stroke="var(--muted-foreground)" strokeWidth="0.5" />
           ))}
         </g>
 
