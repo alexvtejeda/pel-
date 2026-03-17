@@ -45,22 +45,22 @@ export function DashboardShell() {
   return (
     <SidebarProvider>
       <RescueCenterSidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <SidebarInset>
-        <header className="bg-sidebar flex h-14 items-center gap-2 px-4">
+      <SidebarInset className="bg-sidebar">
+        <header className="bg-sidebar flex h-14 items-center gap-2 px-4 text-sidebar-foreground">
           <SidebarTrigger className="hidden md:flex" />
-          <h1 className="text-lg font-semibold flex-1">{tabTitles[activeTab]}</h1>
+          <h1 className="text-lg font-semibold flex-1 text-sidebar-primary">{tabTitles[activeTab]}</h1>
           {activeTab === 'pets' && (
             <button
               type="button"
               onClick={() => petsTabRef.current?.openUpload()}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sidebar-foreground hover:text-sidebar-primary transition-colors"
             >
               <FontAwesomeIcon icon={faCirclePlus} className="w-5 h-5" />
             </button>
           )}
           <NotificationBell />
         </header>
-        <main className="p-4 pb-20 md:pb-4">
+        <main className={`bg-background md:rounded-tl-2xl flex-1 ${activeTab === 'chat' ? 'overflow-hidden' : 'p-4 pb-20 md:pb-4'}`}>
           {activeTab === 'pets' && <PetsTab ref={petsTabRef} onNavigateToSubmission={handleNavigateToSubmission} />}
           {activeTab === 'interested' && (
             <InterestedTab
