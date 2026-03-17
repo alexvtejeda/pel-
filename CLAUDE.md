@@ -44,22 +44,22 @@ No test framework is configured in this project.
 4. `AuthProvider` (`lib/contexts/auth-context.tsx`) manages auth state globally:
    - `user`: `AuthUser` object (`id`, `email`, `role`, `display_name`, `auth_provider`, `preferred_lang`)
    - `loading`: Boolean for initial auth check
-   - `login(email, password)` / `register(email, password)` / `logout()` / `setRole(role)` / `updateSession(user, token)`
-5. JWT access + refresh tokens are stored in `localStorage` (`pelu_access_token`, `pelu_refresh_token`, `pelu_user`)
-6. `apiClient()` (`lib/api/client.ts`) auto-retries with refreshed token on 401; fires `pelu:session-cleared` event on hard auth failure
-7. Google OAuth: `googleRedirect()` redirects to `GET /api/v1/auth/google`; backend redirects back to `/auth/google/callback` with session in URL hash
+   - `login(email, password)` / `register(email, password)` / `logout()` / `setRole(role)` / `updateSession(user)`
+5. Auth uses **secure HTTP-only cookies** set by the backend — no tokens in `localStorage`. Old `pelu_access_token`/`pelu_refresh_token`/`pelu_user` keys are cleaned up on init.
+6. `apiClient()` (`lib/api/client.ts`) sends `credentials: 'include'` on every request; auto-retries via `POST /api/v1/auth/refresh` on 401; fires `pelu:session-cleared` event on hard auth failure
+7. Google OAuth: `googleRedirect()` redirects to `GET /api/v1/auth/google`; backend redirects back to `/auth/google/callback`
 8. Use `useAuth()` hook to access auth state in any component
 
 ### REST API Client
 
 All API calls go through `lib/api/`. Three distinct fetch patterns exist:
 
-1. **Authenticated endpoints** — use `apiClient(path, options)` from `lib/api/client.ts` (JWT auth + auto-refresh)
-2. **Multipart uploads** — use raw `fetch` with `getStoredAccessToken()` because `multipart/form-data` must not have `Content-Type` set manually. Used in: `pets.ts` (`uploadPhotos`), `submissions.ts` (`uploadSubmissionFile`), `businesses.ts` (`uploadBusinessPhoto`)
+1. **Authenticated endpoints** — use `apiClient(path, options)` from `lib/api/client.ts` (cookie auth + auto-refresh)
+2. **Multipart uploads** — use raw `fetch` with `credentials: 'include'` because `multipart/form-data` must not have `Content-Type` set manually. Used in: `pets.ts` (`uploadPhotos`), `submissions.ts` (`uploadSubmissionFile`), `businesses.ts` (`uploadBusinessPhoto`)
 3. **Public endpoints** — use raw `fetch` with no auth headers. Used in: `pets-public.ts` (public pet listing/detail, pet form, slug lookup)
 
 API modules:
-- `client.ts` — fetch wrapper, session helpers (`storeSession`, `clearSession`, `getStoredUser`, etc.)
+- `client.ts` — fetch wrapper with `credentials: 'include'`, token refresh, `signalSessionCleared()`
 - `auth.ts` — `login`, `register`, `logout`, `setRole`, `googleRedirect`
 - `rescue-centers.ts` — CRUD for rescue centers
 - `pets.ts` — RC-scoped pet CRUD + photo management (throws errors — known exception to `{ data, error }` pattern)
@@ -70,6 +70,10 @@ API modules:
 - `user-pets.ts` — member's personal pets
 
 API functions return `{ data, error }` for consistent error handling. Never throw errors. (`lib/api/pets.ts` is the known exception — it throws.)
+
+### WebSocket
+
+`lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Incoming `new_message` events nest the message payload inside `data.message` (not at the top level of `data`).
 
 ### Protected Routes
 
@@ -96,6 +100,7 @@ Automatically redirects unauthenticated users to `/auth/login` and checks role r
 | `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no role yet) |
 | `/auth/google/callback` | OAuth redirect target | Public |
 | `/auth/onboarding/[role]` | `components/auth/onboarding/onboarding-client.tsx` | Authenticated; routes to role-specific wizard |
+| `/chat` | `components/chat/chat-page.tsx` | Authenticated (`member`) |
 | `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
 
 Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
@@ -127,8 +132,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw } from '@fortawesome/free-solid-svg-icons'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 
-<FontAwesomeIcon icon={faPaw} className="w-4 h-4" />
+<FontAwesomeIcon icon={faPaw} className="text-base" />
 ```
+
+Use `text-*` classes (`text-sm`, `text-base`, `text-lg`, etc.) for sizing — not `w-*`/`h-*`.
 
 Packages installed: `@fortawesome/fontawesome-svg-core`, `@fortawesome/react-fontawesome`, `@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`, `@fortawesome/free-brands-svg-icons`
 
@@ -180,7 +187,7 @@ interface AuthUser { id, email, role: UserRole | null, display_name: string | nu
 Pet-related types are co-located in `lib/api/pets.ts`:
 ```typescript
 interface Photo { id, url, position: number }
-interface Pet { id, rescue_center_id, name, description, age: number, gender: 'male'|'female', species: 'dog'|'cat', status, short_slug, photos: Photo[], conditions: string[], condition_notes: string | null }
+interface Pet { id, rescue_center_id, name, description, age: number, gender: 'male'|'female', species: 'dog'|'cat', vaccinated: boolean, castrated: boolean, size: 'small'|'medium'|'large', status, short_slug, photos: Photo[], conditions: string[], condition_notes: string | null }
 ```
 
 Form/submission types in `lib/api/forms.ts` and `lib/api/submissions.ts`.
@@ -223,7 +230,7 @@ Add components: `npx shadcn@latest add [component]`
 ## Key Implementation Decisions
 
 1. **Next.js static export** for Electron compatibility (no SSR at runtime)
-2. **Custom REST API** backend replaces Firebase; JWT tokens stored in `localStorage`
+2. **Custom REST API** backend replaces Firebase; auth via secure HTTP-only cookies (no client-side token storage)
 3. **Spanish-first** design — all UI defaults to Spanish
 4. **Role-based access** enforced by the backend API
 5. **Email/Password + Google OAuth** — Apple OAuth not included (requires Apple Developer Program)
