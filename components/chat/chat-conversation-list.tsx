@@ -49,10 +49,12 @@ export default function ChatConversationList({ onSelectConversation }: ChatConve
         const idx = prev.findIndex(c => c.id === data.conversation_id)
         if (idx === -1) return prev
 
+        // Backend wraps the message object inside data.message
+        const m = data.message || data
         const updated = [...prev]
         const convo = { ...updated[idx] }
-        convo.last_message_body = data.body
-        convo.last_message_at = data.created_at
+        convo.last_message_body = m.body
+        convo.last_message_at = m.created_at
         convo.unread_count = (convo.unread_count || 0) + 1
         updated.splice(idx, 1)
         updated.unshift(convo) // Move to top

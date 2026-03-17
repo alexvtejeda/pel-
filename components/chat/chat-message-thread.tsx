@@ -116,13 +116,15 @@ export default function ChatMessageThread({ conversation, onBack }: ChatMessageT
   useEffect(() => {
     const unsubMsg = subscribe('new_message', (data: any) => {
       if (data.conversation_id !== conversation.id) return
+      // Backend wraps the message object inside data.message
+      const m = data.message || data
       const msg: Message = {
-        id: data.id || crypto.randomUUID(),
+        id: m.id || crypto.randomUUID(),
         conversation_id: data.conversation_id,
-        sender_id: data.sender_id,
-        body: data.body,
+        sender_id: m.sender_id,
+        body: m.body,
         is_read: false,
-        created_at: data.created_at || new Date().toISOString(),
+        created_at: m.created_at || new Date().toISOString(),
       }
       setMessages(prev => [...prev, msg])
 
@@ -132,7 +134,7 @@ export default function ChatMessageThread({ conversation, onBack }: ChatMessageT
       }
 
       // Send read receipt for received messages
-      if (data.sender_id !== user?.id) {
+      if (m.sender_id !== user?.id) {
         sendReadReceipt(conversation.id, msg.created_at)
       }
     })
