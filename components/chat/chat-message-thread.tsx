@@ -11,6 +11,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 interface ChatMessageThreadProps {
   conversation: Conversation
   onBack: () => void
+  showBack?: boolean
 }
 
 function formatTime(dateStr: string): string {
@@ -38,7 +39,7 @@ function isSameDay(a: string, b: string): boolean {
     da.getDate() === db.getDate()
 }
 
-export default function ChatMessageThread({ conversation, onBack }: ChatMessageThreadProps) {
+export default function ChatMessageThread({ conversation, onBack, showBack = true }: ChatMessageThreadProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
   const { subscribe, sendMessage, sendTyping, sendReadReceipt } = useWebSocket()
@@ -202,9 +203,11 @@ export default function ChatMessageThread({ conversation, onBack }: ChatMessageT
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border shrink-0">
-        <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
-          <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
-        </button>
+        {showBack && (
+          <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
+            <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
+          </button>
+        )}
         <FontAwesomeIcon icon={faCircleUser} className="text-2xl text-muted-foreground/40" />
         <div className="min-w-0">
           <p className="text-sm font-medium truncate">
