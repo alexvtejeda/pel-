@@ -160,11 +160,11 @@ export function PetGrid({
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-2">
+      <div className="flex-1 overflow-y-auto p-4 inset-shadow-2xl rounded-t-2xl shadow-2xl bg-background">
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-2xl overflow-hidden bg-secondary animate-pulse">
+              <div key={i} className="rounded-xl overflow-hidden bg-secondary animate-pulse">
                 <div className="aspect-square bg-muted" />
                 <div className="p-2 space-y-1.5">
                   <div className="h-3.5 bg-muted rounded w-2/3" />
@@ -197,7 +197,7 @@ export function PetGrid({
                 tabIndex={0}
                 onClick={() => onSelect(pet)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pet) }}
-                className={`relative group rounded-2xl overflow-hidden aspect-square cursor-pointer transition-all ${
+                className={`relative group rounded-xl overflow-hidden aspect-square cursor-pointer transition-all ${
                   pet.conditions?.length > 0
                     ? 'bg-amber-50 border-2 border-amber-400'
                     : 'bg-secondary'
@@ -217,7 +217,7 @@ export function PetGrid({
                   />
                 ) : (
                   <div className="flex items-center justify-center h-full">
-                    <FontAwesomeIcon icon={faPaw} className="w-8 h-8 text-muted-foreground/30" />
+                    <FontAwesomeIcon icon={faPaw} className="text-xs text-muted-foreground/30" />
                   </div>
                 )}
 
@@ -232,9 +232,9 @@ export function PetGrid({
 
                 {/* Verified badge — slides left on hover to avoid three-dots overlap */}
                 {pet.rescue_center && (
-                  <span className="absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:translate-x-[-2rem]" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
+                  <span className="absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:-translate-x-8" style={{ filter: 'drop-shadow(0 2px 4px var(--foreground))' }}>
                     <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
-                    <FontAwesomeIcon icon={faCheck} className="text-white text-[0.5em] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
+                    <FontAwesomeIcon icon={faCheck} className="text-background text-xs absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </span>
                 )}
 
@@ -245,7 +245,7 @@ export function PetGrid({
                 >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="w-7 h-7 rounded-full bg-black/50 flex items-center justify-center hover:bg-black/70 transition-colors">
+                      <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-foreground transition-colors">
                         <FontAwesomeIcon icon={faEllipsis} className="text-white text-sm" />
                       </button>
                     </DropdownMenuTrigger>
@@ -273,7 +273,7 @@ export function PetGrid({
                 </div>
 
                 {/* Name overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-2 pt-6">
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-primary to-transparent p-2 pt-6">
                   <p className="text-white text-sm font-semibold truncate">{pet.name}</p>
                 </div>
               </div>
