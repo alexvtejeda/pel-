@@ -1,5 +1,7 @@
 import { apiClient } from './client'
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+
 export interface UserPet {
   id: string
   user_id: string
@@ -7,6 +9,11 @@ export interface UserPet {
   age: number
   species: 'dog' | 'cat'
   gender: 'male' | 'female'
+  description?: string
+  size?: 'small' | 'medium' | 'large'
+  vaccinated?: boolean
+  castrated?: boolean
+  photos?: { id: string; url: string; position: number }[]
   created_at: string
 }
 
@@ -31,6 +38,27 @@ export async function listUserPets(): Promise<{ data: UserPet[] | null; error: s
     const res = await apiClient('/api/v1/user-pets')
     const json = await res.json()
     if (!res.ok) return { data: null, error: json.error || 'Error al cargar mascotas' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+// Uses raw fetch because multipart/form-data must not have Content-Type set manually
+export async function uploadUserPetPhotos(
+  petId: string,
+  files: File[]
+): Promise<{ data: { id: string; url: string; position: number }[] | null; error: string | null }> {
+  try {
+    const form = new FormData()
+    files.forEach(f => form.append('photos', f))
+    const res = await fetch(`${BASE_URL}/api/v1/user-pets/${petId}/photos`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al subir fotos' }
     return { data: json, error: null }
   } catch {
     return { data: null, error: 'Error de conexión' }
