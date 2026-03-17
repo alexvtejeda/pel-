@@ -1,9 +1,10 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faCertificate, faCheck, faHouseChimney, faUser } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl } from '@/lib/utils'
@@ -56,6 +57,7 @@ export function PetGrid({
   onCastratedChange,
 }: PetGridProps) {
   const { t } = useTranslation('pets')
+  const [sourceFilter, setSourceFilter] = useState<'all' | 'rc' | 'member'>('all')
 
   const handleFilterClick = (f: (typeof FILTERS)[number]) => {
     if (f.key === 'nearby') {
@@ -87,6 +89,18 @@ export function PetGrid({
     }
   }
 
+  const sortedPets = [...pets].sort((a, b) => {
+    const aIsRc = a.rescue_center ? 0 : 1
+    const bIsRc = b.rescue_center ? 0 : 1
+    return aIsRc - bIsRc
+  })
+
+  const sourceFiltered = sourceFilter === 'all'
+    ? sortedPets
+    : sourceFilter === 'rc'
+      ? sortedPets.filter(p => p.rescue_center !== null && p.rescue_center !== undefined)
+      : sortedPets.filter(p => !p.rescue_center)
+
   return (
     <div className="flex flex-col h-full">
       {/* Filter pills */}
@@ -108,10 +122,10 @@ export function PetGrid({
       </div>
 
       {/* Additive toggle pills */}
-      <div className="flex items-center gap-2 px-2 pb-2">
+      <div className="flex items-center gap-2 px-2 pb-2 overflow-x-auto">
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors whitespace-nowrap ${
             vaccinatedFilter
               ? 'bg-pop-550 text-white border-pop-550'
               : 'bg-background text-muted-foreground border-border hover:bg-accent'
@@ -122,7 +136,7 @@ export function PetGrid({
         </button>
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors whitespace-nowrap ${
             castratedFilter
               ? 'bg-pop-550 text-white border-pop-550'
               : 'bg-background text-muted-foreground border-border hover:bg-accent'
@@ -130,6 +144,21 @@ export function PetGrid({
         >
           <FontAwesomeIcon icon={faScissors} className="w-3 h-3" />
           {t('grid.castrated')}
+        </button>
+        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
+        <button
+          onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+        >
+          <FontAwesomeIcon icon={faHouseChimney} className="w-3 h-3" />
+          Centros
+        </button>
+        <button
+          onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors whitespace-nowrap ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+        >
+          <FontAwesomeIcon icon={faUser} className="w-3 h-3" />
+          Miembros
         </button>
       </div>
 
@@ -155,16 +184,16 @@ export function PetGrid({
           </div>
         )}
 
-        {!loading && !error && pets.length === 0 && (
+        {!loading && !error && sourceFiltered.length === 0 && (
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
             <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-30" />
             <p className="text-sm">{t('grid.empty')}</p>
           </div>
         )}
 
-        {!loading && !error && pets.length > 0 && (
+        {!loading && !error && sourceFiltered.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {pets.map((pet) => (
+            {sourceFiltered.map((pet) => (
               <div
                 key={pet.id}
                 role="button"
@@ -177,8 +206,8 @@ export function PetGrid({
                     : 'bg-secondary'
                 } ${
                   selectedId === pet.id
-                    ? 'outline outline-[2.5px] outline-pop-550'
-                    : 'hover:outline hover:outline-2 hover:outline-border'
+                    ? 'outline outline-pop-550'
+                    : 'hover:outline-2 hover:outline-border'
                 }`}
               >
                 {pet.photos.length > 0 ? (
@@ -202,6 +231,14 @@ export function PetGrid({
                       {t('detail.specialCondition')}
                     </span>
                   </div>
+                )}
+
+                {/* Verified badge */}
+                {pet.rescue_center && (
+                  <span className="absolute top-2 right-2 w-5 h-5 drop-shadow-md z-10">
+                    <FontAwesomeIcon icon={faCertificate} className="absolute inset-0 w-full h-full text-pop-550" />
+                    <FontAwesomeIcon icon={faCheck} className="absolute inset-0 w-full h-full text-white p-1" />
+                  </span>
                 )}
 
                 {/* Three-dots dropdown */}
@@ -239,7 +276,7 @@ export function PetGrid({
                 </div>
 
                 {/* Name overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2 pt-6">
+                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-2 pt-6">
                   <p className="text-white text-sm font-semibold truncate">{pet.name}</p>
                 </div>
               </div>
