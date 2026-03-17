@@ -65,7 +65,7 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
                 tooltip={label}
                 className={state === 'collapsed' ? 'p-3' : ''}
               >
-                <FontAwesomeIcon icon={icon} className="w-4 h-4" />
+                <FontAwesomeIcon icon={icon} className="text-md" />
                 <span>{label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -78,12 +78,12 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
           className={`flex items-center gap-3 cursor-pointer ${state === 'collapsed' ? 'justify-center' : ''}`}
           onClick={() => onTabChange('settings')}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-background">
             {initial}
           </div>
           {state === 'expanded' && (
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold text-foreground">{displayName}</span>
+              <span className="truncate text-sm font-semibold text-background">{displayName}</span>
               <span className="truncate text-xs text-muted-foreground">{email}</span>
             </div>
           )}
