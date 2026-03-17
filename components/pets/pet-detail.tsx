@@ -19,6 +19,7 @@ import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
 import Carousel from '@/components/Carousel'
 
@@ -67,6 +68,10 @@ export function PetDetail({ pet }: PetDetailProps) {
   const { user } = useAuth()
   const [copied, setCopied] = useState(false)
 
+  useEffect(() => {
+    if (pet?.id) trackPetEvent(pet.id, 'view')
+  }, [pet?.id])
+
   const photos = pet.photos
   const hasPhotos = photos.length > 0
 
@@ -85,6 +90,7 @@ export function PetDetail({ pet }: PetDetailProps) {
   }
 
   const handleAdopt = () => {
+    trackPetEvent(pet.id, 'adopt_click')
     window.location.href = `/adopt?id=${pet.id}`
   }
 

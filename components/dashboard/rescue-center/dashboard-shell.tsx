@@ -12,8 +12,9 @@ import { SettingsTab } from './settings-tab'
 import { NotificationsTab, AppNotification } from './notifications-tab'
 import { AgendaTab, AgendaItem } from './agenda-tab'
 import { MobileBottomNav } from './mobile-bottom-nav'
+import { MetricsTab } from './metrics-tab'
 
-type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'settings'
+type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'metrics' | 'settings'
 
 const tabTitles: Record<Tab, string> = {
   pets:          'Mascotas',
@@ -21,6 +22,7 @@ const tabTitles: Record<Tab, string> = {
   forms:         'Formulario',
   agenda:        'Agenda',
   notifications: 'Notificaciones',
+  metrics:       'Métricas',
   settings:      'Ajustes',
 }
 
@@ -94,6 +96,7 @@ export function DashboardShell() {
           {activeTab === 'forms' && <FormsTab />}
           {activeTab === 'agenda' && <AgendaTab items={agendaItems} />}
           {activeTab === 'notifications' && <NotificationsTab notifications={notifications} />}
+          {activeTab === 'metrics' && <MetricsTab />}
           {activeTab === 'settings' && <SettingsTab />}
         </main>
         <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />

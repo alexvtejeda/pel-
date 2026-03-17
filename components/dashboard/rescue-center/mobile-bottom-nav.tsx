@@ -1,11 +1,11 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faUsers, faClipboardList, faBars } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faUsers, faClipboardList, faChartLine, faBars } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { useSidebar } from '@/components/ui/sidebar'
 
-type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'settings'
+type Tab = 'pets' | 'interested' | 'forms' | 'agenda' | 'notifications' | 'metrics' | 'settings'
 
 interface MobileBottomNavProps {
   activeTab: Tab
@@ -16,6 +16,7 @@ const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
   { tab: 'pets',       label: 'Mascotas',    icon: faPaw },
   { tab: 'interested', label: 'Interesados', icon: faUsers },
   { tab: 'forms',      label: 'Formulario',  icon: faClipboardList },
+  { tab: 'metrics',    label: 'Métricas',    icon: faChartLine },
 ]
 
 export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps) {
