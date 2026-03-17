@@ -81,6 +81,7 @@ export function RescueCenterWizard() {
   const [petAge, setPetAge] = useState('')
   const [petGender, setPetGender] = useState<'male' | 'female'>('male')
   const [petSpecies, setPetSpecies] = useState<'dog' | 'cat'>('dog')
+  const [petAgeUnit, setPetAgeUnit] = useState<'months' | 'years'>('years')
   const [petVaccinated, setPetVaccinated] = useState(false)
   const [petCastrated, setPetCastrated] = useState(false)
   const [petSize, setPetSize] = useState<'small' | 'medium' | 'large'>('medium')
@@ -136,7 +137,7 @@ export function RescueCenterWizard() {
         const pet = await createPet({
           name: petName.trim(),
           description: petDescription.trim(),
-          age: petAge !== '' ? parseInt(petAge, 10) : 0,
+          age: petAge !== '' ? (petAgeUnit === 'years' ? parseInt(petAge, 10) * 12 : parseInt(petAge, 10)) : 0,
           gender: petGender,
           species: petSpecies,
           vaccinated: petVaccinated,
@@ -372,16 +373,36 @@ export function RescueCenterWizard() {
             {/* Age */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Edad (años)
+                Edad
               </label>
-              <input
-                type="number"
-                min={0}
-                placeholder="ej. 8"
-                value={petAge}
-                onChange={(e) => setPetAge(e.target.value)}
-                className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min={0}
+                  placeholder="ej. 8"
+                  value={petAge}
+                  onChange={(e) => setPetAge(e.target.value)}
+                  className="flex-1 rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <button
+                  type="button"
+                  onClick={() => setPetAgeUnit('months')}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    petAgeUnit === 'months' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-white/50 hover:border-border'
+                  }`}
+                >
+                  Meses
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPetAgeUnit('years')}
+                  className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    petAgeUnit === 'years' ? 'bg-pop-550/10 border-pop-550/50 text-pop-300' : 'border-input text-white/50 hover:border-border'
+                  }`}
+                >
+                  Años
+                </button>
+              </div>
             </div>
 
             {/* Gender + Species toggles */}
