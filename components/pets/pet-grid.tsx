@@ -230,9 +230,9 @@ export function PetGrid({
                   </div>
                 )}
 
-                {/* Verified badge */}
+                {/* Verified badge — slides left on hover to avoid three-dots overlap */}
                 {pet.rescue_center && (
-                  <span className="absolute top-2 right-2 drop-shadow-md z-10 text-xl">
+                  <span className="absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:translate-x-[-2rem]" style={{ filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.3))' }}>
                     <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
                     <FontAwesomeIcon icon={faCheck} className="text-white text-[0.5em] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                   </span>
