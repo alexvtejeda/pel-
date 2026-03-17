@@ -485,7 +485,7 @@ export function RescueCenterWizard() {
               <select
                 value={petSize}
                 onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large')}
-                className="w-full rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-pop-550"
+                className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="small">Pequeño</option>
                 <option value="medium">Mediano</option>
