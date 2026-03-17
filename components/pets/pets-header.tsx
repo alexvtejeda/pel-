@@ -8,7 +8,8 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faTableColumns, faArrowRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw } from '@fortawesome/free-solid-svg-icons'
+import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import {
   Sheet,
   SheetContent,
@@ -30,6 +31,7 @@ export function PetsHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [addPetOpen, setAddPetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [navigating, setNavigating] = useState(false)
 
@@ -183,6 +185,15 @@ export function PetsHeader() {
                 Admin
               </Link>
             )}
+            {user?.role === 'member' && (
+              <button
+                onClick={() => { setSheetOpen(false); setAddPetOpen(true) }}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors w-full text-left"
+              >
+                <FontAwesomeIcon icon={faPaw} className="text-lg text-pop-550" />
+                Publicar mascota
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors w-full text-left"
@@ -193,6 +204,8 @@ export function PetsHeader() {
           </nav>
         </SheetContent>
       </Sheet>
+
+      <MemberAddPetModal open={addPetOpen} onClose={() => setAddPetOpen(false)} />
     </header>
   )
 }
