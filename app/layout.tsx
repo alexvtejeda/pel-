@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 import { AuthProvider } from "@/lib/contexts/auth-context"
+import { WebSocketProvider } from "@/lib/contexts/websocket-context"
 import { I18nProvider } from "@/components/i18n-provider"
 
 export const metadata: Metadata = {
@@ -21,7 +22,9 @@ export default function RootLayout({
       <body className="antialiased">
         <I18nProvider>
           <AuthProvider>
-            {children}
+            <WebSocketProvider>
+              {children}
+            </WebSocketProvider>
           </AuthProvider>
         </I18nProvider>
       </body>
