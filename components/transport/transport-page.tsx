@@ -3,12 +3,13 @@
 import 'leaflet/dist/leaflet.css'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trip, listTrips } from '@/lib/api/transport'
+import { Trip, listTrips, cancelTrip as cancelTripApi } from '@/lib/api/transport'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import dynamic from 'next/dynamic'
 
 const TransportMap = dynamic(() => import('./transport-map'), { ssr: false })
 import { TransportStepper } from './transport-stepper'
+import { TransportDrawer } from './transport-drawer'
 
 type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'cancelled'
 
@@ -40,6 +41,15 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
     })
   }, [])
 
+  const handleCancelTrip = async () => {
+    if (!trip) return
+    const { error } = await cancelTripApi(trip.id)
+    if (!error) {
+      setTrip(prev => prev ? { ...prev, status: 'cancelled' } : null)
+      setPageState('cancelled')
+    }
+  }
+
   if (pageState === 'loading') {
     return (
       <div className="flex items-center justify-center h-screen bg-background">
@@ -57,6 +67,13 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       />
       {trip && pageState !== 'none' && (
         <TransportStepper stops={trip.stops} status={trip.status} />
+      )}
+      {trip && pageState !== 'none' && (
+        <TransportDrawer
+          trip={trip}
+          driverLocation={null}
+          onCancel={handleCancelTrip}
+        />
       )}
     </div>
   )
