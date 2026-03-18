@@ -46,30 +46,35 @@ bun run lint
 - **Frontend**: Next.js 16 (App Router) + React 19 + TailwindCSS
 - **Desktop**: Electron 34 wrapping Next.js (static export via `output: 'export'`)
 - **Backend**: Custom REST API (`NEXT_PUBLIC_API_URL`, default `http://localhost:8080`)
-- **Auth**: JWT (access + refresh tokens stored in `localStorage`)
+- **Auth**: Secure HTTP-only cookies (no client-side token storage)
 
 ### Authentication Flow
 
-1. User signs in or registers via `/auth/login`
-2. On success, redirected to `/auth/role-selection` to pick a role (`adopter`, `owner`, `rescue_center`)
-3. Google OAuth: backend redirects to `/auth/google/callback` with session encoded in URL hash
-4. JWT tokens are managed by `lib/api/client.ts` — auto-refreshes on 401
+1. User signs in or registers via `/auth/login` (Email/Password or Google OAuth)
+2. On success, redirected to `/auth/role-selection` to pick a role (`member`, `rescue_center`, `business`)
+3. Google OAuth: `GET /api/v1/auth/google` → backend redirects back to `/auth/google/callback`
+4. Auth state managed by `AuthProvider` (`lib/contexts/auth-context.tsx`) via `useAuth()` hook
+5. `apiClient()` sends `credentials: 'include'` on every request; auto-refreshes on 401
 
 ### Project Structure
 
 ```
 ├── app/                    # Next.js App Router pages
-│   └── auth/google/callback/  # Google OAuth redirect handler
 ├── components/
-│   ├── auth/               # Login, role selection, protected route
-│   ├── dashboard/rescue-center/  # Rescue center dashboard tabs
-│   ├── landing/            # Landing page and header
+│   ├── auth/               # Login, register, role selection, onboarding wizards
+│   ├── chat/               # Real-time chat (conversation list + message thread)
+│   ├── dashboard/
+│   │   ├── rescue-center/  # RC dashboard (pets, interested, forms, settings, etc.)
+│   │   └── admin/          # Admin dashboard (RC approvals, form templates)
+│   ├── forms/              # Adoption form builder and renderer
+│   ├── landing/            # Landing page (/about)
+│   ├── pets/               # Pet discovery: split grid + detail panel
 │   └── ui/                 # shadcn/ui primitives
 ├── lib/
-│   ├── api/                # REST API client (client.ts, auth.ts, rescue-centers.ts)
-│   ├── contexts/           # AuthProvider / useAuth hook
+│   ├── api/                # REST API modules (auth, pets, forms, chat, admin, etc.)
+│   ├── contexts/           # AuthProvider, WebSocketProvider
 │   ├── i18n/               # i18next configuration
-│   ├── types/              # TypeScript types (user.ts, etc.)
+│   ├── types/              # TypeScript types
 │   └── utils.ts            # cn() and other utilities
 ├── public/
 │   ├── assets/             # Static images and logo
@@ -93,21 +98,19 @@ Spanish is the default language. Translation files live in `public/locales/{es,e
 
 | Role | Description |
 |---|---|
-| `adopter` | Looking to adopt a pet |
-| `owner` | Giving a pet up for adoption |
+| `member` | Pet owner or adopter |
 | `rescue_center` | Animal rescue organization |
+| `business` | Pet-related business |
 
 ## Features Implemented
 
 - ✅ Phase 1: Project foundation (Electron + Next.js, design system, i18n)
-- ✅ Phase 2: Authentication (JWT, Email/Password + Google OAuth, role selection)
+- ✅ Phase 2: Authentication (HTTP-only cookies, Email/Password + Google OAuth, role selection, MFA)
 - ✅ Phase 3: Landing page
-- ✅ Phase 4 (partial): Rescue center dashboard (pets, interested, forms, notifications, agenda, settings tabs)
-- Phase 4: Pet discovery / swipe interface
-- Phase 5: Chat system
-- Phase 6: Adoption requirements builder
-- Phase 7: Transport tracking
-- Phase 8: Payment integration
+- ✅ Phase 4: Rescue center dashboard, pet discovery, short URL sharing, adoption forms
+- Phase 5: Chat system (in progress)
+- Phase 6: Transport tracking
+- Phase 7: Payment integration (PayPal/Apple Wallet redirect only)
 
 ## License
 
