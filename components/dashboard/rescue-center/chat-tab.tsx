@@ -14,10 +14,10 @@ export function ChatTab() {
   const sidebarExpanded = state === 'expanded'
 
   return (
-    <div className="flex h-full">
+    <div className="flex h-full bg-muted">
       {/* Conversation list — middle layer (sits on bg-sidebar, same as header) */}
       <div
-        className={`rounded-tl-2xl shrink-0 overflow-y-auto transition-[width] duration-200 ${
+        className={`rounded-tl-2xl shrink-0 overflow-y-auto transition-[width] duration-200 bg-background z-10 ${
           sidebarExpanded ? 'w-50' : 'w-70'
         }`}
       >
@@ -36,7 +36,7 @@ export function ChatTab() {
       </div>
 
       {/* Chat content — top layer (elevated, brightest) */}
-      <div className="flex-1 min-w-0 bg-background rounded-tl-2xl shadow-[inset_2px_2px_8px_rgba(0,0,0,0.04)]">
+      <div className="flex-1 min-w-0 bg-background shadow-[inset_2px_2px_8px_var(--color-input)]">
         {active ? (
           <ChatMessageThread
             conversation={active}

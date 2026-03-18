@@ -109,10 +109,10 @@ export function PetGrid({
           <button
             key={f.key}
             onClick={() => handleFilterClick(f)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+            className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
               activeFilter === f.key
                 ? 'bg-pop-550 text-white'
-                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                : 'bg-background text-foreground hover:bg-secondary/80'
             }`}
           >
             <FontAwesomeIcon icon={f.icon} className="text-xs" />
@@ -122,10 +122,10 @@ export function PetGrid({
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             vaccinatedFilter
               ? 'bg-pop-550 text-white'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              : 'bg-background text-foreground hover:bg-secondary/80'
           }`}
         >
           <FontAwesomeIcon icon={faSyringe} className="text-xs" />
@@ -133,10 +133,10 @@ export function PetGrid({
         </button>
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             castratedFilter
               ? 'bg-pop-550 text-white'
-              : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+              : 'bg-background text-foreground hover:bg-secondary/80'
           }`}
         >
           <FontAwesomeIcon icon={faScissors} className="text-xs" />
@@ -145,14 +145,14 @@ export function PetGrid({
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
           {t('grid.centers')}
         </button>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'}`}
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faUser} className="text-xs" />
           {t('grid.members')}
@@ -245,8 +245,8 @@ export function PetGrid({
                 >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="w-7 h-7 rounded-full bg-secondary flex items-center justify-center hover:bg-foreground transition-colors">
-                        <FontAwesomeIcon icon={faEllipsis} className="text-white text-sm" />
+                      <button className="w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-550 transition-colors">
+                        <FontAwesomeIcon icon={faEllipsis} className="text-background text-sm" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -274,7 +274,7 @@ export function PetGrid({
 
                 {/* Name overlay */}
                 <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-primary to-transparent p-2 pt-6">
-                  <p className="text-white text-sm font-semibold truncate">{pet.name}</p>
+                  <p className="text-background text-sm font-semibold truncate">{pet.name}</p>
                 </div>
               </div>
             ))}

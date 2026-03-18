@@ -86,7 +86,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
     secondary: 'text-muted-foreground',
     message: 'text-muted-foreground',
     messageUnread: 'font-medium text-foreground',
-    active: 'bg-accent',
+    active: 'bg-muted',
     unreadBg: 'bg-pop-550/5 hover:bg-pop-550/10',
     hover: 'hover:bg-accent/50',
   }

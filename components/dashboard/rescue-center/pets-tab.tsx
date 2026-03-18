@@ -108,7 +108,7 @@ function PetProfileModal({ open, onClose }: { open: boolean; onClose: () => void
           className="fixed inset-0 z-50 flex items-center justify-center"
           onClick={onClose}
         >
-          <div className="fixed inset-0 bg-black/50" />
+          <div className="fixed inset-0 bg-primary" />
           <motion.div
             initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
@@ -219,7 +219,7 @@ function EditPetModal({
           className="fixed inset-0 z-50 flex items-center justify-center"
           onClick={handleClose}
         >
-          <div className="fixed inset-0 bg-black/50" />
+          <div className="fixed inset-0 bg-primary" />
           <motion.div
             initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}

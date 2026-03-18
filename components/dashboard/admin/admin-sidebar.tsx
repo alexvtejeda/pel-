@@ -1,7 +1,7 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShieldCat, faFileLines, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faShieldCat, faFileLines, faComments, faGear } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   Sidebar,
@@ -24,7 +24,7 @@ function nameFromEmail(email: string): string {
     .join(' ')
 }
 
-type Tab = 'rescue-centers' | 'form-template' | 'settings'
+type Tab = 'rescue-centers' | 'form-template' | 'chat' | 'settings'
 
 interface AdminSidebarProps {
   activeTab: Tab
@@ -34,6 +34,7 @@ interface AdminSidebarProps {
 const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
   { tab: 'rescue-centers', label: 'Centros de rescate', icon: faShieldCat },
   { tab: 'form-template',  label: 'Formulario',        icon: faFileLines },
+  { tab: 'chat',           label: 'Chat',              icon: faComments },
   { tab: 'settings',       label: 'Configuración',     icon: faGear },
 ]
 
@@ -66,7 +67,7 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
                 tooltip={label}
                 className={state === 'collapsed' ? 'p-3' : ''}
               >
-                <FontAwesomeIcon icon={icon} className="w-4 h-4" />
+                <FontAwesomeIcon icon={icon} className="text-md" />
                 <span>{label}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -79,12 +80,12 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
           className={`flex items-center gap-3 cursor-pointer ${state === 'collapsed' ? 'justify-center' : ''}`}
           onClick={() => onTabChange('settings')}
         >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-slate-800 text-sm font-semibold text-white">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-background">
             {initial}
           </div>
           {state === 'expanded' && (
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold text-foreground">{displayName}</span>
+              <span className="truncate text-sm font-semibold text-background">{displayName}</span>
               <span className="truncate text-xs text-muted-foreground">{email}</span>
             </div>
           )}

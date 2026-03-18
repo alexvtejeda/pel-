@@ -203,7 +203,7 @@ export function FormsTab() {
           {(['edit', 'preview'] as const).map(v => (
             <button key={v} onClick={() => setView(v)}
               className={v === view
-                ? 'px-4 py-1.5 rounded-xl bg-pop-550 text-white text-sm font-medium'
+                ? 'px-4 py-1.5 rounded-xl bg-pop-550 text-background text-sm font-medium'
                 : 'px-4 py-1.5 rounded-xl text-muted-foreground text-sm hover:bg-muted'}>
               {v === 'edit' ? `Editar${dirty ? ' •' : ''}` : 'Vista previa'}
             </button>
@@ -224,7 +224,7 @@ export function FormsTab() {
           <div className="sticky top-0 z-10 w-full overflow-hidden" style={{ aspectRatio: '4/1' }}>
             {logoUrl
               ? <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
-              : <div className="w-full h-full bg-gradient-to-r from-pop-500 to-pop-550 flex items-center justify-center">
+              : <div className="w-full h-full bg-linear-to-r from-pop-500 to-pop-550 flex items-center justify-center">
                   <span className="text-white text-2xl font-bold">{rcName}</span>
                 </div>
             }

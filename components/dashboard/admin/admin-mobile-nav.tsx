@@ -1,10 +1,10 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShieldCat, faFileLines, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faShieldCat, faFileLines, faComments, faGear } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 
-type Tab = 'rescue-centers' | 'form-template' | 'settings'
+type Tab = 'rescue-centers' | 'form-template' | 'chat' | 'settings'
 
 interface AdminMobileNavProps {
   activeTab: Tab
@@ -14,6 +14,7 @@ interface AdminMobileNavProps {
 const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
   { tab: 'rescue-centers', label: 'Centros',       icon: faShieldCat },
   { tab: 'form-template',  label: 'Formulario',    icon: faFileLines },
+  { tab: 'chat',           label: 'Chat',          icon: faComments },
   { tab: 'settings',       label: 'Configuración', icon: faGear },
 ]
 
