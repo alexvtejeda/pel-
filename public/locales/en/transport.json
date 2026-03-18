@@ -1,0 +1,43 @@
+{
+  "status": {
+    "pending": "Pending",
+    "active": "In transit",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "steps": {
+    "pickup": "Pickup",
+    "in_transit": "In transit",
+    "delivered": "Delivered",
+    "searching": "Searching for driver"
+  },
+  "connection": {
+    "reconnecting": "Reconnecting..."
+  },
+  "drawer": {
+    "pet_on_way": "Your pet is on its way",
+    "searching_driver": "Searching for driver...",
+    "delivery_complete": "Delivery complete",
+    "trip_cancelled": "Trip cancelled",
+    "stops": "Stops",
+    "eta": "ETA: ~{{minutes}} min",
+    "stop_of": "Stop {{current}} of {{total}}",
+    "payment": "Payment — coming soon",
+    "completed_label": "Completed"
+  },
+  "form": {
+    "pickup_address": "Pickup address",
+    "dropoff_address": "Dropoff address",
+    "select_pet": "Select pet",
+    "request_transport": "Request transport",
+    "address_not_found": "Address not found",
+    "error_creating": "Error creating trip"
+  },
+  "actions": {
+    "cancel_trip": "Cancel trip",
+    "cancel_confirm": "Are you sure you want to cancel this trip?",
+    "cancel_confirm_action": "Yes, cancel",
+    "cancel_dialog_dismiss": "No, go back",
+    "new_trip": "Request new trip"
+  }
+}
