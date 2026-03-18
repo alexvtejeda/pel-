@@ -33,7 +33,7 @@ bun run lint
 
 **Important**: Assume the dev server (`bun run dev`) is already running. Do not start it yourself.
 
-No test framework is configured in this project.
+**Testing**: Vitest + React Testing Library. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file.
 
 ## Architecture & Data Flow
 
