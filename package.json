@@ -53,6 +53,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.0",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.6",
     "@types/react-dom": "^19.0.2",
@@ -60,9 +62,11 @@
     "electron": "^34.0.0",
     "eslint": "^9.18.0",
     "eslint-config-next": "^16.1.5",
+    "jsdom": "^29.0.0",
     "postcss": "^8.4.49",
     "tailwindcss": "^4.2.0",
     "typescript": "^5.7.3",
+    "vitest": "^4.1.0",
     "wait-on": "^8.0.2"
   },
   "build": {
