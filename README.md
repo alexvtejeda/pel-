@@ -109,7 +109,8 @@ Spanish is the default language. Translation files live in `public/locales/{es,e
 - ✅ Phase 3: Landing page
 - ✅ Phase 4: Rescue center dashboard, pet discovery, short URL sharing, adoption forms
 - Phase 5: Chat system (in progress)
-- Phase 6: Transport tracking
+- Phase 6: Transport tracking (backend complete)
+- Phase 6b: Service provider discovery (backend complete)
 - Phase 7: Payment integration (PayPal/Apple Wallet redirect only)
 
 ## License

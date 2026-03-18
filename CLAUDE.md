@@ -73,15 +73,19 @@ API modules:
 - `mfa.ts` — multi-factor auth setup (TOTP, WebAuthn, recovery codes)
 - `metrics.ts` — pet view/adoption click tracking
 - `notifications-api.ts` — app notifications
+- `transport.ts` — transport trip requests, status updates, stop completion (planned)
+- `service-providers.ts` — member service provider registration + unified provider discovery (planned)
 
 API functions return `{ data, error }` for consistent error handling. Never throw errors. (`lib/api/pets.ts` is the known exception — it throws.)
 
 ### WebSocket
 
-`lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Only connects for `member` and `rescue_center` roles. Key patterns:
+`lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Connects for all authenticated roles (member, rescue_center, business). Key patterns:
 - Incoming `new_message` events nest the message payload inside `data.message` (not at the top level of `data`)
 - Use `subscribe(eventType, callback)` to listen for events
 - Supports read receipts and typing indicators
+- Transport events: `location_update`, `trip_status_update`, `stop_completed` (client→server); `driver_location`, `trip_status_changed`, `stop_completed`, `trip_requested` (server→client)
+- Hub uses `RegisterHandler` pattern — domains register their own WebSocket message types without modifying the chat hub
 
 ### Protected Routes
 
@@ -256,6 +260,7 @@ The project follows a phased implementation plan (see `.claude/plans/wise-scribb
 - ✅ Phase 2: Authentication
 - ✅ Phase 3: Landing Page
 - ✅ Phase 4: Rescue Center Dashboard + Pet Discovery + Sharing + Adoption Forms
-- Phase 5: Chat System
-- Phase 6: Transport Tracking
+- Phase 5: Chat System (in progress)
+- Phase 6: Transport Tracking (backend complete — REST + WebSocket endpoints ready)
+- Phase 6b: Service Provider Discovery (backend complete — registration, admin approval, unified `/providers` listing)
 - Phase 7: Payment Integration (PayPal/Apple Wallet redirect only)
