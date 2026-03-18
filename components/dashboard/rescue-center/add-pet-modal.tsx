@@ -114,8 +114,8 @@ function PreviewCard({
           <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
         </span>
         <div className="flex items-center gap-2 mt-1">
-          <FontAwesomeIcon icon={faSyringe} className={`w-3 h-3 ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-          <FontAwesomeIcon icon={faScissors} className={`w-3 h-3 ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
           <span className="text-xs text-muted-foreground">{size === 'small' ? 'Pequeño' : size === 'medium' ? 'Mediano' : 'Grande'}</span>
         </div>
       </div>
@@ -481,7 +481,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                     addFiles(e.dataTransfer.files)
                   }}
                 >
-                  <FontAwesomeIcon icon={faCloudArrowUp} className="w-8 h-8 text-muted-foreground/40" />
+                  <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-muted-foreground/40" />
                   <p className="text-sm text-muted-foreground">
                     <span className="text-pop-300 font-medium">Haz clic para subir</span> o arrastra y suelta
                   </p>
@@ -500,7 +500,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                       <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
                         <img
                           src={photo.url}
-                          alt=""
+                          alt="Foto de mascota"
                           draggable="false"
                           className="w-14 h-14 rounded-xl object-cover"
                         />
@@ -509,7 +509,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                           className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
                           onClick={(e) => { e.stopPropagation(); removePhoto(photo.url) }}
                         >
-                          <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5 text-white" />
+                          <FontAwesomeIcon icon={faXmark} className="text-xs text-white" />
                         </button>
                       </Reorder.Item>
                     ))}
@@ -519,7 +519,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                         className="w-14 h-14 rounded-xl border-2 border-dashed border-input flex items-center justify-center text-muted-foreground hover:border-pop-550/40 hover:text-pop-300 transition-colors"
                         onClick={() => inputRef.current?.click()}
                       >
-                        <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                        <FontAwesomeIcon icon={faPlus} className="text-base" />
                       </button>
                     )}
                   </Reorder.Group>

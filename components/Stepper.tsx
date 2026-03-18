@@ -303,7 +303,7 @@ function StepIndicator({ step, currentStep, onClickStep, disableStepIndicators =
         className="flex h-8 w-8 items-center justify-center rounded-full font-semibold"
       >
         {status === 'complete' ? (
-          <FontAwesomeIcon icon={faCheck} className="h-4 w-4 text-primary" />
+          <FontAwesomeIcon icon={faCheck} className="text-base text-primary" />
         ) : status === 'active' ? (
           <div className="h-3 w-3 rounded-full bg-background" />
         ) : (

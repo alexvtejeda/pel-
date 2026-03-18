@@ -3,10 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react';
 import React, { JSX } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
-
-// replace icons with your own if needed
-import { FiCircle, FiCode, FiFileText, FiLayers, FiLayout } from 'react-icons/fi';
+import { faPause, faPlay, faFileLines, faCircle, faLayerGroup, faTableCellsLarge, faCode } from '@fortawesome/free-solid-svg-icons';
 export interface CarouselItem {
   title: string;
   description: string;
@@ -34,31 +31,31 @@ const DEFAULT_ITEMS: CarouselItem[] = [
     title: 'Text Animations',
     description: 'Cool text animations for your projects.',
     id: 1,
-    icon: <FiFileText className="h-4 w-4 text-white" />
+    icon: <FontAwesomeIcon icon={faFileLines} className="text-base text-white" />
   },
   {
     title: 'Animations',
     description: 'Smooth animations for your projects.',
     id: 2,
-    icon: <FiCircle className="h-4 w-4 text-white" />
+    icon: <FontAwesomeIcon icon={faCircle} className="text-base text-white" />
   },
   {
     title: 'Components',
     description: 'Reusable components for your projects.',
     id: 3,
-    icon: <FiLayers className="h-4 w-4 text-white" />
+    icon: <FontAwesomeIcon icon={faLayerGroup} className="text-base text-white" />
   },
   {
     title: 'Backgrounds',
     description: 'Beautiful backgrounds and patterns for your projects.',
     id: 4,
-    icon: <FiLayout className="h-4 w-4 text-white" />
+    icon: <FontAwesomeIcon icon={faTableCellsLarge} className="text-base text-white" />
   },
   {
     title: 'Common UI',
     description: 'Common UI components are coming soon!',
     id: 5,
-    icon: <FiCode className="h-4 w-4 text-white" />
+    icon: <FontAwesomeIcon icon={faCode} className="text-base text-white" />
   }
 ];
 
@@ -105,8 +102,8 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
       key={`${item?.id ?? index}-${index}`}
       className={`relative shrink-0 flex flex-col ${
         round
-          ? 'items-center justify-center text-center bg-[#060010] border-0'
-          : 'items-start justify-between bg-[#222] border border-[#222] rounded-xl'
+          ? 'items-center justify-center text-center bg-background border-0'
+          : 'items-start justify-between bg-card border border-border rounded-xl'
       } overflow-hidden cursor-grab active:cursor-grabbing`}
       style={{
         width: itemWidth,
@@ -117,7 +114,7 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
       transition={transition}
     >
       <div className={`${round ? 'p-0 m-0' : 'mb-4 p-5'}`}>
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#060010]">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-background">
           {item.icon}
         </span>
       </div>

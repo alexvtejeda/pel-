@@ -101,7 +101,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
           onClick={() => router.back()}
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
-          <FontAwesomeIcon icon={faArrowLeft} className="w-3.5 h-3.5" />
+          <FontAwesomeIcon icon={faArrowLeft} className="text-sm" />
           Volver a {pet.name}
         </button>
 
@@ -110,7 +110,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
             <Image src={firstPhoto} alt={pet.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover shrink-0" />
           ) : (
             <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faPaw} className="w-5 h-5 text-muted-foreground/40" />
+              <FontAwesomeIcon icon={faPaw} className="text-xl text-muted-foreground/40" />
             </div>
           )}
           <div className="min-w-0">

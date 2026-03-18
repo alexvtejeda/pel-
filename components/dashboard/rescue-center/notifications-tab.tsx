@@ -28,7 +28,7 @@ export function NotificationsTab({ notifications }: NotificationsTabProps) {
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
-        <FontAwesomeIcon icon={faBell} className="w-8 h-8" />
+        <FontAwesomeIcon icon={faBell} className="text-2xl" />
         <p className="text-sm">No hay notificaciones</p>
       </div>
     )
@@ -39,7 +39,7 @@ export function NotificationsTab({ notifications }: NotificationsTabProps) {
       {notifications.map((n) => (
         <div key={n.id} className="rounded-2xl border bg-card p-4 flex gap-3">
           <div className="mt-0.5 shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-            <FontAwesomeIcon icon={faBell} className="w-3.5 h-3.5 text-primary" />
+            <FontAwesomeIcon icon={faBell} className="text-sm text-primary" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium">{n.title}</p>

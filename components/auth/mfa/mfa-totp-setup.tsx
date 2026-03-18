@@ -77,7 +77,7 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
             <div className="flex items-center gap-2">
               <code className="flex-1 px-3 py-2 bg-muted rounded-xl text-xs font-mono break-all">{secret}</code>
               <button onClick={handleCopySecret} className="p-2 hover:bg-muted rounded-xl transition-colors">
-                <FontAwesomeIcon icon={copiedSecret ? faCheck : faCopy} className="w-4 h-4" />
+                <FontAwesomeIcon icon={copiedSecret ? faCheck : faCopy} className="text-base" />
               </button>
             </div>
           </div>

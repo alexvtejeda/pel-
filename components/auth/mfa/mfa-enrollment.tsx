@@ -87,7 +87,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-20">
         <div className="w-full max-w-md space-y-6">
           <div className="text-center space-y-2">
-            <FontAwesomeIcon icon={faShieldHalved} className="w-12 h-12 text-pop-550" />
+            <FontAwesomeIcon icon={faShieldHalved} className="text-5xl text-pop-550" />
             <h1 className="text-2xl font-bold text-foreground">{t('mfa.enrollment.title')}</h1>
             <p className="text-muted-foreground">{t('mfa.enrollment.subtitle')}</p>
           </div>
@@ -99,7 +99,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
                 onClick={() => handleSelectMethod(m.key)}
                 className="w-full p-4 bg-background/90 backdrop-blur-xl rounded-2xl border border-input hover:border-pop-450/50 transition-all text-left flex items-center gap-4 inset-shadow-[1px_1px_1px_var(--color-input)]"
               >
-                <FontAwesomeIcon icon={m.icon} className="w-5 h-5 text-pop-550" />
+                <FontAwesomeIcon icon={m.icon} className="text-xl text-pop-550" />
                 <div className="flex-1">
                   <div className="font-medium text-foreground">{m.label}</div>
                   <div className="text-sm text-muted-foreground">{m.desc}</div>

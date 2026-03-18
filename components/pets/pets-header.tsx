@@ -147,7 +147,7 @@ export function PetsHeader() {
 
           {/* Profile section */}
           <div className="flex flex-col items-center gap-3 pt-8 pb-6">
-            <FontAwesomeIcon icon={faCircleUser} className="w-20 h-20 text-muted-foreground/40" />
+            <FontAwesomeIcon icon={faCircleUser} className="text-7xl text-muted-foreground/40" />
             <div className="text-center">
               <p className="text-lg font-semibold">
                 {user?.display_name || user?.email}

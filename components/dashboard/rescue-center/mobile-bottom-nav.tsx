@@ -48,7 +48,7 @@ export function MobileBottomNav({ activeTab, onTabChange }: MobileBottomNavProps
           onClick={toggleSidebar}
           className="flex flex-col items-center gap-1 flex-1 h-full justify-center"
         >
-          <FontAwesomeIcon icon={faBars} className="w-5 h-5 text-muted-foreground" />
+          <FontAwesomeIcon icon={faBars} className="text-xl text-muted-foreground" />
           <span className="text-[10px] text-muted-foreground">Más</span>
         </button>
       </div>

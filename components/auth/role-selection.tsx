@@ -130,7 +130,7 @@ export function RoleSelection() {
                       : 'border-input'
                   }`}>
                     {selectedRole === option.value && (
-                      <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-secondary"/>
+                      <FontAwesomeIcon icon={faCheck} className="text-xs text-secondary"/>
                     )}
                   </div>
                 </div>

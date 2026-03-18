@@ -73,7 +73,7 @@ export function MetricsTab() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-muted-foreground animate-spin" />
+        <FontAwesomeIcon icon={faSpinner} className="text-2xl text-muted-foreground animate-spin" />
       </div>
     )
   }
@@ -81,7 +81,7 @@ export function MetricsTab() {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <FontAwesomeIcon icon={faChartLine} className="w-10 h-10 text-muted-foreground/30" />
+        <FontAwesomeIcon icon={faChartLine} className="text-4xl text-muted-foreground/30" />
         <p className="text-sm text-muted-foreground">{error}</p>
       </div>
     )
@@ -110,7 +110,7 @@ export function MetricsTab() {
 
       {isEmpty ? (
         <div className="flex flex-col items-center justify-center py-20 gap-3">
-          <FontAwesomeIcon icon={faChartLine} className="w-12 h-12 text-muted-foreground/30" />
+          <FontAwesomeIcon icon={faChartLine} className="text-5xl text-muted-foreground/30" />
           <p className="text-lg font-medium text-muted-foreground">{t('metrics.empty_title')}</p>
           <p className="text-sm text-muted-foreground/70">
             {t('metrics.empty_subtitle')}
@@ -123,7 +123,7 @@ export function MetricsTab() {
             <Card className="rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <FontAwesomeIcon icon={faEye} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faEye} className="text-base" />
                   {t('metrics.total_views')}
                 </CardTitle>
               </CardHeader>
@@ -137,7 +137,7 @@ export function MetricsTab() {
             <Card className="rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <FontAwesomeIcon icon={faHandPointer} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faHandPointer} className="text-base" />
                   {t('metrics.adopt_clicks')}
                 </CardTitle>
               </CardHeader>
@@ -151,7 +151,7 @@ export function MetricsTab() {
             <Card className="rounded-2xl">
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
-                  <FontAwesomeIcon icon={faArrowTrendUp} className="w-4 h-4" />
+                  <FontAwesomeIcon icon={faArrowTrendUp} className="text-base" />
                   {t('metrics.conversion_rate')}
                 </CardTitle>
               </CardHeader>

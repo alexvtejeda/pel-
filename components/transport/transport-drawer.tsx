@@ -49,7 +49,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
       case 'pending': return 'bg-yellow-500/20 text-yellow-500'
       case 'active': return 'bg-pop-500/20 text-pop-500'
       case 'completed': return 'bg-green-500/20 text-green-500'
-      case 'cancelled': return 'bg-red-500/20 text-red-500'
+      case 'cancelled': return 'bg-destructive/20 text-destructive'
       default: return 'bg-muted text-muted-foreground'
     }
   })()
@@ -142,7 +142,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('actions.cancel_dialog_dismiss')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={onCancel} className="bg-red-500 text-white hover:bg-red-600">
+                  <AlertDialogAction onClick={onCancel} className="bg-destructive text-white hover:bg-destructive/90">
                     {t('actions.cancel_confirm_action')}
                   </AlertDialogAction>
                 </AlertDialogFooter>

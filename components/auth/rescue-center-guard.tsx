@@ -65,7 +65,7 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
         <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
-          <FontAwesomeIcon icon={faPaw} className="w-16 h-16 text-foreground" />
+          <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
           <h1 className="text-2xl font-bold text-foreground">Solicitud en revisión</h1>
           <p className="text-muted-foreground">
             Tu centro <span className="font-medium text-foreground">{center?.name}</span> está siendo verificado por nuestro equipo. Te notificaremos cuando sea aprobado.
@@ -89,7 +89,7 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
         <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
-          <FontAwesomeIcon icon={faCircleXmark} className="w-16 h-16 text-destructive" />
+          <FontAwesomeIcon icon={faCircleXmark} className="text-6xl text-destructive" />
           <h1 className="text-2xl font-bold text-foreground">Solicitud rechazada</h1>
           <p className="text-muted-foreground">
             Tu solicitud para <span className="font-medium text-foreground">{center?.name}</span> no fue aprobada. Contáctanos para más información.

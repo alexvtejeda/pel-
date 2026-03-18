@@ -309,12 +309,12 @@ function EditPetModal({
               <div className="grid grid-cols-2 gap-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={vaccinated} onChange={(e) => setVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
-                  <FontAwesomeIcon icon={faSyringe} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
                   <span className="text-sm">Vacunado</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={castrated} onChange={(e) => setCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
-                  <FontAwesomeIcon icon={faScissors} className="w-3.5 h-3.5 text-muted-foreground" />
+                  <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
                   <span className="text-sm">Castrado</span>
                 </label>
               </div>
@@ -366,7 +366,7 @@ function EditPetModal({
                         className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
                         onClick={() => handleRemovePhoto(photo.url, !!photo.file)}
                       >
-                        <FontAwesomeIcon icon={faXmark} className="w-2.5 h-2.5 text-white" />
+                        <FontAwesomeIcon icon={faXmark} className="text-xs text-white" />
                       </button>
                     </Reorder.Item>
                   ))}
@@ -375,7 +375,7 @@ function EditPetModal({
                     className="w-16 h-16 rounded-xl border-2 border-dashed border-input flex items-center justify-center text-muted-foreground hover:border-primary hover:text-primary transition-colors"
                     onClick={() => addRef.current?.click()}
                   >
-                    <FontAwesomeIcon icon={faPlus} className="w-4 h-4" />
+                    <FontAwesomeIcon icon={faPlus} className="text-base" />
                   </button>
                 </Reorder.Group>
                 <p className="text-xs text-muted-foreground/70">Arrastra para reordenar · máx. 5 MB por imagen</p>
@@ -425,7 +425,7 @@ function InterestedDropdown({ petId, onSelectSubmission }: { petId: string; onSe
   if (loading) {
     return (
       <div className="flex justify-center py-6">
-        <FontAwesomeIcon icon={faSpinner} className="w-5 h-5 text-muted-foreground animate-spin" />
+        <FontAwesomeIcon icon={faSpinner} className="text-xl text-muted-foreground animate-spin" />
       </div>
     )
   }
@@ -443,7 +443,7 @@ function InterestedDropdown({ petId, onSelectSubmission }: { petId: string; onSe
           onClick={() => onSelectSubmission(sub.id)}
           className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-accent/50 transition-colors"
         >
-          <FontAwesomeIcon icon={faCircleUser} className="w-6 h-6 text-muted-foreground/40 shrink-0" />
+          <FontAwesomeIcon icon={faCircleUser} className="text-2xl text-muted-foreground/40 shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">
               {sub.member_name || sub.member_email || t('interested.fallback_name')}
@@ -837,7 +837,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
       {pets.length === 0 && (
         <div className="flex items-center justify-center min-h-80">
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
-            <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-20" />
+            <FontAwesomeIcon icon={faPaw} className="text-4xl opacity-20" />
             <p className="text-sm">Aún no hay mascotas. ¡Agrega la primera!</p>
           </div>
         </div>
@@ -867,7 +867,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                       onClick={() => setEditingPet(pet)}
                       className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-white/90 shadow-sm hover:bg-white transition-colors"
                     >
-                      <FontAwesomeIcon icon={faPenToSquare} className="w-3.5 h-3.5 text-gray-700" />
+                      <FontAwesomeIcon icon={faPenToSquare} className="text-sm text-foreground" />
                     </button>
                   </>
                 ) : (
@@ -876,14 +876,14 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                     onClick={() => setEditingPet(pet)}
                     className="absolute inset-0 flex items-center justify-center hover:bg-muted/20 transition-colors group"
                   >
-                    <FontAwesomeIcon icon={faPaw} className="w-12 h-12 text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
+                    <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors" />
                   </button>
                 )}
                 {(pet.submission_count ?? 0) > 0 && (
                   <Popover>
                     <PopoverTrigger asChild>
                       <button className="absolute bottom-2 left-2 flex items-center gap-1 bg-pop-550/90 backdrop-blur-sm text-white text-xs font-semibold px-2.5 py-1 rounded-xl cursor-pointer z-10">
-                        <FontAwesomeIcon icon={faHeart} className="w-3 h-3" />
+                        <FontAwesomeIcon icon={faHeart} className="text-xs" />
                         {t('interested.count', { count: pet.submission_count })}
                       </button>
                     </PopoverTrigger>
@@ -911,28 +911,28 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                     <FontAwesomeIcon icon={pet.species === 'dog' ? faDog : faCat} className="text-xs" />
                   </span>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <FontAwesomeIcon icon={faSyringe} className={`w-3 h-3 ${pet.vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-                    <FontAwesomeIcon icon={faScissors} className={`w-3 h-3 ${pet.castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faSyringe} className={`text-xs ${pet.vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faScissors} className={`text-xs ${pet.castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                   </div>
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="rounded-xl w-7 h-7">
-                      <FontAwesomeIcon icon={faEllipsis} className="w-4 h-4" />
+                      <FontAwesomeIcon icon={faEllipsis} className="text-base" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={() => handleUploadMore(pet.id)}>
-                      <FontAwesomeIcon icon={faPhotoFilm} className="w-4 h-4" /> Subir Fotos
+                      <FontAwesomeIcon icon={faPhotoFilm} className="text-base" /> Subir Fotos
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                      <FontAwesomeIcon icon={faUser} className="w-4 h-4" /> Ver Perfil
+                      <FontAwesomeIcon icon={faUser} className="text-base" /> Ver Perfil
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
                       onClick={() => handleDeletePet(pet.id)}
                     >
-                      <FontAwesomeIcon icon={faTrash} className="w-4 h-4" /> Eliminar
+                      <FontAwesomeIcon icon={faTrash} className="text-base" /> Eliminar
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

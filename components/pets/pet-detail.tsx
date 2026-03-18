@@ -17,7 +17,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
-import { instagramUrl } from '@/lib/utils'
+import { instagramUrl, ensureUrl } from '@/lib/utils'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
@@ -117,11 +117,11 @@ export function PetDetail({ pet }: PetDetailProps) {
         {/* Badges */}
         <div className="flex flex-wrap gap-2">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={speciesIcon} className="w-3 h-3" />
+            <FontAwesomeIcon icon={speciesIcon} className="text-xs" />
             {t(`species.${pet.species}`)}
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={genderIcon} className="w-3 h-3" />
+            <FontAwesomeIcon icon={genderIcon} className="text-xs" />
             {t(`gender.${pet.gender}`)}
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
@@ -172,7 +172,7 @@ export function PetDetail({ pet }: PetDetailProps) {
             </div>
             <div className="flex items-center gap-4">
               {pet.rescue_center.website && (
-                <a href={pet.rescue_center.website} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faGlobe} className="text-sm" />
                   Website
                 </a>
@@ -210,7 +210,7 @@ export function PetDetail({ pet }: PetDetailProps) {
             onClick={handleShare}
             className="w-full py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
           >
-            <FontAwesomeIcon icon={copied ? faCheck : faShareFromSquare} className="w-3.5 h-3.5" />
+            <FontAwesomeIcon icon={copied ? faCheck : faShareFromSquare} className="text-sm" />
             {copied ? t('detail.link_copied', 'Enlace copiado') : t('detail.share', 'Compartir')}
           </button>
         )}

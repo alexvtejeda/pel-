@@ -152,7 +152,7 @@ export function LandingPage() {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <li key={i} className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
+                      <FontAwesomeIcon icon={faCheck} className="text-xs text-primary-foreground" />
                     </div>
                     <span className="text-foreground">{t(`value_adopters.benefit_${i}`)}</span>
                   </li>
@@ -168,7 +168,7 @@ export function LandingPage() {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <li key={i} className="flex items-start gap-3">
                     <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center shrink-0 mt-0.5">
-                      <FontAwesomeIcon icon={faCheck} className="w-3 h-3 text-primary-foreground" />
+                      <FontAwesomeIcon icon={faCheck} className="text-xs text-primary-foreground" />
                     </div>
                     <span className="text-foreground">{t(`value_rescues.benefit_${i}`)}</span>
                   </li>

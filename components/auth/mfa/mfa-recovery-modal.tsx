@@ -37,7 +37,7 @@ export function MfaRecoveryModal({ codes, onClose }: MfaRecoveryModalProps) {
           onClick={handleCopy}
           className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
         >
-          <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="w-4 h-4" />
+          <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="text-base" />
           {copied ? t('mfa.recovery.copied') : t('mfa.recovery.copy_all')}
         </button>
 

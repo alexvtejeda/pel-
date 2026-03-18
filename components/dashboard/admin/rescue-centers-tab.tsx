@@ -19,7 +19,7 @@ const statusLabels: Record<StatusFilter, string> = {
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-500/20 text-yellow-500',
   active: 'bg-green-500/20 text-green-500',
-  rejected: 'bg-red-500/20 text-red-500',
+  rejected: 'bg-destructive/20 text-destructive',
 }
 
 const statusText: Record<string, string> = {
@@ -127,11 +127,11 @@ export function RescueCentersTab() {
               {/* Details */}
               <div className="space-y-1 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faMapMarkerAlt} className="w-3.5 h-3.5" />
+                  <FontAwesomeIcon icon={faMapMarkerAlt} className="text-sm" />
                   <span>{center.address}, {center.city}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faPhone} className="w-3.5 h-3.5" />
+                  <FontAwesomeIcon icon={faPhone} className="text-sm" />
                   <span>{center.phone}</span>
                 </div>
                 {center.website && <p className="text-xs truncate">{center.website}</p>}
@@ -196,7 +196,7 @@ export function RescueCentersTab() {
                     onClick={() => setDeletingId(center.id)}
                     className="py-1.5 px-3 border border-input rounded-xl text-sm text-muted-foreground hover:bg-muted transition-colors"
                   >
-                    <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                    <FontAwesomeIcon icon={faTrash} className="text-sm" />
                   </button>
                 </div>
               )}

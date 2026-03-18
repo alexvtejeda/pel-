@@ -193,7 +193,7 @@ export function RescueCenterWizard() {
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
         <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
-          <FontAwesomeIcon icon={faPaw} className="w-16 h-16 text-foreground" />
+          <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
           <h1 className="text-2xl font-bold text-foreground">¡Solicitud enviada!</h1>
           <p className="text-muted-foreground">
             Tu centro de rescate está en revisión. Nuestro equipo verificará la información y te notificará cuando sea aprobado.
@@ -579,7 +579,7 @@ export function RescueCenterWizard() {
               }}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <FontAwesomeIcon icon={faArrowLeft} className="w-3 h-3" />
+              <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
               Cambiar rol
             </button>
             <button

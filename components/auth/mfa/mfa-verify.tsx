@@ -112,7 +112,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
         <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
         <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-4 border shadow-lg">
           <div className="text-center">
-            <FontAwesomeIcon icon={faShieldHalved} className="w-8 h-8 text-pop-550 mb-2" />
+            <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
             <h2 className="font-semibold">{t('mfa.verify.other_method')}</h2>
           </div>
 
@@ -125,7 +125,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
                   activeMethod === method ? 'border-pop-450 bg-pop-450/10' : 'border-input hover:bg-muted'
                 }`}
               >
-                <FontAwesomeIcon icon={methodIcons[method]} className="w-4 h-4" />
+                <FontAwesomeIcon icon={methodIcons[method]} className="text-base" />
                 <span className="text-sm font-medium">{t(`mfa.enrollment.${method === 'webauthn' ? 'passkey' : method}`)}</span>
               </button>
             ))}
@@ -147,7 +147,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
       <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-5 border shadow-lg">
         <div className="text-center space-y-1">
-          <FontAwesomeIcon icon={faShieldHalved} className="w-8 h-8 text-pop-550 mb-2" />
+          <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
           <h2 className="font-semibold">{t('mfa.verify.title')}</h2>
           <p className="text-sm text-muted-foreground">{t(subtitleKeys[activeMethod])}</p>
           {activeMethod === 'email' && emailSent && (

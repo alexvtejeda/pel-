@@ -195,7 +195,7 @@ export function FormsTab() {
             {forms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
             <option value="__create__">+ Crear formulario</option>
           </select>
-          <FontAwesomeIcon icon={faChevronDown} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none w-3 h-3" />
+          <FontAwesomeIcon icon={faChevronDown} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none text-xs" />
         </div>
 
         {/* Edit/Preview switcher */}
@@ -250,7 +250,7 @@ export function FormsTab() {
                 {FIELD_TYPES.map(({ type, label }) => <option key={type} value={type}>{label}</option>)}
               </select>
               <Button size="sm" className="rounded-xl shrink-0" onClick={addField}>
-                <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
+                <FontAwesomeIcon icon={faPlus} className="text-sm" />
               </Button>
             </div>
 
@@ -270,15 +270,15 @@ export function FormsTab() {
                     onClick={() => setActiveFieldId(field.id)}
                     className={`w-full rounded-2xl border bg-card p-3 flex items-center gap-2 text-left transition-colors cursor-pointer ${activeFieldId === field.id ? 'ring-2 ring-ring' : 'hover:bg-muted/50'}`}
                   >
-                    <FontAwesomeIcon icon={faGripVertical} className="w-3 h-3 text-muted-foreground/40 cursor-grab shrink-0" />
-                    <FontAwesomeIcon icon={icon} className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+                    <FontAwesomeIcon icon={faGripVertical} className="text-xs text-muted-foreground/40 cursor-grab shrink-0" />
+                    <FontAwesomeIcon icon={icon} className="text-sm text-muted-foreground shrink-0" />
                     <span className="text-sm flex-1 truncate">
                       {field.label || <span className="text-muted-foreground italic">Sin título</span>}
                     </span>
                     {field.required && <span className="text-xs font-bold text-destructive shrink-0">*</span>}
                     <Button variant="ghost" size="icon" className="h-6 w-6 rounded-xl text-destructive hover:text-destructive shrink-0"
                       onClick={e => { e.stopPropagation(); deleteField(field.id) }}>
-                      <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
+                      <FontAwesomeIcon icon={faTrash} className="text-xs" />
                     </Button>
                   </div>
                 )
@@ -295,7 +295,7 @@ export function FormsTab() {
             ) : (
               <div className="rounded-2xl border bg-card p-6 space-y-5">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  {(() => { const { icon, label } = typeInfo(activeField.type); return <><FontAwesomeIcon icon={icon} className="w-3 h-3" /><span>{label}</span></> })()}
+                  {(() => { const { icon, label } = typeInfo(activeField.type); return <><FontAwesomeIcon icon={icon} className="text-xs" /><span>{label}</span></> })()}
                 </div>
 
                 <div className="space-y-1.5">
@@ -333,7 +333,7 @@ export function FormsTab() {
                             placeholder={`Opción ${idx + 1}`} className="rounded-xl" />
                           <Button variant="ghost" size="icon" className="rounded-xl shrink-0 text-destructive hover:text-destructive"
                             onClick={() => deleteOption(activeField.id, idx)} disabled={activeField.options.length <= 1}>
-                            <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                            <FontAwesomeIcon icon={faTrash} className="text-sm" />
                           </Button>
                         </div>
                         {/* Follow-up link for multiple_choice / dropdown */}
@@ -361,7 +361,7 @@ export function FormsTab() {
                     ))}
                     <Button variant="outline" size="sm" className="rounded-xl"
                       onClick={() => addOption(activeField.id)}>
-                      <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" /> Agregar opción
+                      <FontAwesomeIcon icon={faPlus} className="text-sm" /> Agregar opción
                     </Button>
                   </div>
                 )}

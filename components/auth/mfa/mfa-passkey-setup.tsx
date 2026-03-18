@@ -58,7 +58,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
       </button>
 
       <div className="text-center space-y-4">
-        <FontAwesomeIcon icon={faKey} className="w-12 h-12 text-pop-550" />
+        <FontAwesomeIcon icon={faKey} className="text-5xl text-pop-550" />
         <p className="text-sm text-muted-foreground">
           {loading ? t('mfa.enrollment.passkey_waiting') : t('mfa.enrollment.passkey_desc')}
         </p>

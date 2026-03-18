@@ -109,7 +109,7 @@ export function RegisterPage() {
             disabled={loading}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-background border border-input rounded-xl hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FontAwesomeIcon icon={faGoogle} className="w-5 h-5" />
+            <FontAwesomeIcon icon={faGoogle} className="text-xl" />
             <span className="font-medium">Google</span>
           </button>
 

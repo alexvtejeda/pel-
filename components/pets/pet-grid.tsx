@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faCertificate, faCheck, faHouseChimney, faUser } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
-import { instagramUrl } from '@/lib/utils'
+import { instagramUrl, ensureUrl } from '@/lib/utils'
 import { PetFilters } from '@/lib/api/pets-public'
 import {
   DropdownMenu,
@@ -183,7 +183,7 @@ export function PetGrid({
 
         {!loading && !error && sourceFiltered.length === 0 && (
           <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
-            <FontAwesomeIcon icon={faPaw} className="w-10 h-10 opacity-30" />
+            <FontAwesomeIcon icon={faPaw} className="text-4xl opacity-30" />
             <p className="text-sm">{t('grid.empty')}</p>
           </div>
         )}
@@ -257,7 +257,7 @@ export function PetGrid({
                         </DropdownMenuItem>
                       )}
                       {pet.rescue_center?.website && (
-                        <DropdownMenuItem onClick={() => window.open(pet.rescue_center!.website!, '_blank')}>
+                        <DropdownMenuItem onClick={() => window.open(ensureUrl(pet.rescue_center!.website!), '_blank')}>
                           <FontAwesomeIcon icon={faGlobe} className="text-sm" />
                           {t('card.visitWebsite', { name: pet.rescue_center.name })}
                         </DropdownMenuItem>

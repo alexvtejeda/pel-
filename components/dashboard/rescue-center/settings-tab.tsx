@@ -290,7 +290,7 @@ export function SettingsTab() {
           <div className="space-y-2">
             {mfaMethods.map((m, i) => (
               <div key={i} className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl">
-                <FontAwesomeIcon icon={methodIcon(m.type)} className="w-4 h-4 text-muted-foreground" />
+                <FontAwesomeIcon icon={methodIcon(m.type)} className="text-base text-muted-foreground" />
                 <div className="flex-1">
                   <div className="text-sm font-medium">{methodLabel(m)}</div>
                   <div className="text-xs text-muted-foreground">
@@ -307,7 +307,7 @@ export function SettingsTab() {
                       : 'text-muted-foreground/30 cursor-not-allowed'
                   }`}
                 >
-                  <FontAwesomeIcon icon={faTrash} className="w-3.5 h-3.5" />
+                  <FontAwesomeIcon icon={faTrash} className="text-sm" />
                 </button>
               </div>
             ))}
@@ -319,7 +319,7 @@ export function SettingsTab() {
             onClick={() => setShowAddMethod(true)}
             className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
           >
-            <FontAwesomeIcon icon={faPlus} className="w-3.5 h-3.5" />
+            <FontAwesomeIcon icon={faPlus} className="text-sm" />
             {t('mfa.settings.add_method')}
           </button>
         )}

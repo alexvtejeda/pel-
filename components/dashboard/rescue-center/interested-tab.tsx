@@ -110,7 +110,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
                 onClick={() => { onPetSearchChange(''); onSelectPet(null) }}
                 className="shrink-0 text-muted-foreground hover:text-foreground"
               >
-                <FontAwesomeIcon icon={faXmark} className="w-3 h-3" />
+                <FontAwesomeIcon icon={faXmark} className="text-xs" />
               </button>
             )}
           </div>
@@ -131,7 +131,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
                     <img src={s.pet_photo_url} alt={s.pet_name} className="w-7 h-7 rounded-xl object-cover shrink-0" />
                   ) : (
                     <div className="w-7 h-7 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-                      <FontAwesomeIcon icon={faPaw} className="w-3 h-3 text-muted-foreground/40" />
+                      <FontAwesomeIcon icon={faPaw} className="text-xs text-muted-foreground/40" />
                     </div>
                   )}
                   <span className="text-sm font-medium flex-1 truncate">{s.pet_name}</span>
@@ -163,7 +163,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
 
       {loading && (
         <div className="flex justify-center py-12">
-          <FontAwesomeIcon icon={faSpinner} className="w-6 h-6 text-muted-foreground animate-spin" />
+          <FontAwesomeIcon icon={faSpinner} className="text-2xl text-muted-foreground animate-spin" />
         </div>
       )}
 
@@ -188,7 +188,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
             />
           ) : (
             <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center shrink-0">
-              <FontAwesomeIcon icon={faPaw} className="w-4 h-4 text-muted-foreground/40" />
+              <FontAwesomeIcon icon={faPaw} className="text-base text-muted-foreground/40" />
             </div>
           )}
 
@@ -264,7 +264,7 @@ function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
           onClick={onBack}
           className="p-1.5 hover:bg-accent rounded-xl transition-colors"
         >
-          <FontAwesomeIcon icon={faArrowLeft} className="w-4 h-4" />
+          <FontAwesomeIcon icon={faArrowLeft} className="text-base" />
         </button>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold truncate">
@@ -363,9 +363,9 @@ function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
       {submission.status === 'approved' && (
         <div className="border-t border-border pt-4">
           <p className="text-sm text-green-700 flex items-center gap-2">
-            <FontAwesomeIcon icon={faComments} className="w-4 h-4" />
+            <FontAwesomeIcon icon={faComments} className="text-base" />
             Chat iniciado
-            <FontAwesomeIcon icon={faCheck} className="w-3.5 h-3.5" />
+            <FontAwesomeIcon icon={faCheck} className="text-sm" />
           </p>
         </div>
       )}
@@ -387,7 +387,7 @@ function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
             className="absolute top-4 right-4 text-white hover:text-white/80 transition-colors"
             onClick={() => setLightboxUrl(null)}
           >
-            <FontAwesomeIcon icon={faTimes} className="w-6 h-6" />
+            <FontAwesomeIcon icon={faTimes} className="text-2xl" />
           </button>
           <img
             src={lightboxUrl}
