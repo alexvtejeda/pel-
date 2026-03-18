@@ -1,0 +1,42 @@
+{
+  "status": {
+    "pending": "Pendiente",
+    "active": "En camino",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
+  "steps": {
+    "pickup": "Recogida",
+    "in_transit": "En camino",
+    "delivered": "Entregado",
+    "searching": "Buscando conductor"
+  },
+  "connection": {
+    "reconnecting": "Reconectando..."
+  },
+  "drawer": {
+    "pet_on_way": "Tu mascota está en camino",
+    "searching_driver": "Buscando conductor...",
+    "delivery_complete": "Entrega completada",
+    "trip_cancelled": "Viaje cancelado",
+    "stops": "Paradas",
+    "eta": "ETA: ~{{minutes}} min",
+    "stop_of": "Parada {{current}} de {{total}}",
+    "payment": "Pago — próximamente",
+    "completed_label": "Completado"
+  },
+  "form": {
+    "pickup_address": "Dirección de recogida",
+    "dropoff_address": "Dirección de entrega",
+    "select_pet": "Seleccionar mascota",
+    "request_transport": "Solicitar transporte",
+    "address_not_found": "No se encontró la dirección",
+    "error_creating": "Error al crear el viaje"
+  },
+  "actions": {
+    "cancel_trip": "Cancelar viaje",
+    "cancel_confirm": "¿Seguro que deseas cancelar este viaje?",
+    "cancel_confirm_action": "Sí, cancelar",
+    "new_trip": "Solicitar nuevo viaje"
+  }
+}
