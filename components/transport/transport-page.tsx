@@ -10,6 +10,7 @@ import dynamic from 'next/dynamic'
 const TransportMap = dynamic(() => import('./transport-map'), { ssr: false })
 import { TransportStepper } from './transport-stepper'
 import { TransportDrawer } from './transport-drawer'
+import { TransportCreationForm } from './transport-creation-form'
 
 type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'cancelled'
 
@@ -73,6 +74,15 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
           trip={trip}
           driverLocation={null}
           onCancel={handleCancelTrip}
+        />
+      )}
+      {pageState === 'none' && (
+        <TransportCreationForm
+          initialPetId={initialPetId}
+          onTripCreated={(newTrip) => {
+            setTrip(newTrip)
+            setPageState('pending')
+          }}
         />
       )}
     </div>
