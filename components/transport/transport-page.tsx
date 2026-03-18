@@ -5,6 +5,9 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Trip, listTrips } from '@/lib/api/transport'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
+import dynamic from 'next/dynamic'
+
+const TransportMap = dynamic(() => import('./transport-map'), { ssr: false })
 
 type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'cancelled'
 
@@ -46,10 +49,11 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {/* Map, Stepper, Drawer, and Form will be added in subsequent tasks */}
-      <div className="flex items-center justify-center h-full text-muted-foreground">
-        {pageState === 'none' ? 'Trip creation form goes here' : `Trip state: ${pageState}`}
-      </div>
+      <TransportMap
+        stops={trip?.stops ?? []}
+        driverLocation={null}
+        tripStatus={trip?.status ?? null}
+      />
     </div>
   )
 }
