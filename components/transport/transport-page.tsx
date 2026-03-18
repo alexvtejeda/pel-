@@ -8,6 +8,7 @@ import { useWebSocket } from '@/lib/contexts/websocket-context'
 import dynamic from 'next/dynamic'
 
 const TransportMap = dynamic(() => import('./transport-map'), { ssr: false })
+import { TransportStepper } from './transport-stepper'
 
 type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'cancelled'
 
@@ -54,6 +55,9 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
         driverLocation={null}
         tripStatus={trip?.status ?? null}
       />
+      {trip && pageState !== 'none' && (
+        <TransportStepper stops={trip.stops} status={trip.status} />
+      )}
     </div>
   )
 }
