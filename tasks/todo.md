@@ -1,59 +1,35 @@
-# Slack-like Layered Chat UI Redesign
+# Bug Fixes
 
-**Goal:** Transform the RC dashboard chat tab into a Slack-like split layout with visual depth layers, and apply the layered aesthetic to the overall dashboard shell.
+## Bugs Found
 
-**Reference:** `slack-ref.png` — 3-layer depth: sidebar (deepest) → conversation list (middle) → chat content (top/brightest)
+### 1. `logout()` missing `await` — `lib/api/auth.ts:31`
+- The function is `async` but doesn't `await` the `apiClient()` call
+- When `auth-context.tsx:92` does `await authApi.logout()`, it resolves immediately
+- Server session cookie may not be invalidated before client clears state
 
-**Behavior:**
-- Sidebar **expanded** → conversation list shows compact: avatar + last message only
-- Sidebar **collapsed** → conversation list shows full: avatar + name + last message
-- Chat content area feels elevated (brightest, `rounded-tl-2xl`, on top of everything)
-- Layered depth applied to all dashboard tabs (not just chat)
+**Fix**: Add `await` before the `apiClient` call. Keep the `.catch(() => {})` since we still want to proceed with client-side cleanup even if the API call fails.
 
----
+### 2. WebSocket unread counter increments for own messages — `lib/contexts/websocket-context.tsx:124`
+- The `new_message` handler reads `data.sender_id` directly
+- But the backend nests the message payload inside `data.message` (confirmed by chat-message-thread.tsx:120-121 and chat-conversation-list.tsx:56-57 which both do `const m = data.message || data`)
+- `data.sender_id` is always `undefined`, so `undefined !== user?.id` is always `true`
+- Result: **every incoming message (including your own) increments the unread badge count**
 
-## Tasks
+**Fix**: Extract the message with `const m = data.message || data` (same pattern as chat components), then check `m.sender_id` instead of `data.sender_id`.
 
-- [x] **1. Dashboard shell — layered depth effect**
-  - `dashboard-shell.tsx`: `<main>` gets `bg-background md:rounded-tl-2xl`, flex-1 overflow-hidden for chat tab
-  - Header uses `bg-sidebar text-sidebar-foreground` for depth continuity
-  - `globals.css`: sidebar background changed to primary dark color (`oklch(12.9% 0.042 264.695)`)
+## Todo
 
-- [x] **2. Chat tab — split-panel layout**
-  - `chat-tab.tsx`: Side-by-side layout (conversation list | message thread)
-  - Left panel: `w-70` (sidebar collapsed) / `w-50` (sidebar expanded), `rounded-tl-2xl`
-  - Right panel: `bg-background rounded-tl-2xl` with subtle inset shadow
-  - Empty state when no conversation selected
-
-- [x] **3. Conversation list — compact mode**
-  - `chat-conversation-list.tsx`: Added `compact` and `darkBg` props
-  - Compact (sidebar expanded): avatar + last message snippet only
-  - Full (sidebar collapsed): avatar + name + pet + last message + timestamp
-
-- [x] **4. Message thread — split-mode adjustments**
-  - `chat-message-thread.tsx`: Added `showBack` prop (default true), hidden in split mode
-
-- [x] **5. Dark sidebar + active states**
-  - `globals.css`: sidebar-background = primary, sidebar-foreground = light, sidebar-border = transparent
-  - Active state: `--color-sidebar-accent: var(--color-pop-900)`, `--color-sidebar-accent-foreground: var(--color-pop-550)`
-  - No sidebar border (transparent)
-  - Header and notification bell updated with sidebar-aware text colors
-
-- [x] **6. Visual verification**
-  - Mascotas tab: dark sidebar, rounded content area, pop active state ✓
-  - Chat tab: split layout, conversation list readable, empty state ✓
-  - Chat thread: messages render correctly in split mode ✓
+- [x] Fix missing `await` in `logout()`
+- [x] Fix WebSocket unread counter reading wrong field
+- [x] Add review section
 
 ## Review
 
 ### Files changed
-- `app/globals.css` — dark sidebar tokens, sidebar-accent = pop colors, border = transparent
-- `components/dashboard/rescue-center/dashboard-shell.tsx` — header sidebar-aware colors, main rounded-tl-2xl, chat flex layout
-- `components/dashboard/rescue-center/chat-tab.tsx` — split-panel layout with useSidebar() responsive widths
-- `components/dashboard/rescue-center/rescue-center-sidebar.tsx` — footer avatar/text colors (user changes)
-- `components/dashboard/rescue-center/notification-bell.tsx` — sidebar-aware button colors
-- `components/chat/chat-conversation-list.tsx` — compact mode, darkBg prop, activeConversationId highlight
-- `components/chat/chat-message-thread.tsx` — showBack prop
+- `lib/api/auth.ts` — Added `await` to the `apiClient` call in `logout()` so the server session is properly invalidated before the client clears state
+- `lib/contexts/websocket-context.tsx` — Extracted nested message payload with `const m = data.message || data` before checking `sender_id`, matching the pattern already used in chat-message-thread.tsx and chat-conversation-list.tsx
 
 ### Summary
-Transformed the dashboard into a Slack-like layered UI: dark sidebar (primary color) with pop-colored active states, borderless, with the content area sitting "on top" via `rounded-tl-2xl`. Chat tab now uses a persistent split layout (conversation list always visible on left, message thread on right) that adapts to sidebar state.
+Two silent bugs fixed:
+1. **Logout was fire-and-forget** — server cookie might not be cleared before client-side cleanup ran. Now properly awaited.
+2. **Unread badge always incremented** — including for your own sent messages, because `data.sender_id` was `undefined` (the real sender_id lives in `data.message.sender_id`). Now correctly reads the nested field.
