@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trip, listTrips, cancelTrip as cancelTripApi } from '@/lib/api/transport'
+import { Trip, DriverLocation, listTrips, cancelTrip as cancelTripApi } from '@/lib/api/transport'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import dynamic from 'next/dynamic'
 
@@ -20,9 +20,10 @@ interface TransportPageProps {
 
 export function TransportPage({ initialPetId }: TransportPageProps) {
   const { t } = useTranslation('transport')
-  const { subscribe } = useWebSocket()
+  const { subscribe, connected } = useWebSocket()
   const [pageState, setPageState] = useState<PageState>('loading')
   const [trip, setTrip] = useState<Trip | null>(null)
+  const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null)
 
   useEffect(() => {
     listTrips().then(({ data }) => {
@@ -41,6 +42,47 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       }
     })
   }, [])
+
+  useEffect(() => {
+    const unsub = subscribe('driver_location', (data: any) => {
+      if (trip && data.trip_id === trip.id) {
+        setDriverLocation({
+          trip_id: data.trip_id,
+          lat: data.lat,
+          lng: data.lng,
+          eta_minutes: data.eta_minutes,
+        })
+      }
+    })
+    return unsub
+  }, [subscribe, trip])
+
+  useEffect(() => {
+    const unsub = subscribe('trip_status_changed', (data: any) => {
+      if (trip && data.trip_id === trip.id) {
+        setTrip(prev => prev ? { ...prev, status: data.status } : null)
+        setPageState(data.status as PageState)
+      }
+    })
+    return unsub
+  }, [subscribe, trip])
+
+  useEffect(() => {
+    const unsub = subscribe('stop_completed', (data: any) => {
+      if (trip && data.trip_id === trip.id) {
+        setTrip(prev => {
+          if (!prev) return null
+          return {
+            ...prev,
+            stops: prev.stops.map(s =>
+              s.id === data.stop_id ? { ...s, completed_at: data.completed_at } : s
+            ),
+          }
+        })
+      }
+    })
+    return unsub
+  }, [subscribe, trip])
 
   const handleCancelTrip = async () => {
     if (!trip) return
@@ -61,9 +103,14 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
+      {!connected && trip && (trip.status === 'pending' || trip.status === 'active') && (
+        <div className="absolute top-16 left-4 right-4 z-30 bg-yellow-500/90 text-background text-center text-xs font-medium py-1.5 rounded-xl">
+          {t('connection.reconnecting')}
+        </div>
+      )}
       <TransportMap
         stops={trip?.stops ?? []}
-        driverLocation={null}
+        driverLocation={driverLocation}
         tripStatus={trip?.status ?? null}
       />
       {trip && pageState !== 'none' && (
@@ -72,7 +119,7 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       {trip && pageState !== 'none' && (
         <TransportDrawer
           trip={trip}
-          driverLocation={null}
+          driverLocation={driverLocation}
           onCancel={handleCancelTrip}
         />
       )}
@@ -84,6 +131,14 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
             setPageState('pending')
           }}
         />
+      )}
+      {pageState === 'cancelled' && (
+        <button
+          onClick={() => { setTrip(null); setDriverLocation(null); setPageState('none') }}
+          className="absolute bottom-24 left-4 right-4 z-20 bg-pop-500 text-background py-3 rounded-xl font-semibold text-sm"
+        >
+          {t('actions.new_trip')}
+        </button>
       )}
     </div>
   )
