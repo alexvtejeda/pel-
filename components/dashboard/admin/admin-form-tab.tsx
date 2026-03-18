@@ -212,7 +212,7 @@ export function AdminFormTab() {
                       {field.label || <span className="text-muted-foreground italic">Sin título</span>}
                     </span>
                     {field.required && <span className="text-xs font-bold text-destructive shrink-0">*</span>}
-                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-lg text-destructive hover:text-destructive shrink-0"
+                    <Button variant="ghost" size="icon" className="h-6 w-6 rounded-xl text-destructive hover:text-destructive shrink-0"
                       onClick={e => { e.stopPropagation(); deleteField(field.id) }}>
                       <FontAwesomeIcon icon={faTrash} className="w-3 h-3" />
                     </Button>

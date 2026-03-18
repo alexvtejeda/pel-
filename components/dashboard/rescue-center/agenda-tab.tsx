@@ -72,7 +72,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
             selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
             modifiers={{ hasEvent: datesWithEvents }}
-            modifiersClassNames={{ hasEvent: 'ring-2 ring-pop-550/40 rounded-md' }}
+            modifiersClassNames={{ hasEvent: 'ring-2 ring-pop-550/40 rounded-xl' }}
             style={{ '--cell-size': '2.75rem' } as React.CSSProperties}
             classNames={{
               month_caption: 'flex h-[--cell-size] w-full items-center justify-center px-14 capitalize',

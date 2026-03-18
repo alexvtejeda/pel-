@@ -64,7 +64,7 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
-        <div className="relative z-10 w-full rounded-lg max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
           <FontAwesomeIcon icon={faPaw} className="w-16 h-16 text-foreground" />
           <h1 className="text-2xl font-bold text-foreground">Solicitud en revisión</h1>
           <p className="text-muted-foreground">
@@ -88,7 +88,7 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
     return (
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
-        <div className="relative z-10 w-full rounded-lg max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
           <FontAwesomeIcon icon={faCircleXmark} className="w-16 h-16 text-destructive" />
           <h1 className="text-2xl font-bold text-foreground">Solicitud rechazada</h1>
           <p className="text-muted-foreground">

@@ -128,9 +128,9 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
                   className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-accent/50 transition-colors"
                 >
                   {s.pet_photo_url ? (
-                    <img src={s.pet_photo_url} alt="" className="w-7 h-7 rounded-lg object-cover shrink-0" />
+                    <img src={s.pet_photo_url} alt={s.pet_name} className="w-7 h-7 rounded-xl object-cover shrink-0" />
                   ) : (
-                    <div className="w-7 h-7 rounded-lg bg-secondary flex items-center justify-center shrink-0">
+                    <div className="w-7 h-7 rounded-xl bg-secondary flex items-center justify-center shrink-0">
                       <FontAwesomeIcon icon={faPaw} className="w-3 h-3 text-muted-foreground/40" />
                     </div>
                   )}
@@ -305,7 +305,7 @@ function DetailView({ submission, form, onBack, onReview }: DetailViewProps) {
                   <img
                     src={answerStr}
                     alt={field?.label || 'Archivo'}
-                    className="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    className="w-16 h-16 object-cover rounded-xl cursor-pointer hover:opacity-80 transition-opacity"
                     onClick={() => setLightboxUrl(answerStr)}
                   />
                 ) : (

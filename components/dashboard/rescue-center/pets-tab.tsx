@@ -357,7 +357,7 @@ function EditPetModal({
                     <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
                       <img
                         src={photo.url}
-                        alt=""
+                        alt="Foto de mascota"
                         draggable="false"
                         className="w-16 h-16 rounded-xl object-cover"
                       />
@@ -719,7 +719,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
             <button
               type="button"
               onClick={() => { setShowFilterDropdown(prev => !prev); setShowAutocomplete(false) }}
-              className={`relative shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition-colors ${
+              className={`relative shrink-0 w-7 h-7 flex items-center justify-center rounded-xl transition-colors ${
                 showFilterDropdown || filtersActive ? 'bg-pop-550 text-white' : 'text-muted-foreground hover:text-foreground'
               }`}
             >

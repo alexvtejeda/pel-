@@ -95,7 +95,7 @@ export function RescueCentersTab() {
           <button
             key={s}
             onClick={() => setFilter(s)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
               filter === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
@@ -119,7 +119,7 @@ export function RescueCentersTab() {
                   <h3 className="font-semibold">{center.name}</h3>
                   <p className="text-sm text-muted-foreground">{center.rnc || ''}</p>
                 </div>
-                <span className={`text-xs px-2 py-1 rounded-lg font-medium ${statusColors[center.status] || ''}`}>
+                <span className={`text-xs px-2 py-1 rounded-xl font-medium ${statusColors[center.status] || ''}`}>
                   {statusText[center.status] || center.status}
                 </span>
               </div>
@@ -140,7 +140,7 @@ export function RescueCentersTab() {
 
               {/* Reject reason */}
               {center.status === 'rejected' && center.reject_reason && (
-                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-lg">
+                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-xl">
                   Razón: {center.reject_reason}
                 </p>
               )}

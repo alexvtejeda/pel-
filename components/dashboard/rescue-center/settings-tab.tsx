@@ -5,7 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
-import { getMyRescueCenter } from '@/lib/api/rescue-centers'
+import { getMyRescueCenter, updateRescueCenter } from '@/lib/api/rescue-centers'
 import { LogoUpload } from './logo-upload'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -30,7 +30,13 @@ export function SettingsTab() {
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  const [rcId, setRcId] = useState<string | null>(null)
   const [rcLogoUrl, setRcLogoUrl] = useState<string | null>(null)
+  const [rcWebsite, setRcWebsite] = useState('')
+  const [rcInstagram, setRcInstagram] = useState('')
+  const [savedSocial, setSavedSocial] = useState(false)
+  const [savingSocial, setSavingSocial] = useState(false)
+  const [socialError, setSocialError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [mfaMethods, setMfaMethods] = useState<MfaMethodInfo[]>([])
@@ -43,7 +49,12 @@ export function SettingsTab() {
 
   useEffect(() => {
     getMyRescueCenter().then(({ data }) => {
-      if (data) setRcLogoUrl(data.logo_url ?? null)
+      if (data) {
+        setRcId(data.id)
+        setRcLogoUrl(data.logo_url ?? null)
+        setRcWebsite(data.website ?? '')
+        setRcInstagram(data.instagram ?? '')
+      }
     })
   }, [])
 
@@ -129,6 +140,23 @@ export function SettingsTab() {
     setTimeout(() => setSavedRescue(false), 2000)
   }
 
+  const handleSaveSocial = async () => {
+    if (!rcId) return
+    setSavingSocial(true)
+    setSocialError(null)
+    const { error } = await updateRescueCenter(rcId, {
+      website: rcWebsite.trim() || undefined,
+      instagram: rcInstagram.trim() || undefined,
+    })
+    setSavingSocial(false)
+    if (error) {
+      setSocialError(error)
+      return
+    }
+    setSavedSocial(true)
+    setTimeout(() => setSavedSocial(false), 2000)
+  }
+
   return (
     <div className="max-w-lg space-y-8">
       {/* Profile picture */}
@@ -211,11 +239,47 @@ export function SettingsTab() {
           </button>
         </div>
       </div>
+      {/* Website & Instagram */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="font-semibold">Redes y sitio web</h2>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Sitio web</label>
+            <input
+              type="text"
+              value={rcWebsite}
+              onChange={(e) => setRcWebsite(e.target.value)}
+              placeholder="ejemplo.com"
+              className="w-full px-4 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Instagram</label>
+            <input
+              type="text"
+              value={rcInstagram}
+              onChange={(e) => setRcInstagram(e.target.value)}
+              placeholder="mi_refugio"
+              className="w-full px-4 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Solo el nombre de usuario, sin @</p>
+          </div>
+        </div>
+        {socialError && <p className="text-sm text-destructive">{socialError}</p>}
+        <button
+          onClick={handleSaveSocial}
+          disabled={savingSocial}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          {savingSocial ? 'Guardando…' : savedSocial ? 'Guardado' : 'Guardar'}
+        </button>
+      </div>
+
       {/* Security / MFA */}
       <div className="rounded-2xl border bg-card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">{t('mfa.settings.title')}</h2>
-          <span className={`text-xs px-2 py-1 rounded-lg font-medium ${
+          <span className={`text-xs px-2 py-1 rounded-xl font-medium ${
             mfaEnabled ? 'bg-green-500/20 text-green-400' : 'bg-muted text-muted-foreground'
           }`}>
             {mfaEnabled ? t('mfa.settings.enabled') : t('mfa.settings.disabled')}

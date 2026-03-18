@@ -297,9 +297,9 @@ function PetMetricsTable({ pets }: { pets: MetricsResponse['pets'] }) {
               )}
             </TableCell>
             <TableCell>
-              <div className="w-full bg-muted rounded-md h-6 overflow-hidden">
+              <div className="w-full bg-muted rounded-xl h-6 overflow-hidden">
                 <div
-                  className="bg-pop-550/20 h-6 rounded-md"
+                  className="bg-pop-550/20 h-6 rounded-xl"
                   style={{ width: `${(pet.views / maxViews) * 100}%` }}
                 />
               </div>

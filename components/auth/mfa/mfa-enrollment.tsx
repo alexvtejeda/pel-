@@ -105,7 +105,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
                   <div className="text-sm text-muted-foreground">{m.desc}</div>
                 </div>
                 {m.recommended && (
-                  <span className="text-xs px-2 py-1 bg-pop-550/20 text-pop-450 rounded-lg font-medium">
+                  <span className="text-xs px-2 py-1 bg-pop-550/20 text-pop-450 rounded-xl font-medium">
                     {t('mfa.enrollment.recommended')}
                   </span>
                 )}
