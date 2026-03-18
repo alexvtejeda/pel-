@@ -102,10 +102,8 @@ The scan checks each line containing `FontAwesomeIcon` for `w-` or `h-` size tok
 
 | # | Rule | Pattern | Rationale |
 |---|------|---------|-----------|
-| 18 | Primary CTA buttons use bg-pop-550 | Scan files containing `type="submit"` or `type='submit'` and verify they also contain `bg-pop-550` somewhere in the file. Exclude files that delegate styling to shadcn `<Button` component (those get styled via variants, not inline classes) | Brand consistency for form submit actions |
-| 19 | Active/selected filter states reference pop-550 | Scan for lines matching a ternary with class strings: `/\? ['"\`].*bg-/` pattern within files that have toggle/filter UI. Verify that `pop-550` appears in the same file | Brand-consistent selection indicator |
-
-**Note:** Test #18 excludes files using shadcn `<Button type="submit">` since those inherit styling from `ui/button.tsx` variants. Test #19 uses a concrete ternary-with-class heuristic — it's a best-effort check that verifies toggle-style files reference `pop-550` somewhere, not that every individual ternary uses it.
+| 18 | Onboarding wizard submit buttons use bg-pop-550 | Scan `*-wizard.tsx` files and verify each contains `bg-pop-550` | Brand-consistent CTA in wizards |
+| 19 | No FontAwesomeIcon `size` prop | `/FontAwesomeIcon[^>]*\bsize=/` per line | Must use `text-*` Tailwind classes for sizing, not FA's `size` prop |
 
 **Former test #20 moved to #17** (structural patterns) and expanded to cover all React hook imports.
 
