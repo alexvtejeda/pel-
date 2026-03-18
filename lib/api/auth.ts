@@ -28,7 +28,7 @@ export async function register(email: string, password: string): Promise<{ data:
 }
 
 export async function logout(): Promise<void> {
-  apiClient('/api/v1/auth/logout', { method: 'DELETE' }).catch(() => {})
+  await apiClient('/api/v1/auth/logout', { method: 'DELETE' }).catch(() => {})
 }
 
 export async function setRole(role: UserRole): Promise<{ data: { user: { role: UserRole } } | null; error: string | null }> {

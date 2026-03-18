@@ -120,8 +120,10 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     if (!shouldConnect) return
 
     const unsub = subscribe('new_message', (data: any) => {
+      // Backend wraps the message payload inside data.message
+      const m = data.message || data
       // Only increment if the message is from someone else
-      if (data.sender_id !== user?.id) {
+      if (m.sender_id !== user?.id) {
         const convoId = data.conversation_id
         const current = unreadPerConvoRef.current.get(convoId) || 0
         unreadPerConvoRef.current.set(convoId, current + 1)
