@@ -40,7 +40,7 @@ No test framework is configured in this project.
 ### Authentication Flow
 1. User signs in via Email/Password or Google OAuth (`components/auth/login-page.tsx`)
 2. On success, user is redirected to `/auth/role-selection` if no role is set yet
-3. User selects role: `adopter`, `member`, `rescue_center`, or `business`; role is persisted via `PATCH /api/v1/auth/role`
+3. User selects role: `member`, `rescue_center`, or `business`; role is persisted via `PATCH /api/v1/auth/role`
 4. `AuthProvider` (`lib/contexts/auth-context.tsx`) manages auth state globally:
    - `user`: `AuthUser` object (`id`, `email`, `role`, `display_name`, `auth_provider`, `preferred_lang`)
    - `loading`: Boolean for initial auth check
@@ -68,12 +68,20 @@ API modules:
 - `submissions.ts` — adoption form submissions + file upload + review (approve/reject)
 - `businesses.ts` — business CRUD + cover photo upload
 - `user-pets.ts` — member's personal pets
+- `admin.ts` — admin dashboard: RC approvals, form templates, status management
+- `chat.ts` — chat conversations and messages
+- `mfa.ts` — multi-factor auth setup (TOTP, WebAuthn, recovery codes)
+- `metrics.ts` — pet view/adoption click tracking
+- `notifications-api.ts` — app notifications
 
 API functions return `{ data, error }` for consistent error handling. Never throw errors. (`lib/api/pets.ts` is the known exception — it throws.)
 
 ### WebSocket
 
-`lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Incoming `new_message` events nest the message payload inside `data.message` (not at the top level of `data`).
+`lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Only connects for `member` and `rescue_center` roles. Key patterns:
+- Incoming `new_message` events nest the message payload inside `data.message` (not at the top level of `data`)
+- Use `subscribe(eventType, callback)` to listen for events
+- Supports read receipts and typing indicators
 
 ### Protected Routes
 
@@ -100,8 +108,9 @@ Automatically redirects unauthenticated users to `/auth/login` and checks role r
 | `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no role yet) |
 | `/auth/google/callback` | OAuth redirect target | Public |
 | `/auth/onboarding/[role]` | `components/auth/onboarding/onboarding-client.tsx` | Authenticated; routes to role-specific wizard |
-| `/chat` | `components/chat/chat-page.tsx` | Authenticated (`member`) |
+| `/chat` | `components/chat/chat-page.tsx` | Authenticated (`member`, `rescue_center`) |
 | `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
+| `/dashboard/admin` | `components/dashboard/admin/` | `admin` role only |
 
 Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
 
@@ -172,6 +181,8 @@ When adding new UI text:
 - `components/forms/form-renderer.tsx` — Shared renderer for adoption forms (used in `/adopt/[pet-id]` and form preview)
 - `components/pets/` — Pet discovery: split grid + detail panel layout (`pets-page.tsx`, `pet-grid.tsx`, `pet-detail.tsx`, `pets-header.tsx`)
 - `components/dashboard/rescue-center/` — Dashboard shell, sidebar, mobile nav, and tabs: pets, interested, forms, notifications, agenda, settings. `add-pet-modal.tsx` handles pet creation + photo upload. `logo-upload.tsx` for RC logo.
+- `components/dashboard/admin/` — Admin dashboard: RC approvals, form template management, settings. Protected by `admin-guard.tsx`.
+- `components/chat/` — Chat system: conversation list + message thread panel. Uses WebSocket for real-time messaging.
 
 > Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
 
@@ -179,7 +190,7 @@ When adding new UI text:
 
 User-related types in `lib/types/user.ts`:
 ```typescript
-type UserRole = 'adopter' | 'member' | 'rescue_center' | 'business'
+type UserRole = 'member' | 'rescue_center' | 'business'
 type Language = 'es' | 'en'
 interface AuthUser { id, email, role: UserRole | null, display_name: string | null, auth_provider, preferred_lang }
 ```
