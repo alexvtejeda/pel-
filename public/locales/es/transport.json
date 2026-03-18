@@ -37,6 +37,7 @@
     "cancel_trip": "Cancelar viaje",
     "cancel_confirm": "¿Seguro que deseas cancelar este viaje?",
     "cancel_confirm_action": "Sí, cancelar",
+    "cancel_dialog_dismiss": "No, volver",
     "new_trip": "Solicitar nuevo viaje"
   }
 }

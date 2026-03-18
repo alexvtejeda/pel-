@@ -55,8 +55,12 @@ export function TransportCreationForm({ initialPetId, onTripCreated }: Transport
       } else if (user?.role === 'rescue_center') {
         const { data: rc } = await getMyRescueCenter()
         if (rc) {
-          const rcPets = await listPets(rc.id)
-          setPets(rcPets.map(p => ({ id: p.id, name: p.name })))
+          try {
+            const rcPets = await listPets(rc.id)
+            setPets(rcPets.map(p => ({ id: p.id, name: p.name })))
+          } catch {
+            // listPets throws on failure (known exception to {data, error} pattern)
+          }
         }
       }
     }

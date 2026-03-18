@@ -141,7 +141,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
                   <AlertDialogDescription>{t('actions.cancel_confirm')}</AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogCancel>{t('actions.cancel_dialog_dismiss')}</AlertDialogCancel>
                   <AlertDialogAction onClick={onCancel} className="bg-red-500 text-white hover:bg-red-600">
                     {t('actions.cancel_confirm_action')}
                   </AlertDialogAction>

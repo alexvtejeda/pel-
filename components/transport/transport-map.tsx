@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import { TripStop, DriverLocation } from '@/lib/api/transport'
@@ -26,7 +26,13 @@ const driverIcon = L.divIcon({
 
 function FitBounds({ stops, driverLocation }: { stops: TripStop[]; driverLocation: DriverLocation | null }) {
   const map = useMap()
+  const prevStopsKey = useRef('')
+
   useEffect(() => {
+    const stopsKey = stops.map(s => `${s.id}:${s.completed_at || ''}`).join(',')
+    if (stopsKey === prevStopsKey.current) return
+    prevStopsKey.current = stopsKey
+
     const points: [number, number][] = stops.map(s => [s.lat, s.lng])
     if (driverLocation) points.push([driverLocation.lat, driverLocation.lng])
     if (points.length > 0) {

@@ -1,7 +1,7 @@
 'use client'
 
 import 'leaflet/dist/leaflet.css'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Trip, DriverLocation, listTrips, cancelTrip as cancelTripApi } from '@/lib/api/transport'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
@@ -24,6 +24,7 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
   const [pageState, setPageState] = useState<PageState>('loading')
   const [trip, setTrip] = useState<Trip | null>(null)
   const [driverLocation, setDriverLocation] = useState<DriverLocation | null>(null)
+  const tripIdRef = useRef<string | null>(null)
 
   useEffect(() => {
     listTrips().then(({ data }) => {
@@ -44,8 +45,12 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
   }, [])
 
   useEffect(() => {
+    tripIdRef.current = trip?.id ?? null
+  }, [trip?.id])
+
+  useEffect(() => {
     const unsub = subscribe('driver_location', (data: any) => {
-      if (trip && data.trip_id === trip.id) {
+      if (tripIdRef.current && data.trip_id === tripIdRef.current) {
         setDriverLocation({
           trip_id: data.trip_id,
           lat: data.lat,
@@ -55,21 +60,21 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       }
     })
     return unsub
-  }, [subscribe, trip])
+  }, [subscribe])
 
   useEffect(() => {
     const unsub = subscribe('trip_status_changed', (data: any) => {
-      if (trip && data.trip_id === trip.id) {
+      if (tripIdRef.current && data.trip_id === tripIdRef.current) {
         setTrip(prev => prev ? { ...prev, status: data.status } : null)
         setPageState(data.status as PageState)
       }
     })
     return unsub
-  }, [subscribe, trip])
+  }, [subscribe])
 
   useEffect(() => {
     const unsub = subscribe('stop_completed', (data: any) => {
-      if (trip && data.trip_id === trip.id) {
+      if (tripIdRef.current && data.trip_id === tripIdRef.current) {
         setTrip(prev => {
           if (!prev) return null
           return {
@@ -82,7 +87,7 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       }
     })
     return unsub
-  }, [subscribe, trip])
+  }, [subscribe])
 
   const handleCancelTrip = async () => {
     if (!trip) return
