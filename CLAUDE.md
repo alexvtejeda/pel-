@@ -73,6 +73,8 @@ API modules:
 - `mfa.ts` — multi-factor auth setup (TOTP, WebAuthn, recovery codes)
 - `metrics.ts` — pet view/adoption click tracking
 - `notifications-api.ts` — app notifications
+- `transport.ts` — transport trip requests, status updates, stop completion
+- `service-providers.ts` — member service provider registration + unified provider discovery (planned)
 
 API functions return `{ data, error }` for consistent error handling. Never throw errors. (`lib/api/pets.ts` is the known exception — it throws.)
 
@@ -109,6 +111,7 @@ Automatically redirects unauthenticated users to `/auth/login` and checks role r
 | `/auth/google/callback` | OAuth redirect target | Public |
 | `/auth/onboarding/[role]` | `components/auth/onboarding/onboarding-client.tsx` | Authenticated; routes to role-specific wizard |
 | `/chat` | `components/chat/chat-page.tsx` | Authenticated (`member`, `rescue_center`) |
+| `/transporte` | `components/transport/transport-page.tsx` | Authenticated (member, rescue_center) via ProtectedRoute |
 | `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
 | `/dashboard/admin` | `components/dashboard/admin/` | `admin` role only |
 
@@ -154,7 +157,7 @@ Packages installed: `@fortawesome/fontawesome-svg-core`, `@fortawesome/react-fon
 
 Translation files: `public/locales/{locale}/{namespace}.json`
 
-Namespaces: `common`, `landing`, `auth`, `pets` (implemented) — `chat` and `transport` are planned but don't exist yet.
+Namespaces: `common`, `landing`, `auth`, `pets`, `transport` (implemented) — `chat` is planned but doesn't exist yet.
 
 **How translations work** — react-i18next with bundled resources (no HTTP fetch):
 ```tsx
@@ -183,6 +186,7 @@ When adding new UI text:
 - `components/dashboard/rescue-center/` — Dashboard shell, sidebar, mobile nav, and tabs: pets, interested, forms, notifications, agenda, settings. `add-pet-modal.tsx` handles pet creation + photo upload. `logo-upload.tsx` for RC logo.
 - `components/dashboard/admin/` — Admin dashboard: RC approvals, form template management, settings. Protected by `admin-guard.tsx`.
 - `components/chat/` — Chat system: conversation list + message thread panel. Uses WebSocket for real-time messaging.
+- `components/transport/` — Transport tracking: full-screen Leaflet map (transport-map.tsx, dynamic import with ssr:false), floating step indicator (transport-stepper.tsx), bottom Vaul drawer with peek/expand states (transport-drawer.tsx), trip creation form with Nominatim geocoding (transport-creation-form.tsx), page container with state machine + WebSocket subscriptions (transport-page.tsx)
 
 > Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
 
