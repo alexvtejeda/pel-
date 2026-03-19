@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import {
@@ -209,6 +209,16 @@ export function PetsHeader() {
                     {unreadChatCount}
                   </span>
                 )}
+              </Link>
+            )}
+            {user?.role === 'member' && (
+              <Link
+                href="/transporte"
+                onClick={() => setSheetOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              >
+                <FontAwesomeIcon icon={faTruckFast} className="text-lg text-muted-foreground" />
+                Transporte
               </Link>
             )}
             <button
