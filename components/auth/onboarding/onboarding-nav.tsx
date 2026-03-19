@@ -27,7 +27,7 @@ export function OnboardingNav({ items }: Props) {
     const router = useRouter()
     function handleClick(item: BreadcrumbItemType) {
         if (item.changeRole) {
-        localStorage.setItem("pelu_changing_role", "1")
+        sessionStorage.setItem("pelu_changing_role", "1")
         router.push("/auth/role-selection")
         return
         }

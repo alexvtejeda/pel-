@@ -10,6 +10,8 @@ import { faDog, faShieldCat, faCheck, faStore } from '@fortawesome/free-solid-sv
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { BackgroundBeams } from '@/components/ui/beams'
 import { OnboardingNav } from '@/components/auth/onboarding/onboarding-nav'
+import { getMyRescueCenter } from '@/lib/api/rescue-centers'
+import { getMyBusiness } from '@/lib/api/businesses'
 
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -60,10 +62,29 @@ export function RoleSelection() {
   // Auto-redirect returning users who already have a role
   // Skip if they navigated back from onboarding to change their role
   useEffect(() => {
-    const changingRole = localStorage.getItem('pelu_changing_role')
-    if (user?.role && !submitted.current && !changingRole) {
-      router.push(roleDashboardPaths[user.role])
+    if (!user?.role || submitted.current) return
+
+    const changingRole = sessionStorage.getItem('pelu_changing_role')
+
+    async function checkOnboarding() {
+      let onboardingComplete = false
+
+      if (user!.role === 'rescue_center') {
+        const { data } = await getMyRescueCenter()
+        onboardingComplete = !!data
+      } else if (user!.role === 'business') {
+        const { data } = await getMyBusiness()
+        onboardingComplete = !!data
+      } else if (user!.role === 'member') {
+        onboardingComplete = !!user!.display_name
+      }
+
+      if (onboardingComplete || !changingRole) {
+        router.push(roleDashboardPaths[user!.role!])
+      }
     }
+
+    checkOnboarding()
   }, [user, router])
 
   const handleSubmit = async () => {
@@ -72,7 +93,7 @@ export function RoleSelection() {
     submitted.current = true
     setLoading(true)
     setError(null)
-    localStorage.removeItem('pelu_changing_role')
+    sessionStorage.removeItem('pelu_changing_role')
 
     const { error: roleError } = await setRole(selectedRole)
 
