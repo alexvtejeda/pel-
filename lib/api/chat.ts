@@ -12,12 +12,13 @@ export interface Conversation {
   created_at: string
   pet_name?: string
   pet_photo_url?: string
+  pet_id?: string // used for transport link
 }
 
 export interface Message {
   id: string
   conversation_id: string
-  sender_id: string
+  sender_id: string | null
   body: string
   is_read: boolean
   created_at: string

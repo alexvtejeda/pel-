@@ -32,6 +32,7 @@ export interface DriverLocation {
 interface RequestTripPayload {
   pet_id: string
   stops: { address: string; lat: number; lng: number }[]
+  conversation_id?: string // links transport request to chat
 }
 
 export async function requestTrip(payload: RequestTripPayload): Promise<{ data: Trip | null; error: string | null }> {
