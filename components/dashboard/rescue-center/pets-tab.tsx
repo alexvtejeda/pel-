@@ -7,7 +7,7 @@ import {
   faPaw,
   faEllipsis,
   faPhotoFilm,
-  faUser,
+  faUsers,
   faXmark,
   faPenToSquare,
   faTrash,
@@ -926,7 +926,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                       <FontAwesomeIcon icon={faPhotoFilm} className="text-base" /> Subir Fotos
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setProfileOpen(true)}>
-                      <FontAwesomeIcon icon={faUser} className="text-base" /> Ver Perfil
+                      <FontAwesomeIcon icon={faUsers} className="text-base" /> Ver interesados
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
