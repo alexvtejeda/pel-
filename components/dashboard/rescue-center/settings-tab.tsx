@@ -61,7 +61,7 @@ export function SettingsTab() {
   useEffect(() => {
     mfaApi.getMethods().then(({ data }) => {
       if (data) {
-        setMfaMethods(data.methods)
+        setMfaMethods(Array.isArray(data.methods) ? data.methods : [])
         setMfaEnabled(data.mfa_enabled)
         setRecoveryRemaining(data.recovery_codes_remaining)
       }
@@ -422,7 +422,7 @@ export function SettingsTab() {
               setShowAddMethod(false)
               mfaApi.getMethods().then(({ data }) => {
                 if (data) {
-                  setMfaMethods(data.methods)
+                  setMfaMethods(Array.isArray(data.methods) ? data.methods : [])
                   setMfaEnabled(data.mfa_enabled)
                   setRecoveryRemaining(data.recovery_codes_remaining)
                 }
