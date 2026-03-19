@@ -183,7 +183,7 @@ export function SettingsTab() {
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp,image/svg+xml"
               className="hidden"
               onChange={handleAvatarChange}
             />

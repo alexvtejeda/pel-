@@ -46,7 +46,7 @@ export function LogoUpload({ logoUrl, onUpdate }: LogoUploadProps) {
       <input
         ref={inputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp"
+        accept="image/png,image/jpeg,image/webp,image/svg+xml"
         className="hidden"
         onChange={e => { if (e.target.files?.[0]) handleFile(e.target.files[0]); e.target.value = '' }}
       />
