@@ -49,22 +49,33 @@ export function AdminFormTab() {
   const [saveMsg, setSaveMsg]             = useState('')
   const [newType, setNewType]             = useState<FieldType>('short_text')
   const [loading, setLoading]             = useState(true)
+  const [formName, setFormName]           = useState('Plantilla de adopción')
+  const [loadError, setLoadError]         = useState(false)
 
   const dragIndexRef = useRef<number | null>(null)
   const activeField = fields.find(f => f.id === activeFieldId) ?? null
 
   // Load master template on mount
-  useEffect(() => {
-    adminApi.getFormTemplate().then(({ data }) => {
-      if (data) setFields(data.fields)
+  const loadTemplate = useCallback(() => {
+    setLoadError(false)
+    setLoading(true)
+    adminApi.getFormTemplate().then(({ data, error }) => {
+      if (error || !data) {
+        setLoadError(true)
+      } else {
+        setFields(data.fields)
+        if (data.name) setFormName(data.name)
+      }
       setLoading(false)
     })
   }, [])
 
+  useEffect(() => { loadTemplate() }, [loadTemplate])
+
   // Save calls admin API
   const handleSave = async () => {
     setSaving(true)
-    const { error } = await adminApi.updateFormTemplate({ fields })
+    const { error } = await adminApi.updateFormTemplate({ name: formName, fields })
     setSaving(false)
     if (error) { setSaveMsg(`Error: ${error}`); return }
     setDirty(false)
@@ -142,6 +153,17 @@ export function AdminFormTab() {
     )
   }
 
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 gap-4">
+        <p className="text-sm text-muted-foreground">No se pudo cargar la plantilla. Verifica que el servidor esté disponible.</p>
+        <Button size="sm" className="rounded-xl" onClick={loadTemplate}>
+          Reintentar
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="flex flex-col gap-4">
       {/* Top bar: Edit/Preview tabs + Save */}
@@ -158,6 +180,15 @@ export function AdminFormTab() {
           ))}
         </div>
 
+        {view === 'edit' && (
+          <Input
+            value={formName}
+            onChange={e => { setFormName(e.target.value); setDirty(true) }}
+            placeholder="Nombre de la plantilla"
+            className="rounded-xl text-sm w-56"
+          />
+        )}
+
         <div className="ml-auto">
           <Button size="sm" className="rounded-xl" onClick={handleSave} disabled={!dirty || saving}>
             {saving ? 'Guardando...' : saveMsg || 'Guardar plantilla'}
@@ -169,7 +200,7 @@ export function AdminFormTab() {
       {view === 'preview' && (
         <div className="border rounded-2xl overflow-hidden">
           <FormRenderer
-            form={{ id: 'preview', rescue_center_id: '', name: 'Plantilla de adopción', is_special_needs: false, fields, created_at: '', updated_at: '' }}
+            form={{ id: 'preview', rescue_center_id: '', name: formName, is_special_needs: false, fields, created_at: '', updated_at: '' }}
             rc={{ name: 'Pelú Admin', logo_url: null }}
           />
         </div>
