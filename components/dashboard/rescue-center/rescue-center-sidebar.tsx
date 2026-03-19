@@ -1,7 +1,7 @@
 'use client'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faUsers, faClipboardList, faCalendarDays, faComments, faChartLine, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faUsers, faClipboardList, faCalendarDays, faComments, faChartLine, faGear, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   Sidebar,
@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { useRouter } from 'next/navigation'
 
 function nameFromEmail(email: string): string {
   const prefix = email.split('@')[0]
@@ -44,6 +45,7 @@ const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
 export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSidebarProps) {
   const { state } = useSidebar()
   const { user } = useAuth()
+  const router = useRouter()
 
   const email = user?.email ?? ''
   const displayName = email ? nameFromEmail(email) : ''
@@ -58,17 +60,31 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
       <SidebarContent>
         <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
           {navItems.map(({ tab, label, icon }) => (
-            <SidebarMenuItem key={tab}>
-              <SidebarMenuButton
-                isActive={activeTab === tab}
-                onClick={() => onTabChange(tab)}
-                tooltip={label}
-                className={state === 'collapsed' ? 'p-3' : ''}
-              >
-                <FontAwesomeIcon icon={icon} className="text-md" />
-                <span>{label}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <>
+              <SidebarMenuItem key={tab}>
+                <SidebarMenuButton
+                  isActive={activeTab === tab}
+                  onClick={() => onTabChange(tab)}
+                  tooltip={label}
+                  className={state === 'collapsed' ? 'p-3' : ''}
+                >
+                  <FontAwesomeIcon icon={icon} className="text-md" />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              {tab === 'chat' && (
+                <SidebarMenuItem key="transport">
+                  <SidebarMenuButton
+                    onClick={() => router.push('/transporte')}
+                    tooltip="Transporte"
+                    className={state === 'collapsed' ? 'p-3' : ''}
+                  >
+                    <FontAwesomeIcon icon={faTruckFast} className="text-md" />
+                    <span>Transporte</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+            </>
           ))}
         </SidebarMenu>
       </SidebarContent>
