@@ -1,35 +1,29 @@
-# Bug Fixes
+# Bug Fixes — Live Testing Feedback (2026-03-19)
 
-## Bugs Found
+## Priority 1: Critical Bugs
 
-### 1. `logout()` missing `await` — `lib/api/auth.ts:31`
-- The function is `async` but doesn't `await` the `apiClient()` call
-- When `auth-context.tsx:92` does `await authApi.logout()`, it resolves immediately
-- Server session cookie may not be invalidated before client clears state
+- [ ] **Fix role selection vulnerability** — Switch `pelu_changing_role` from localStorage to sessionStorage. Add onboarding completion check: if user has an RC/business record or display_name set, redirect to dashboard even if flag is present. Only allow role changes during onboarding.
+- [ ] **Fix admin form template** — Add error state when API returns error. Add `formName` state and name input. Wire save to send `{ name, fields }` instead of just `{ fields }`.
 
-**Fix**: Add `await` before the `apiClient` call. Keep the `.catch(() => {})` since we still want to proceed with client-side cleanup even if the API call fails.
+## Priority 2: Quick UI Fixes
 
-### 2. WebSocket unread counter increments for own messages — `lib/contexts/websocket-context.tsx:124`
-- The `new_message` handler reads `data.sender_id` directly
-- But the backend nests the message payload inside `data.message` (confirmed by chat-message-thread.tsx:120-121 and chat-conversation-list.tsx:56-57 which both do `const m = data.message || data`)
-- `data.sender_id` is always `undefined`, so `undefined !== user?.id` is always `true`
-- Result: **every incoming message (including your own) increments the unread badge count**
+- [ ] **Fix dropdown menu label** — Change "Ver Perfil" to "Ver interesados" in `pets-tab.tsx` three-dots dropdown menu
+- [ ] **Fix interested tab search bar padding** — Change `py-1.5` to `py-2` in `interested-tab.tsx` search bar to match pets tab
+- [ ] **Reduce adoption form logo header size** — The `aspect-[4/1]` full-width banner is too large. Constrain max-height or use a smaller aspect ratio.
+- [ ] **Add size icon to pet preview card** — Add a FontAwesome icon for size in the pet preview card in `add-pet-modal.tsx`
 
-**Fix**: Extract the message with `const m = data.message || data` (same pattern as chat components), then check `m.sender_id` instead of `data.sender_id`.
+## Priority 3: SVG Upload Permissions
 
-## Todo
+- [ ] **Restrict SVG uploads for members** — In `form-renderer.tsx` file upload, change `accept` to exclude SVGs (`image/png,image/jpeg,image/webp,.pdf`)
+- [ ] **Restrict SVG uploads for pet photos** — In `add-pet-modal.tsx`, `pets-tab.tsx`, and `member-add-pet-modal.tsx`, change `accept="image/*"` to `image/png,image/jpeg,image/webp`
+- [ ] **Allow SVG uploads for RC logo** — Add `image/svg+xml` to the accept list in `logo-upload.tsx` and `settings-tab.tsx`
 
-- [x] Fix missing `await` in `logout()`
-- [x] Fix WebSocket unread counter reading wrong field
-- [x] Add review section
+## Deferred (future phase)
+
+- Business admin approval UI — No admin UI for business approvals exists. Delay and gradually expand.
+- Form UI redesign — Adoption form page feels too big overall. Defer to refactor phase.
+- Form conditional questions — Code is correct but default template needs proper follow-up configuration by user/admin.
 
 ## Review
 
-### Files changed
-- `lib/api/auth.ts` — Added `await` to the `apiClient` call in `logout()` so the server session is properly invalidated before the client clears state
-- `lib/contexts/websocket-context.tsx` — Extracted nested message payload with `const m = data.message || data` before checking `sender_id`, matching the pattern already used in chat-message-thread.tsx and chat-conversation-list.tsx
-
-### Summary
-Two silent bugs fixed:
-1. **Logout was fire-and-forget** — server cookie might not be cleared before client-side cleanup ran. Now properly awaited.
-2. **Unread badge always incremented** — including for your own sent messages, because `data.sender_id` was `undefined` (the real sender_id lives in `data.message.sender_id`). Now correctly reads the nested field.
+_(To be filled after implementation)_
