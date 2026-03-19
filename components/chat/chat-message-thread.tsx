@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faCircleUser, faPaperPlane, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faCircleUser, faPaperPlane, faSpinner, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { Conversation, Message, listMessages } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -122,7 +122,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       const msg: Message = {
         id: m.id || crypto.randomUUID(),
         conversation_id: data.conversation_id,
-        sender_id: m.sender_id,
+        sender_id: m.sender_id ?? null,
         body: m.body,
         is_read: false,
         created_at: m.created_at || new Date().toISOString(),
@@ -135,7 +135,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       }
 
       // Send read receipt for received messages
-      if (m.sender_id !== user?.id) {
+      if (m.sender_id && m.sender_id !== user?.id) {
         sendReadReceipt(conversation.id, msg.created_at)
       }
     })
@@ -166,7 +166,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   // Send read receipt on mount for last received message
   useEffect(() => {
     if (loading || messages.length === 0) return
-    const lastReceived = [...messages].reverse().find(m => m.sender_id !== user?.id)
+    const lastReceived = [...messages].reverse().find(m => m.sender_id && m.sender_id !== user?.id)
     if (lastReceived) {
       sendReadReceipt(conversation.id, lastReceived.created_at)
     }
@@ -238,7 +238,8 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
             )}
 
             {messages.map((msg, i) => {
-              const isSent = msg.sender_id === user?.id
+              const isSystem = msg.sender_id === null
+              const isSent = !isSystem && msg.sender_id === user?.id
               const showDate = i === 0 || !isSameDay(messages[i - 1].created_at, msg.created_at)
 
               return (
@@ -251,23 +252,32 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                     </div>
                   )}
 
-                  <div className={`flex mb-2 ${isSent ? 'justify-end' : 'justify-start'}`}>
-                    <div
-                      className={`max-w-[75%] px-3 py-2 ${
-                        isSent
-                          ? 'bg-pop-550 text-background rounded-[16px_16px_4px_16px]'
-                          : 'bg-card border border-border rounded-[16px_16px_16px_4px]'
-                      }`}
-                    >
-                      <p className="text-sm whitespace-pre-wrap wrap-break-words">{msg.body}</p>
-                      <p className={`text-[10px] mt-1 ${isSent ? 'text-background text-right' : 'text-muted-foreground'}`}>
-                        {formatTime(msg.created_at)}
-                        {isSent && (
-                          <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
-                        )}
-                      </p>
+                  {isSystem ? (
+                    <div className="flex justify-center my-3">
+                      <div className="bg-muted/50 border border-border rounded-2xl px-4 py-2 flex items-center gap-2">
+                        <FontAwesomeIcon icon={faTruckFast} className="text-xs text-muted-foreground" />
+                        <span className="text-xs text-muted-foreground">{msg.body}</span>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div className={`flex mb-2 ${isSent ? 'justify-end' : 'justify-start'}`}>
+                      <div
+                        className={`max-w-[75%] px-3 py-2 ${
+                          isSent
+                            ? 'bg-pop-550 text-background rounded-[16px_16px_4px_16px]'
+                            : 'bg-card border border-border rounded-[16px_16px_16px_4px]'
+                        }`}
+                      >
+                        <p className="text-sm whitespace-pre-wrap wrap-break-words">{msg.body}</p>
+                        <p className={`text-[10px] mt-1 ${isSent ? 'text-background text-right' : 'text-muted-foreground'}`}>
+                          {formatTime(msg.created_at)}
+                          {isSent && (
+                            <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )
             })}
