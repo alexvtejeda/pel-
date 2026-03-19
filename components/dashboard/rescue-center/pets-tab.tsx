@@ -20,6 +20,7 @@ import {
   faVenus,
   faSyringe,
   faScissors,
+  faRulerVertical,
   faHeart,
   faCircleUser,
   faSpinner,
@@ -913,6 +914,8 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <FontAwesomeIcon icon={faSyringe} className={`text-xs ${pet.vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                     <FontAwesomeIcon icon={faScissors} className={`text-xs ${pet.castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faRulerVertical} className="text-xs text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{pet.size === 'small' ? 'Pequeño' : pet.size === 'medium' ? 'Mediano' : 'Grande'}</span>
                   </div>
                 </div>
                 <DropdownMenu>

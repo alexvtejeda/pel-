@@ -14,6 +14,7 @@ import {
   faVenus,
   faSyringe,
   faScissors,
+  faRulerVertical,
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -116,6 +117,7 @@ function PreviewCard({
         <div className="flex items-center gap-2 mt-1">
           <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
           <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faRulerVertical} className="text-xs text-muted-foreground" />
           <span className="text-xs text-muted-foreground">{size === 'small' ? 'Pequeño' : size === 'medium' ? 'Mediano' : 'Grande'}</span>
         </div>
       </div>
