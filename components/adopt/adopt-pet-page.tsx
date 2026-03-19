@@ -86,7 +86,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 w-full aspect-[4/1] overflow-hidden">
+      <div className="sticky top-0 z-10 w-full max-h-40 overflow-hidden">
         {rc.logo_url ? (
           <img src={rc.logo_url} alt={rc.name} className="w-full h-full object-cover" />
         ) : (
