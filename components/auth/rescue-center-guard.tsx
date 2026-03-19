@@ -15,9 +15,16 @@ export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
   const [center, setCenter] = useState<RescueCenter | null>(null)
 
   useEffect(() => {
+    let retries = 0
     const check = () => {
       getMyRescueCenter().then(({ data, error }) => {
         if (error || !data) {
+          // Retry once before assuming missing (handles transient 401 refresh race)
+          if (retries < 1) {
+            retries++
+            setTimeout(check, 1000)
+            return
+          }
           setStatus('missing')
           return
         }

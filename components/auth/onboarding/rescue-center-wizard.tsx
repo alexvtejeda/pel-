@@ -17,7 +17,7 @@ import {
   faScissors,
 } from '@fortawesome/free-solid-svg-icons'
 import Carousel from '@/components/Carousel'
-import { createRescueCenter } from '@/lib/api/rescue-centers'
+import { createRescueCenter, getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { createPet, uploadPhotos } from '@/lib/api/pets'
 import { BackgroundBeams } from '@/components/ui/beams'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
@@ -66,6 +66,13 @@ function CardCarousel({ urls }: { urls: string[] }) {
 
 export function RescueCenterWizard() {
   const router = useRouter()
+
+  // If RC already exists, redirect to dashboard (prevents re-showing form after approval)
+  useEffect(() => {
+    getMyRescueCenter().then(({ data }) => {
+      if (data) router.replace('/dashboard/rescue-center')
+    })
+  }, [router])
 
   // Center fields
   const [centerName, setCenterName] = useState('')
