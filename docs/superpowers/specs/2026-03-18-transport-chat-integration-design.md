@@ -41,7 +41,7 @@ When rendering a message where `sender_id === null`:
 - **Alignment**: Centered (not left/right)
 - **Style**: `bg-muted/50`, `border border-border`, `rounded-2xl`, smaller text (`text-xs`), `text-muted-foreground`
 - **Icon**: `faTruckFast` inline before the text
-- **Content**: The message body as-is (e.g., "Transporte solicitado para Luna")
+- **Content**: The message body as-is (e.g., "Transporte solicitado para Luna - Perro, 2 años")
 - **No read receipts or checkmarks** for system messages
 - **No sender name** displayed
 
@@ -97,7 +97,7 @@ These are implemented in the `pelu-api` repo, not in this spec's scope:
 
 - `messages.sender_id` made nullable (migration)
 - `POST /transport/request` accepts optional `conversation_id`
-- If provided, inserts system message (`sender_id = NULL`, body = "Transporte solicitado para {pet_name}")
+- If provided, inserts system message (`sender_id = NULL`, body = "Transporte solicitado para {pet_description}")
 - Pushes via WebSocket `new_message` event
 - System messages don't increment `unread_count` for the requester
 - **Add `pet_id` to conversation list response** (`GET /conversations`) — currently returns `pet_name` and `pet_photo_url` but not `pet_id`
