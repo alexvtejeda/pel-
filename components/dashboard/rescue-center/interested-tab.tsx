@@ -90,7 +90,7 @@ function ListView({ submissions, loading, filter, onFilterChange, onSelect, petS
       <div className="flex items-center gap-3">
         {/* Pet search */}
         <div ref={searchRef} className="relative flex-1">
-          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring">
+          <div className="flex items-center gap-2 rounded-xl border border-input px-3 py-2 focus-within:ring-2 focus-within:ring-ring">
             <FontAwesomeIcon icon={faMagnifyingGlass} className="text-sm text-muted-foreground shrink-0" />
             <input
               type="text"
