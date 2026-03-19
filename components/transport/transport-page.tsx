@@ -16,9 +16,10 @@ type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'canc
 
 interface TransportPageProps {
   initialPetId?: string
+  conversationId?: string
 }
 
-export function TransportPage({ initialPetId }: TransportPageProps) {
+export function TransportPage({ initialPetId, conversationId }: TransportPageProps) {
   const { t } = useTranslation('transport')
   const { subscribe, connected } = useWebSocket()
   const [pageState, setPageState] = useState<PageState>('loading')
@@ -131,6 +132,7 @@ export function TransportPage({ initialPetId }: TransportPageProps) {
       {pageState === 'none' && (
         <TransportCreationForm
           initialPetId={initialPetId}
+          conversationId={conversationId}
           onTripCreated={(newTrip) => {
             setTrip(newTrip)
             setPageState('pending')

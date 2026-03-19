@@ -17,6 +17,7 @@ interface PetOption {
 
 interface TransportCreationFormProps {
   initialPetId?: string
+  conversationId?: string
   onTripCreated: (trip: Trip) => void
 }
 
@@ -34,7 +35,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   }
 }
 
-export function TransportCreationForm({ initialPetId, onTripCreated }: TransportCreationFormProps) {
+export function TransportCreationForm({ initialPetId, conversationId, onTripCreated }: TransportCreationFormProps) {
   const { t } = useTranslation('transport')
   const { user } = useAuth()
   const [pets, setPets] = useState<PetOption[]>([])
@@ -105,6 +106,7 @@ export function TransportCreationForm({ initialPetId, onTripCreated }: Transport
         { address: pickupAddress, lat: pickupCoords.lat, lng: pickupCoords.lng },
         { address: dropoffAddress, lat: dropoffCoords.lat, lng: dropoffCoords.lng },
       ],
+      ...(conversationId ? { conversation_id: conversationId } : {}),
     })
 
     if (error || !data) {
