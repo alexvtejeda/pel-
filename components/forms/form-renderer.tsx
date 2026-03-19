@@ -235,7 +235,7 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
           <input
             id={`file-input-${field.id}`}
             type="file"
-            accept="image/*,.pdf"
+            accept="image/png,image/jpeg,image/webp,.pdf"
             className="hidden"
             onChange={e => { if (e.target.files?.[0]) onFile(e.target.files[0]) }}
           />

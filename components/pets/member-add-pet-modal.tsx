@@ -405,7 +405,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                 <input
                   ref={inputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/png,image/jpeg,image/webp"
                   multiple
                   className="hidden"
                   onChange={(e) => { addFiles(e.target.files ?? []); e.target.value = '' }}

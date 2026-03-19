@@ -347,7 +347,7 @@ function EditPetModal({
 
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-medium">Fotos</label>
-                <input ref={addRef} type="file" accept="image/*" multiple className="hidden" onChange={handleAddFiles} />
+                <input ref={addRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden" onChange={handleAddFiles} />
                 <Reorder.Group
                   axis="x"
                   values={photos}
@@ -684,7 +684,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
       <input
         ref={uploadMoreRef}
         type="file"
-        accept="image/*"
+        accept="image/png,image/jpeg,image/webp"
         multiple
         className="hidden"
         onChange={handleUploadMoreChange}

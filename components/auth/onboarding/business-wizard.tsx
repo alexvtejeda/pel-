@@ -434,7 +434,7 @@ export function BusinessWizard() {
             <input
               ref={photoInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               className="hidden"
               onChange={(e) => {
                 addCoverPhoto(e.target.files ?? [])

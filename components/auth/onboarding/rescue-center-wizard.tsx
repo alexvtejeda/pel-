@@ -509,7 +509,7 @@ export function RescueCenterWizard() {
             <input
               ref={photoInputRef}
               type="file"
-              accept="image/*"
+              accept="image/png,image/jpeg,image/webp"
               multiple
               className="hidden"
               onChange={(e) => {
