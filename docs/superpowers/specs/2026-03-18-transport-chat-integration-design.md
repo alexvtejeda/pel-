@@ -25,7 +25,9 @@ shadcn `DropdownMenu` — same pattern as the three-dot menu in `pets-tab.tsx`.
 - **On click**: `router.push(/transporte?pet_id=${conversation.pet_id}&conversation_id=${conversation.id})`
 
 ### Data Requirements
-`ChatMessageThread` needs access to the current conversation's `pet_id` and `id`. The conversation object from `listConversations()` already includes `id`; `pet_id` may need to be added to the conversation list response or passed as a prop.
+`ChatMessageThread` needs access to the current conversation's `pet_id` and `id`. The `Conversation` type currently has `pet_name` and `pet_photo_url` but no `pet_id`. **Backend must add `pet_id` to the conversation list response** (added to Section 5). The frontend `Conversation` interface in `lib/api/chat.ts` gets a new `pet_id?: string` field.
+
+If `pet_id` is missing on a conversation (e.g., edge case), the "Solicitar transporte" menu item should be hidden.
 
 ---
 
@@ -46,6 +48,9 @@ When rendering a message where `sender_id === null`:
 ### WebSocket
 System messages arrive via existing `new_message` event — no new event type. The frontend just checks `sender_id` to determine rendering style.
 
+### Read Receipts
+Skip sending read receipts for system messages. In the read receipt logic, add a guard: if `m.sender_id === null`, do not send a `read_receipt` WebSocket message.
+
 ---
 
 ## 3. Transport Creation Form — Query Param Support
@@ -54,9 +59,10 @@ System messages arrive via existing `new_message` event — no new event type. T
 
 The form already accepts an `initialPetId` prop. Changes:
 
-- `transport-page.tsx` reads `pet_id` and `conversation_id` from `useSearchParams()`
-- Passes `pet_id` as `initialPetId` to `TransportCreationForm`
-- Passes `conversation_id` to the form, which includes it in the `requestTrip()` call
+- `app/transporte/page.tsx` reads `pet_id` and `conversation_id` from `useSearchParams()` (currently only reads `pet_id`)
+- Passes both to `TransportPage` as props
+- `transport-page.tsx` forwards them to `TransportCreationForm`
+- `TransportCreationForm` accepts a new `conversationId?: string` prop and includes it in the `requestTrip()` call
 
 ### API Change
 `requestTrip()` in `lib/api/transport.ts` accepts an optional `conversation_id` field in the request body.
@@ -75,14 +81,13 @@ The form already accepts an `initialPetId` prop. Changes:
 ### RC Sidebar
 **File**: `RescueCenterSidebar` component.
 
-- Add "Transporte" tab with `faTruckFast` icon
+- Add "Transporte" nav item with `faTruckFast` icon
 - Position: between Chat and Metricas
 - Links to `/transporte` as a **full page navigation** (not a dashboard tab) since the map requires full screen
-- Uses `router.push('/transporte')` instead of setting the active tab
+- Render it separately from the `navItems.map()` loop (since it uses `router.push('/transporte')` instead of `onTabChange`). No `isActive` highlight needed since the user leaves the dashboard.
 
 ### RC Mobile Nav
-- Transport goes in the "Mas" hamburger sidebar menu, not the bottom 5 tabs
-- Same behavior: full page navigation to `/transporte`
+- The sidebar is shared between desktop and mobile (mobile "Mas" button opens the same `RescueCenterSidebar`), so the transport item added above automatically appears in mobile. No separate change to `mobile-bottom-nav.tsx` needed.
 
 ---
 
@@ -95,6 +100,7 @@ These are implemented in the `pelu-api` repo, not in this spec's scope:
 - If provided, inserts system message (`sender_id = NULL`, body = "Transporte solicitado para {pet_name}")
 - Pushes via WebSocket `new_message` event
 - System messages don't increment `unread_count` for the requester
+- **Add `pet_id` to conversation list response** (`GET /conversations`) — currently returns `pet_name` and `pet_photo_url` but not `pet_id`
 
 ---
 
@@ -102,11 +108,12 @@ These are implemented in the `pelu-api` repo, not in this spec's scope:
 
 | File | Change |
 |---|---|
-| `components/chat/chat-message-thread.tsx` | Add "+" dropdown button to input bar; render system messages (centered style) |
-| `components/dashboard/rescue-center/chat-tab.tsx` | Pass conversation data to thread for "+" button |
-| `components/transport/transport-page.tsx` | Read `pet_id` and `conversation_id` from search params |
-| `components/transport/transport-creation-form.tsx` | Accept and pass `conversation_id` to `requestTrip()` |
-| `lib/api/transport.ts` | Add optional `conversation_id` to `requestTrip()` |
+| `components/chat/chat-message-thread.tsx` | Add "+" dropdown button to input bar; render system messages (centered style); skip read receipts for system messages |
+| `components/dashboard/rescue-center/chat-tab.tsx` | Pass conversation data (including `pet_id`) to thread for "+" button |
+| `lib/api/chat.ts` | Add `pet_id?: string` to `Conversation`; update `Message.sender_id` to `string \| null` |
+| `app/transporte/page.tsx` | Read `conversation_id` from search params (already reads `pet_id`); pass to `TransportPage` |
+| `components/transport/transport-page.tsx` | Forward `conversationId` prop to `TransportCreationForm` |
+| `components/transport/transport-creation-form.tsx` | Accept `conversationId?: string` prop; pass to `requestTrip()` |
+| `lib/api/transport.ts` | Add optional `conversation_id` to `requestTrip()` payload |
 | `components/pets/pets-header.tsx` (or its sheet component) | Add "Transporte" link to member sheet |
-| `components/dashboard/rescue-center/rescue-center-sidebar.tsx` | Add "Transporte" nav item |
-| `components/dashboard/rescue-center/mobile-bottom-nav.tsx` | Add "Transporte" to "Mas" menu |
+| `components/dashboard/rescue-center/rescue-center-sidebar.tsx` | Add "Transporte" nav item (rendered separately from tab items) |
