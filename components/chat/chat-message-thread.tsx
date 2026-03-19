@@ -3,10 +3,18 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faCircleUser, faPaperPlane, faSpinner, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faCircleUser, faPaperPlane, faPlus, faSpinner, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { Conversation, Message, listMessages } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { useAuth } from '@/lib/contexts/auth-context'
+import { useRouter } from 'next/navigation'
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu'
+import { Button } from '@/components/ui/button'
 
 interface ChatMessageThreadProps {
   conversation: Conversation
@@ -43,6 +51,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   const { t } = useTranslation('pets')
   const { user } = useAuth()
   const { subscribe, sendMessage, sendTyping, sendReadReceipt } = useWebSocket()
+  const router = useRouter()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
@@ -302,6 +311,21 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
 
       {/* Input Bar */}
       <div className="flex items-center gap-2 p-4 border-t border-border bg-background shrink-0">
+        {conversation.pet_id && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-xl shrink-0 w-9 h-9">
+                <FontAwesomeIcon icon={faPlus} className="text-sm" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => router.push(`/transporte?pet_id=${conversation.pet_id}&conversation_id=${conversation.id}`)}>
+                <FontAwesomeIcon icon={faTruckFast} className="text-base" />
+                Solicitar transporte
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
         <input
           type="text"
           value={input}
