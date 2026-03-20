@@ -175,7 +175,7 @@ git commit -m "fix: match interested tab search bar padding with pets tab"
 
 At line ~89, change:
 ```tsx
-<div className="sticky top-0 z-10 w-full aspect-[4/1] overflow-hidden">
+<div className="sticky top-0 z-10 w-full aspect-4/1 overflow-hidden">
 ```
 to:
 ```tsx

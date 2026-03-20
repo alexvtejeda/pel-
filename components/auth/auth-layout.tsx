@@ -41,17 +41,17 @@ export function AuthLayout({ accent, heroTagline, children }: AuthLayoutProps) {
       </div>
 
       {/* Form side */}
-      <div className="flex-1 md:flex-[0.9] flex items-center justify-center p-4 relative">
+      <div className="bg-muted flex-1 md:flex-[0.9] flex items-center justify-center p-4 relative">
         {/* Subtle beams on mobile only */}
         <div className="md:hidden absolute inset-0 opacity-[0.06] overflow-hidden">
           <BackgroundBeams variant={accent} />
         </div>
 
         {/* Glassy card */}
-        <div className="relative z-10 w-full max-w-md bg-background/30 backdrop-blur-xl inset-shadow-[-1px_1px_1px_1px_var(--color-input)] rounded-2xl border border-input p-8">
+        <div className="relative z-10 w-full max-w-md bg-background/80 backdrop-blur-xl inset-shadow-[-1px_1px_1px_1px_var(--color-input)] rounded-2xl border border-input p-8">
           {/* Mobile logo — hidden on desktop */}
           <div className="md:hidden text-center mb-6">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Pelú</h1>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">Pelú</h1>
             <p className={`text-xs mt-1 ${accentText[accent]} opacity-80`}>
               {heroTagline}
             </p>

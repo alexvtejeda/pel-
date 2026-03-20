@@ -90,8 +90,8 @@ export function RegisterPage() {
         </form>
 
         <div className="text-center text-sm">
-          <Link href="/auth/login" className="text-amber-500 hover:opacity-80 transition-opacity">
-            ¿Ya tienes cuenta? Inicia sesión
+          <Link href="/auth/login">
+            ¿Ya tienes cuenta? <span className="text-amber-500 hover:opacity-80 transition-opacity">Inicia sesión</span>
           </Link>
         </div>
 

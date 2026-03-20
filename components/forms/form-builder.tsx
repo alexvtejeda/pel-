@@ -498,7 +498,7 @@ export function FormBuilder({ fields, onChange, formName, onNameChange, headerSl
           >
             <span
               className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
-                field.required ? 'translate-x-[18px]' : 'translate-x-0.5'
+                field.required ? 'translate-x-4.5' : 'translate-x-0.5'
               }`}
             />
           </button>

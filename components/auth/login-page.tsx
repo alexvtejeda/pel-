@@ -84,15 +84,13 @@ export function LoginPage() {
           </form>
 
           <div className="text-center text-sm">
-            <Link href="/auth/register" className="text-pop-550 hover:opacity-80 transition-opacity">
-              ¿No tienes cuenta? Regístrate
+            <Link href="/auth/register">
+              ¿No tienes cuenta? <span className="text-pop-550 hover:opacity-80 transition-opacity">Regístrate</span>
             </Link>
           </div>
 
           <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border" />
-            </div>
+            <hr className="my-4"></hr>
             <div className="relative flex justify-center text-sm">
               <span className="px-2 bg-transparent text-muted-foreground">O continúa con</span>
             </div>
