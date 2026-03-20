@@ -120,20 +120,23 @@ export function FormsTab() {
 
       {/* Preview mode */}
       {view === 'preview' && activeForm && (
-        <div className="border rounded-2xl overflow-hidden">
-          {/* Logo banner (preview of member experience) */}
-          <div className="w-full overflow-hidden max-h-40">
+        <div className="max-w-lg mx-auto flex flex-col gap-3">
+          {/* Logo card */}
+          <div className="rounded-2xl border border-border overflow-hidden w-2 max-h-40">
             {logoUrl
-              ? <img src={logoUrl} className="w-full h-full object-cover" alt="Logo" />
-              : <div className="w-full h-20 bg-linear-to-r from-pop-500 to-pop-550 flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">{rcName}</span>
+              ? <img src={logoUrl} className="w-full h-full object-contain" alt="Rescue Center Logo" />
+              : <div className="w-full h-10 bg-linear-to-r from-pop-500 to-pop-750 flex items-center justify-center">
+                  <span className="text-background text-2xl font-bold">{rcName}</span>
                 </div>
             }
           </div>
-          <FormRenderer
-            form={{ ...activeForm, fields }}
-            rc={{ name: rcName, logo_url: logoUrl }}
-          />
+          {/* Form card */}
+          <div className="rounded-2xl border border-border overflow-hidden">
+            <FormRenderer
+              form={{ ...activeForm, fields }}
+              rc={{ name: rcName, logo_url: logoUrl }}
+            />
+          </div>
         </div>
       )}
 

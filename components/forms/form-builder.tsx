@@ -14,7 +14,7 @@ import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { FormField, FieldType, FollowUp } from '@/lib/api/forms'
+import type { FormField, FieldType } from '@/lib/api/forms'
 
 /* ------------------------------------------------------------------ */
 /*  Props                                                              */

@@ -1,5 +1,6 @@
 'use client'
 
+import React from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faUsers, faClipboardList, faCalendarDays, faComments, faChartLine, faGear, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
@@ -60,8 +61,8 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
       <SidebarContent>
         <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
           {navItems.map(({ tab, label, icon }) => (
-            <>
-              <SidebarMenuItem key={tab}>
+            <React.Fragment key={tab}>
+              <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={activeTab === tab}
                   onClick={() => onTabChange(tab)}
@@ -84,7 +85,7 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
-            </>
+            </React.Fragment>
           ))}
         </SidebarMenu>
       </SidebarContent>

@@ -88,7 +88,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 w-full max-h-40 overflow-hidden">
         {rc.logo_url ? (
-          <img src={rc.logo_url} alt={rc.name} className="w-full h-full object-cover" />
+          <img src={rc.logo_url} alt={rc.name} className="w-full h-full object-contain" />
         ) : (
           <div className="w-full h-full bg-gradient-to-r from-pop-500 to-pop-550 flex items-center justify-center">
             <span className="text-white text-2xl font-bold">{rc.name}</span>
