@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 import { MfaVerify } from '@/components/auth/mfa/mfa-verify'
 import { MfaChallengeResponse } from '@/lib/types/user'
+import { AuthLayout } from './auth-layout'
 
 export function LoginPage() {
   const [email, setEmail] = useState('')
@@ -47,79 +48,73 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold mb-2">Pelú</h1>
-          <p className="text-muted-foreground">Inicia sesión para continuar</p>
-        </div>
+    <>
+      <AuthLayout accent="amber" heroTagline="Bienvenido de vuelta">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold text-foreground">Inicia sesión</h2>
+            <p className="text-xs text-muted-foreground mt-1">Ingresa tus credenciales</p>
+          </div>
 
-        <div className="bg-card rounded-2xl p-6 space-y-4 shadow-xs border">
-          {/* Email/Password Form */}
           <form onSubmit={handleEmailAuth} className="space-y-3">
-            <div>
-              <input
-                type="email"
-                placeholder="Correo electrónico"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 border border-input rounded-xl focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
-            </div>
-            <div>
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full px-4 py-3 border border-input rounded-xl focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
-              />
-            </div>
+            <input
+              type="email"
+              placeholder="Correo electrónico"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="w-full px-4 py-3 border border-input bg-background/50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
+            <input
+              type="password"
+              placeholder="Contraseña"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              minLength={6}
+              className="w-full px-4 py-3 border border-input bg-background/50 rounded-xl text-sm outline-none focus:ring-2 focus:ring-ring"
+            />
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-3 px-4 bg-amber-500 text-background rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? 'Cargando...' : 'Iniciar sesión'}
             </button>
           </form>
 
           <div className="text-center text-sm">
-            <Link href="/auth/register" className="text-muted-foreground hover:text-foreground">
+            <Link href="/auth/register" className="text-pop-550 hover:opacity-80 transition-opacity">
               ¿No tienes cuenta? Regístrate
             </Link>
           </div>
 
-          {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-border"></div>
+              <div className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-card text-muted-foreground">O continúa con</span>
+              <span className="px-2 bg-transparent text-muted-foreground">O continúa con</span>
             </div>
           </div>
 
-          {/* OAuth Buttons */}
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-background border border-input rounded-xl hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-background/50 border border-input rounded-xl hover:bg-muted/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FontAwesomeIcon icon={faGoogle} className="text-xl" />
             <span className="font-medium">Google</span>
           </button>
 
           {error && (
-            <div className="mt-4 p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-xl text-destructive text-sm">
               {error}
             </div>
           )}
         </div>
-      </div>
+      </AuthLayout>
+
       {mfaChallenge && (
         <MfaVerify
           challenge={mfaChallenge}
@@ -131,6 +126,6 @@ export function LoginPage() {
           }}
         />
       )}
-    </div>
+    </>
   )
 }
