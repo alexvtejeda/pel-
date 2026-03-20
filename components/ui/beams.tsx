@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils"
 
 export interface BackgroundBeamsProps {
   className?: string
+  variant?: 'pop' | 'amber'
 }
 
 const pathData = [
@@ -38,7 +39,15 @@ const animations = pathData.map((_, i) => ({
   initialProgress: (i * 5) % 100,
 }))
 
-export const BackgroundBeams = React.memo(({ className }: BackgroundBeamsProps) => {
+const variantColors = {
+  pop: { start: 'var(--color-pop-500)', mid: 'var(--color-pop-550)', end: 'var(--color-pop-450)' },
+  amber: { start: '#f59e0b', mid: '#d97706', end: '#b45309' },
+}
+
+export const BackgroundBeams = React.memo(({ className, variant = 'pop' }: BackgroundBeamsProps) => {
+  const colors = variantColors[variant]
+  const idSuffix = variant === 'pop' ? '' : `-${variant}`
+
   return (
     <div className={cn("pointer-events-none absolute inset-0 h-full w-full", className)}>
       <svg
@@ -60,7 +69,7 @@ export const BackgroundBeams = React.memo(({ className }: BackgroundBeamsProps) 
           <motion.path
             key={`beam-${i}`}
             d={d}
-            stroke={`url(#gradient-${i})`}
+            stroke={`url(#gradient${idSuffix}-${i})`}
             strokeWidth="1"
             strokeLinecap="round"
             initial={{ pathLength: 0, opacity: 0 }}
@@ -80,18 +89,18 @@ export const BackgroundBeams = React.memo(({ className }: BackgroundBeamsProps) 
         <defs>
           {pathData.map((_, i) => (
             <linearGradient
-              key={`gradient-${i}`}
-              id={`gradient-${i}`}
+              key={`gradient${idSuffix}-${i}`}
+              id={`gradient${idSuffix}-${i}`}
               x1="0%"
               y1="0%"
               x2="100%"
               y2="100%"
             >
-              <stop offset="0%" stopColor="var(--color-pop-500)" stopOpacity="0" />
-              <stop offset="20%" stopColor="var(--color-pop-500)" stopOpacity="1" />
-              <stop offset="50%" stopColor="var(--color-pop-550)" stopOpacity="1" />
-              <stop offset="80%" stopColor="var(--color-pop-450)" stopOpacity="1" />
-              <stop offset="100%" stopColor="var(--color-pop-450)" stopOpacity="0" />
+              <stop offset="0%" stopColor={colors.start} stopOpacity="0" />
+              <stop offset="20%" stopColor={colors.start} stopOpacity="1" />
+              <stop offset="50%" stopColor={colors.mid} stopOpacity="1" />
+              <stop offset="80%" stopColor={colors.end} stopOpacity="1" />
+              <stop offset="100%" stopColor={colors.end} stopOpacity="0" />
             </linearGradient>
           ))}
         </defs>
