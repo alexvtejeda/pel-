@@ -62,23 +62,16 @@ export function AgendaTab({ items }: AgendaTabProps) {
     .slice(0, 3)
 
   return (
-    <div className="flex flex-col lg:flex-row gap-6 items-start">
+    <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
       {/* Left column: Calendar + upcoming */}
-      <div className="w-full lg:w-auto space-y-4">
-        <div className="rounded-2xl border bg-card p-6">
+      <div className="w-full lg:w-85 shrink-0 space-y-4">
+        <div className="rounded-2xl border bg-card p-3">
           <Calendar
             mode="single"
             locale={es}
             selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
-            modifiers={{ hasEvent: datesWithEvents }}
-            modifiersClassNames={{ hasEvent: 'ring-2 ring-pop-550/40 rounded-xl' }}
-            style={{ '--cell-size': '2.75rem' } as React.CSSProperties}
-            classNames={{
-              month_caption: 'flex h-[--cell-size] w-full items-center justify-center px-14 capitalize',
-              button_previous: 'absolute left-1 h-8 w-8 flex items-center justify-center rounded-xl border border-input hover:bg-muted transition-colors',
-              button_next: 'absolute right-1 h-8 w-8 flex items-center justify-center rounded-xl border border-input hover:bg-muted transition-colors',
-            }}
+            classNames={{ root: 'w-full' }}
           />
         </div>
 
@@ -106,7 +99,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
       </div>
 
       {/* Right column: Selected date events */}
-      <div className="w-full flex-1 space-y-4">
+      <div className="w-full flex-1 flex flex-col gap-4">
         {/* Date header */}
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-base first-letter:uppercase">
@@ -127,7 +120,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
         </div>
 
         {dayEvents.length === 0 ? (
-          <div className="rounded-2xl border border-dashed flex flex-col items-center justify-center py-20 gap-3 text-muted-foreground">
+          <div className="rounded-2xl border border-dashed flex flex-col items-center justify-center flex-1 gap-3 text-muted-foreground">
             <div className="w-12 h-12 rounded-2xl bg-muted/50 flex items-center justify-center">
               <FontAwesomeIcon icon={faCalendarDays} className="text-lg text-muted-foreground/60" />
             </div>

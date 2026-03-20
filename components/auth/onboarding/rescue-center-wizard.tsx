@@ -543,6 +543,18 @@ export function RescueCenterWizard() {
                 </div>
                 <div className="p-3">
                   <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                    {petAge && <span>·</span>}
+                    <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
+                    <span>·</span>
+                    <FontAwesomeIcon icon={petSpecies === 'dog' ? faDog : faCat} className="text-xs" />
+                  </span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -559,15 +571,18 @@ export function RescueCenterWizard() {
                 </div>
                 <div className="p-3">
                   <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {[
-                      petAge && `${petAge} años`,
-                      petGender === 'male' ? <FontAwesomeIcon icon={faMars} /> : <FontAwesomeIcon icon={faVenus} />,
-                      petSpecies === 'dog' ? <FontAwesomeIcon icon={faDog} /> : <FontAwesomeIcon icon={faCat} />,
-                    ].filter(Boolean).map((item, i, arr) => (
-                      <React.Fragment key={i}>{item}{i < arr.length - 1 && ' · '}</React.Fragment>
-                    ))}
-                  </p>
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
+                    {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                    {petAge && <span>·</span>}
+                    <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
+                    <span>·</span>
+                    <FontAwesomeIcon icon={petSpecies === 'dog' ? faDog : faCat} className="text-xs" />
+                  </span>
+                  <div className="flex items-center gap-2 mt-1">
+                    <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                    <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -581,7 +596,7 @@ export function RescueCenterWizard() {
             <button
               type="button"
               onClick={() => {
-                localStorage.setItem('pelu_changing_role', '1')
+                sessionStorage.setItem('pelu_changing_role', '1')
                 router.push('/auth/role-selection')
               }}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
