@@ -25,6 +25,8 @@ export interface FormBuilderProps {
   onChange: (fields: FormField[]) => void
   formName?: string
   onNameChange?: (name: string) => void
+  /** Rendered above the title card, inside the same column — use for logo upload */
+  headerSlot?: React.ReactNode
 }
 
 /* ------------------------------------------------------------------ */
@@ -104,7 +106,7 @@ function groupFieldsBySections(fields: FormField[]): SectionGroup[] {
 /*  Component                                                          */
 /* ------------------------------------------------------------------ */
 
-export function FormBuilder({ fields, onChange, formName, onNameChange }: FormBuilderProps) {
+export function FormBuilder({ fields, onChange, formName, onNameChange, headerSlot }: FormBuilderProps) {
   const [activeFieldId, setActiveFieldId] = useState<string | null>(null)
   const dragIndexRef = useRef<number | null>(null)
 
@@ -614,9 +616,12 @@ export function FormBuilder({ fields, onChange, formName, onNameChange }: FormBu
   fields.forEach((f, i) => flatIndexMap.set(f.id, i))
 
   return (
-    <div className="flex gap-3 items-start">
+    <div className="flex gap-3 items-start justify-center">
       {/* Main column */}
-      <div className="flex-1 max-w-2xl mx-auto flex flex-col gap-3">
+      <div className="max-w-2xl w-full flex flex-col gap-3">
+        {/* Header slot (e.g., logo upload) */}
+        {headerSlot}
+
         {/* Title card */}
         {formName !== undefined && (
           <div className="rounded-2xl border border-border bg-card border-t-4 border-t-pop-550 p-5">
@@ -632,7 +637,7 @@ export function FormBuilder({ fields, onChange, formName, onNameChange }: FormBu
 
         {/* Field cards grouped by section */}
         {fields.length === 0 ? (
-          <div className="rounded-2xl border border-dashed flex flex-col items-center justify-center py-16 text-sm text-muted-foreground gap-2">
+          <div className="self-center rounded-2xl border border-dashed flex flex-col items-center justify-center py-16 text-sm text-muted-foreground gap-2">
             <FontAwesomeIcon icon={faPlus} className="text-2xl text-muted-foreground/30" />
             <p>Agrega un campo para empezar</p>
           </div>

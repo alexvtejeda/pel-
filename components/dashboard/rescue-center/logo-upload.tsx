@@ -58,7 +58,7 @@ export function LogoUpload({ logoUrl, onUpdate }: LogoUploadProps) {
         onDrop={e => { e.preventDefault(); if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]) }}
       >
         {currentUrl ? (
-          <img src={currentUrl} alt="Logo" className="w-full h-full object-cover" />
+          <img src={currentUrl} alt="Logo" className="w-full h-full object-contain" />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-muted-foreground">
             <FontAwesomeIcon icon={faImage} className="text-4xl opacity-20" />

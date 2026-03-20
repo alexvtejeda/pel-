@@ -122,7 +122,7 @@ export function FormsTab() {
       {view === 'preview' && activeForm && (
         <div className="max-w-lg mx-auto flex flex-col gap-3">
           {/* Logo card */}
-          <div className="rounded-2xl border border-border overflow-hidden w-2 max-h-40">
+          <div className="rounded-2xl border border-border overflow-hidden max-h-40">
             {logoUrl
               ? <img src={logoUrl} className="w-full h-full object-contain" alt="Rescue Center Logo" />
               : <div className="w-full h-10 bg-linear-to-r from-pop-500 to-pop-750 flex items-center justify-center">
@@ -140,15 +140,13 @@ export function FormsTab() {
         </div>
       )}
 
-      {/* Logo upload */}
-      <LogoUpload logoUrl={logoUrl} onUpdate={url => setLogoUrl(url)} />
-
       {/* Edit mode */}
       {view === 'edit' && (
         <FormBuilder
           fields={fields}
           onChange={newFields => { setFields(newFields); setDirty(true) }}
           formName={activeForm?.name}
+          headerSlot={<LogoUpload logoUrl={logoUrl} onUpdate={url => setLogoUrl(url)} />}
         />
       )}
     </div>

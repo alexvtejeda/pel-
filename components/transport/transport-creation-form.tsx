@@ -119,8 +119,8 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
   }
 
   return (
-    <div className="absolute bottom-4 left-4 right-4 z-20">
-      <form onSubmit={handleSubmit} className="bg-sidebar/95 backdrop-blur-xl rounded-2xl border border-border p-4 space-y-3">
+    <div className="absolute mx-170 mb-90 bottom-4 left-4 right-4 z-20">
+      <form onSubmit={handleSubmit} className="bg-primary/95 backdrop-blur-xl rounded-2xl border border-pop-750 p-4 space-y-3">
         {/* Pickup */}
         <div>
           <input
