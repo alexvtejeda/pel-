@@ -13,6 +13,13 @@
   "back": "Volver",
   "next": "Siguiente",
   "previous": "Anterior",
+  "time": {
+    "just_now": "Justo ahora",
+    "minutes_ago": "Hace {{count}} min",
+    "hours_ago": "Hace {{count}} h",
+    "days_ago": "Hace {{count}} d"
+  },
+  "transport": "Transporte",
   "language": {
     "spanish": "Español",
     "english": "Inglés",
