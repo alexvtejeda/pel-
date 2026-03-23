@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell } from '@fortawesome/free-solid-svg-icons'
 
@@ -14,22 +15,28 @@ interface NotificationsTabProps {
   notifications: AppNotification[]
 }
 
-function timeAgo(date: Date): string {
-  const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
-  if (seconds < 60) return 'Justo ahora'
-  const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `Hace ${minutes} min`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `Hace ${hours} h`
-  return `Hace ${Math.floor(hours / 24)} d`
+function useTimeAgo() {
+  const { t } = useTranslation('common')
+  return (date: Date): string => {
+    const seconds = Math.floor((Date.now() - date.getTime()) / 1000)
+    if (seconds < 60) return t('time.just_now')
+    const minutes = Math.floor(seconds / 60)
+    if (minutes < 60) return t('time.minutes_ago', { count: minutes })
+    const hours = Math.floor(minutes / 60)
+    if (hours < 24) return t('time.hours_ago', { count: hours })
+    return t('time.days_ago', { count: Math.floor(hours / 24) })
+  }
 }
 
 export function NotificationsTab({ notifications }: NotificationsTabProps) {
+  const { t } = useTranslation('pets')
+  const timeAgo = useTimeAgo()
+
   if (notifications.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
         <FontAwesomeIcon icon={faBell} className="text-2xl" />
-        <p className="text-sm">No hay notificaciones</p>
+        <p className="text-sm">{t('notifications.empty')}</p>
       </div>
     )
   }

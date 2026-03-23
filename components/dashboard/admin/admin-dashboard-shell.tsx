@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AdminSidebar } from './admin-sidebar'
 import { RescueCentersTab } from './rescue-centers-tab'
@@ -11,14 +12,15 @@ import { ChatTab } from '../rescue-center/chat-tab'
 
 type Tab = 'rescue-centers' | 'form-template' | 'chat' | 'settings'
 
-const tabTitles: Record<Tab, string> = {
-  'rescue-centers': 'Centros de rescate',
-  'form-template':  'Plantilla de adopción',
-  'chat':           'Chat',
-  'settings':       'Configuración',
+const tabTitleKeys: Record<Tab, string> = {
+  'rescue-centers': 'admin.tabs.rescue_centers',
+  'form-template':  'admin.tabs.adoption_template',
+  'chat':           'admin.tabs.chat',
+  'settings':       'admin.tabs.settings',
 }
 
 export function AdminDashboardShell() {
+  const { t } = useTranslation('pets')
   const [activeTab, setActiveTab] = useState<Tab>('rescue-centers')
 
   return (
@@ -26,8 +28,8 @@ export function AdminDashboardShell() {
       <AdminSidebar activeTab={activeTab} onTabChange={setActiveTab} />
       <SidebarInset className="bg-sidebar h-screen overflow-hidden">
         <header className="bg-sidebar flex h-14 shrink-0 items-center gap-2 px-4 text-sidebar-foreground">
-          <SidebarTrigger className="hidden md:flex" />
-          <h1 className="text-lg font-semibold flex-1 text-sidebar-primary">{tabTitles[activeTab]}</h1>
+          <SidebarTrigger className="md:hidden" />
+          <h1 className="text-lg font-semibold flex-1 text-sidebar-primary">{t(tabTitleKeys[activeTab])}</h1>
         </header>
         <main className={`bg-background md:rounded-tl-2xl flex-1 min-h-0 ${activeTab === 'chat' ? 'overflow-hidden' : 'p-4 pb-20 md:pb-4 overflow-y-auto'}`}>
           {activeTab === 'rescue-centers' && <RescueCentersTab />}

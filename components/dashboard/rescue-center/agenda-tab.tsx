@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarDays, faClock } from '@fortawesome/free-solid-svg-icons'
 import { Calendar } from '@/components/ui/calendar'
-import { es } from 'react-day-picker/locale'
+import { es, enUS } from 'react-day-picker/locale'
 
 export interface AgendaItem {
   id: string
@@ -14,10 +15,10 @@ export interface AgendaItem {
   type: 'meeting' | 'transport' | 'followup'
 }
 
-const typeLabels: Record<AgendaItem['type'], string> = {
-  meeting:   'Reunión',
-  transport: 'Transporte',
-  followup:  'Seguimiento',
+const typeLabelKeys: Record<AgendaItem['type'], string> = {
+  meeting:   'agenda.type_meeting',
+  transport: 'agenda.type_transport',
+  followup:  'agenda.type_followup',
 }
 
 const typeColors: Record<AgendaItem['type'], string> = {
@@ -45,6 +46,9 @@ interface AgendaTabProps {
 }
 
 export function AgendaTab({ items }: AgendaTabProps) {
+  const { t, i18n } = useTranslation('pets')
+  const calendarLocale = i18n.language?.startsWith('en') ? enUS : es
+  const dateLocale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const today = new Date()
   const isToday = isSameDay(selectedDate, today)
@@ -68,7 +72,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
         <div className="rounded-2xl border bg-card p-3">
           <Calendar
             mode="single"
-            locale={es}
+            locale={calendarLocale}
             selected={selectedDate}
             onSelect={(date) => date && setSelectedDate(date)}
             classNames={{ root: 'w-full' }}
@@ -78,7 +82,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
         {/* Upcoming events (only when there are items not on selected date) */}
         {upcomingEvents.length > 0 && (
           <div className="rounded-2xl border bg-card p-4 space-y-3">
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Próximos eventos</h4>
+            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('agenda.upcoming')}</h4>
             {upcomingEvents.map(item => (
               <button
                 key={item.id}
@@ -89,7 +93,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
                 <div className="flex-1 min-w-0">
                   <p className="text-sm truncate">{item.personName} — {item.petName}</p>
                   <p className="text-xs text-muted-foreground">
-                    {item.date.toLocaleDateString('es-DO', { weekday: 'short', day: 'numeric', month: 'short' })}
+                    {item.date.toLocaleDateString(dateLocale, { weekday: 'short', day: 'numeric', month: 'short' })}
                   </p>
                 </div>
               </button>
@@ -103,7 +107,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
         {/* Date header */}
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-base first-letter:uppercase">
-            {selectedDate.toLocaleDateString('es-DO', {
+            {selectedDate.toLocaleDateString(dateLocale, {
               weekday: 'long',
               day: 'numeric',
               month: 'long',
@@ -114,7 +118,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
               onClick={() => setSelectedDate(new Date())}
               className="text-xs font-medium text-pop-550 hover:text-pop-450 transition-colors"
             >
-              Hoy
+              {t('agenda.today')}
             </button>
           )}
         </div>
@@ -125,9 +129,9 @@ export function AgendaTab({ items }: AgendaTabProps) {
               <FontAwesomeIcon icon={faCalendarDays} className="text-lg text-muted-foreground/60" />
             </div>
             <div className="text-center space-y-1">
-              <p className="text-sm font-medium">No hay eventos</p>
+              <p className="text-sm font-medium">{t('agenda.no_events')}</p>
               <p className="text-xs text-muted-foreground/60">
-                {isToday ? 'No tienes eventos programados para hoy' : 'No hay eventos programados para este día'}
+                {isToday ? t('agenda.no_events_today') : t('agenda.no_events_day')}
               </p>
             </div>
           </div>
@@ -142,13 +146,13 @@ export function AgendaTab({ items }: AgendaTabProps) {
                   <p className="text-sm font-medium">{item.personName}</p>
                   <p className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <FontAwesomeIcon icon={faClock} className="text-[10px]" />
-                    {item.date.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })}
+                    {item.date.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' })}
                     <span className="mx-0.5">·</span>
-                    Mascota: {item.petName}
+                    {t('agenda.pet_label')} {item.petName}
                   </p>
                 </div>
                 <span className={`text-[10px] font-medium px-2 py-0.5 rounded-xl shrink-0 ${typeColors[item.type]}`}>
-                  {typeLabels[item.type]}
+                  {t(typeLabelKeys[item.type])}
                 </span>
               </div>
             ))}

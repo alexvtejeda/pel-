@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldCat, faFileLines, faComments, faGear } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
@@ -31,14 +32,15 @@ interface AdminSidebarProps {
   onTabChange: (tab: Tab) => void
 }
 
-const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
-  { tab: 'rescue-centers', label: 'Centros de rescate', icon: faShieldCat },
-  { tab: 'form-template',  label: 'Formulario',        icon: faFileLines },
-  { tab: 'chat',           label: 'Chat',              icon: faComments },
-  { tab: 'settings',       label: 'Configuración',     icon: faGear },
+const navItems: { tab: Tab; labelKey: string; icon: IconDefinition }[] = [
+  { tab: 'rescue-centers', labelKey: 'admin.tabs.rescue_centers', icon: faShieldCat },
+  { tab: 'form-template',  labelKey: 'admin.tabs.form_template',  icon: faFileLines },
+  { tab: 'chat',           labelKey: 'admin.tabs.chat',           icon: faComments },
+  { tab: 'settings',       labelKey: 'admin.tabs.settings',       icon: faGear },
 ]
 
 export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
+  const { t } = useTranslation('pets')
   const { state } = useSidebar()
   const { user } = useAuth()
 
@@ -52,23 +54,23 @@ export function AdminSidebar({ activeTab, onTabChange }: AdminSidebarProps) {
         <div className="flex flex-col items-center">
           <Logo showText={state === 'expanded'} width={32} height={32} />
           {state === 'expanded' && (
-            <span className="text-[10px] text-muted-foreground mt-1">Admin</span>
+            <span className="text-[10px] text-muted-foreground mt-1">{t('admin.title')}</span>
           )}
         </div>
       </SidebarHeader>
 
       <SidebarContent>
         <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
-          {navItems.map(({ tab, label, icon }) => (
+          {navItems.map(({ tab, labelKey, icon }) => (
             <SidebarMenuItem key={tab}>
               <SidebarMenuButton
                 isActive={activeTab === tab}
                 onClick={() => onTabChange(tab)}
-                tooltip={label}
+                tooltip={t(labelKey)}
                 className={state === 'collapsed' ? 'p-3' : ''}
               >
                 <FontAwesomeIcon icon={icon} className="text-md" />
-                <span>{label}</span>
+                <span>{t(labelKey)}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

@@ -1,13 +1,19 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 import { FormField } from '@/lib/api/forms'
 import { FormRenderer } from '@/components/forms/form-renderer'
 import { FormBuilder } from '@/components/forms/form-builder'
 import * as adminApi from '@/lib/api/admin'
 
 export function AdminFormTab() {
+  const { t } = useTranslation('pets')
   const [fields, setFields]     = useState<FormField[]>([])
   const [view, setView]         = useState<'edit' | 'preview'>('edit')
   const [dirty, setDirty]       = useState(false)
@@ -16,6 +22,13 @@ export function AdminFormTab() {
   const [loading, setLoading]   = useState(true)
   const [formName, setFormName] = useState('Plantilla de adopción')
   const [loadError, setLoadError] = useState(false)
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
+
+  // Guard: if dirty, show dialog instead of executing immediately
+  const guardedAction = (action: () => void) => {
+    if (dirty) { setPendingAction(() => action); return }
+    action()
+  }
 
   // Load master template on mount
   const loadTemplate = useCallback(() => {
@@ -41,7 +54,7 @@ export function AdminFormTab() {
     setSaving(false)
     if (error) { setSaveMsg(`Error: ${error}`); return }
     setDirty(false)
-    setSaveMsg('Guardado ✓')
+    setSaveMsg(t('forms.saved'))
     setTimeout(() => setSaveMsg(''), 2000)
   }
 
@@ -56,9 +69,9 @@ export function AdminFormTab() {
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
-        <p className="text-sm text-muted-foreground">No se pudo cargar la plantilla. Verifica que el servidor esté disponible.</p>
+        <p className="text-sm text-muted-foreground">{t('admin.load_error')}</p>
         <Button size="sm" className="rounded-xl" onClick={loadTemplate}>
-          Reintentar
+          {t('admin.retry')}
         </Button>
       </div>
     )
@@ -71,18 +84,18 @@ export function AdminFormTab() {
         {/* Edit/Preview switcher */}
         <div className="flex gap-1">
           {(['edit', 'preview'] as const).map(v => (
-            <button key={v} onClick={() => setView(v)}
+            <button key={v} onClick={() => v !== view && guardedAction(() => setView(v))}
               className={v === view
                 ? 'px-4 py-1.5 rounded-xl bg-pop-550 text-white text-sm font-medium'
                 : 'px-4 py-1.5 rounded-xl text-muted-foreground text-sm hover:bg-muted'}>
-              {v === 'edit' ? `Editar${dirty ? ' •' : ''}` : 'Vista previa'}
+              {v === 'edit' ? `${t('forms.edit')}${dirty ? ' •' : ''}` : t('forms.preview')}
             </button>
           ))}
         </div>
 
         <div className="ml-auto">
           <Button size="sm" className="rounded-xl" onClick={handleSave} disabled={!dirty || saving}>
-            {saving ? 'Guardando...' : saveMsg || 'Guardar plantilla'}
+            {saving ? t('forms.saving') : saveMsg || t('forms.save_template')}
           </Button>
         </div>
       </div>
@@ -104,8 +117,35 @@ export function AdminFormTab() {
           onChange={newFields => { setFields(newFields); setDirty(true) }}
           formName={formName}
           onNameChange={name => { setFormName(name); setDirty(true) }}
+          onSave={dirty && !saving ? handleSave : undefined}
         />
       )}
+
+      {/* Unsaved changes dialog */}
+      <AlertDialog open={!!pendingAction} onOpenChange={open => { if (!open) setPendingAction(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('forms.unsaved_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('forms.unsaved_description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingAction(null)}>{t('cancel', { ns: 'common' })}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-transparent border border-input text-foreground hover:bg-muted"
+              onClick={() => { pendingAction?.(); setPendingAction(null) }}
+            >
+              {t('forms.unsaved_discard')}
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={async () => { await handleSave(); pendingAction?.(); setPendingAction(null) }}
+            >
+              {t('forms.unsaved_save')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

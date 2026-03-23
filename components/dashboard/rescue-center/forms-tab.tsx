@@ -1,16 +1,27 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { Button } from '@/components/ui/button'
+import {
+  AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
+} from '@/components/ui/alert-dialog'
 import { Form, FormField, listForms, getForm, createForm, updateForm } from '@/lib/api/forms'
 import { LogoUpload } from './logo-upload'
 import { FormBuilder } from '@/components/forms/form-builder'
 import { FormRenderer } from '@/components/forms/form-renderer'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
 
-export function FormsTab() {
+interface FormsTabProps {
+  onDirtyChange?: (dirty: boolean) => void
+  onSaveRef?: React.RefObject<(() => Promise<void>) | null>
+}
+
+export function FormsTab({ onDirtyChange, onSaveRef }: FormsTabProps) {
+  const { t } = useTranslation('pets')
   const [forms, setForms]               = useState<Form[]>([])
   const [activeFormId, setActiveFormId] = useState<string | null>(null)
   const [fields, setFields]             = useState<FormField[]>([])
@@ -21,8 +32,18 @@ export function FormsTab() {
   const [logoUrl, setLogoUrl]           = useState<string | null>(null)
   const [rcName, setRcName]             = useState('')
   const [loadingForms, setLoadingForms] = useState(true)
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null)
 
   const activeForm = forms.find(f => f.id === activeFormId) ?? null
+
+  // Notify parent when dirty state changes
+  const markDirty = (d: boolean) => { setDirty(d); onDirtyChange?.(d) }
+
+  // Guard: if dirty, show dialog instead of executing immediately
+  const guardedAction = (action: () => void) => {
+    if (dirty) { setPendingAction(() => action); return }
+    action()
+  }
 
   // Load RC info and forms on mount
   useEffect(() => {
@@ -41,14 +62,15 @@ export function FormsTab() {
   }, [])
 
   // When active form changes, reload its fields
-  const switchForm = useCallback(async (formId: string) => {
-    if (dirty) {
-      if (!window.confirm('Tienes cambios sin guardar. ¿Cambiar de formulario?')) return
-    }
+  const doSwitchForm = useCallback(async (formId: string) => {
     setActiveFormId(formId)
     const { data } = await getForm(formId)
-    if (data) { setFields(data.fields); setDirty(false) }
-  }, [dirty])
+    if (data) { setFields(data.fields); markDirty(false) }
+  }, [])
+
+  const switchForm = (formId: string) => {
+    guardedAction(() => doSwitchForm(formId))
+  }
 
   // Save
   const handleSave = async () => {
@@ -57,10 +79,16 @@ export function FormsTab() {
     const { error } = await updateForm(activeFormId, { fields })
     setSaving(false)
     if (error) { setSaveMsg(`Error: ${error}`); return }
-    setDirty(false)
-    setSaveMsg('Guardado ✓')
+    markDirty(false)
+    setSaveMsg(t('forms.saved'))
     setTimeout(() => setSaveMsg(''), 2000)
   }
+
+  // Expose save to parent via ref
+  useEffect(() => {
+    if (onSaveRef) onSaveRef.current = handleSave
+    return () => { if (onSaveRef) onSaveRef.current = null }
+  })
 
   // Create new form
   const handleCreateForm = async () => {
@@ -72,7 +100,7 @@ export function FormsTab() {
     setForms(prev => [...prev, data])
     setActiveFormId(data.id)
     setFields(data.fields)
-    setDirty(false)
+    markDirty(false)
   }
 
   if (loadingForms) {
@@ -94,7 +122,7 @@ export function FormsTab() {
             className="appearance-none pl-3 pr-8 py-1.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             {forms.map(f => <option key={f.id} value={f.id}>{f.name}</option>)}
-            <option value="__create__">+ Crear formulario</option>
+            <option value="__create__">{t('forms.create_form')}</option>
           </select>
           <FontAwesomeIcon icon={faChevronDown} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none text-xs" />
         </div>
@@ -102,18 +130,18 @@ export function FormsTab() {
         {/* Edit/Preview switcher */}
         <div className="flex gap-1">
           {(['edit', 'preview'] as const).map(v => (
-            <button key={v} onClick={() => setView(v)}
+            <button key={v} onClick={() => v !== view && guardedAction(() => setView(v))}
               className={v === view
                 ? 'px-4 py-1.5 rounded-xl bg-pop-550 text-background text-sm font-medium'
                 : 'px-4 py-1.5 rounded-xl text-muted-foreground text-sm hover:bg-muted'}>
-              {v === 'edit' ? `Editar${dirty ? ' •' : ''}` : 'Vista previa'}
+              {v === 'edit' ? `${t('forms.edit')}${dirty ? ' •' : ''}` : t('forms.preview')}
             </button>
           ))}
         </div>
 
         <div className="ml-auto">
           <Button size="sm" className="rounded-xl" onClick={handleSave} disabled={!dirty || saving}>
-            {saving ? 'Guardando...' : saveMsg || 'Guardar formulario'}
+            {saving ? t('forms.saving') : saveMsg || t('forms.save_form')}
           </Button>
         </div>
       </div>
@@ -144,11 +172,38 @@ export function FormsTab() {
       {view === 'edit' && (
         <FormBuilder
           fields={fields}
-          onChange={newFields => { setFields(newFields); setDirty(true) }}
+          onChange={newFields => { setFields(newFields); markDirty(true) }}
           formName={activeForm?.name}
           headerSlot={<LogoUpload logoUrl={logoUrl} onUpdate={url => setLogoUrl(url)} />}
+          onSave={dirty && !saving ? handleSave : undefined}
         />
       )}
+
+      {/* Unsaved changes dialog */}
+      <AlertDialog open={!!pendingAction} onOpenChange={open => { if (!open) setPendingAction(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('forms.unsaved_title')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('forms.unsaved_description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingAction(null)}>{t('cancel', { ns: 'common' })}</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-transparent border border-input text-foreground hover:bg-muted"
+              onClick={() => { pendingAction?.(); setPendingAction(null) }}
+            >
+              {t('forms.unsaved_discard')}
+            </AlertDialogAction>
+            <AlertDialogAction
+              onClick={async () => { await handleSave(); pendingAction?.(); setPendingAction(null) }}
+            >
+              {t('forms.unsaved_save')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

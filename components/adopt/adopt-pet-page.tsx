@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -12,6 +13,7 @@ import { FormRenderer } from '@/components/forms/form-renderer'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 export function AdoptPetPage({ petId }: { petId: string }) {
+  const { t } = useTranslation('pets')
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
 
@@ -55,7 +57,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
     })
 
     if (submitErr || !data) {
-      throw new Error(submitErr || 'Error al enviar solicitud')
+      throw new Error(submitErr || t('adopt.submit_error'))
     }
 
     for (const [fieldId, file] of Object.entries(files)) {
@@ -90,8 +92,8 @@ export function AdoptPetPage({ petId }: { petId: string }) {
         {rc.logo_url ? (
           <img src={rc.logo_url} alt={rc.name} className="w-full h-full object-contain" />
         ) : (
-          <div className="w-full h-full bg-gradient-to-r from-pop-500 to-pop-550 flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">{rc.name}</span>
+          <div className="w-full h-full bg-linear-to-r from-pop-500 to-pop-550 flex items-center justify-center">
+            <span className="text-foreground text-2xl font-bold">{rc.name}</span>
           </div>
         )}
       </div>
@@ -102,7 +104,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="text-sm" />
-          Volver a {pet.name}
+          {t('adopt.back_to', { name: pet.name })}
         </button>
 
         <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border mb-8">
@@ -124,7 +126,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
 
         {formData.advisory && (
           <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800">
-            Esta mascota tiene condiciones especiales. El centro revisará tu solicitud con atención adicional.
+            {t('adopt.advisory')}
           </div>
         )}
 

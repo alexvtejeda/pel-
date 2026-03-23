@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons'
 import { Form, FormField, FieldType } from '@/lib/api/forms'
@@ -16,6 +17,7 @@ interface FormRendererProps {
 }
 
 export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormRendererProps) {
+  const { t } = useTranslation('pets')
   const [answers, setAnswers]     = useState<Answers>({})
   const [files, setFiles]         = useState<FileMap>({})
   const [errors, setErrors]       = useState<Record<string, string>>({})
@@ -32,7 +34,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
       if (!field.required) continue
       const ans = answers[field.id]
       if (!ans || (Array.isArray(ans) ? ans.length === 0 : ans.trim() === '')) {
-        newErrors[field.id] = 'Este campo es obligatorio'
+        newErrors[field.id] = t('forms.required_error')
       }
     }
     setErrors(newErrors)
@@ -54,7 +56,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
       await onSubmit(answers, files)
       setSubmitted(true)
     } catch (e) {
-      setSubmitError(e instanceof Error ? e.message : 'Error al enviar')
+      setSubmitError(e instanceof Error ? e.message : t('forms.submit_error'))
     } finally {
       setSubmitting(false)
     }
@@ -64,15 +66,15 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
     return (
       <div className="text-center py-12 space-y-4">
         <p className="text-4xl">&#x1F43E;</p>
-        <h2 className="text-xl font-bold">¡Solicitud enviada!</h2>
+        <h2 className="text-xl font-bold">{t('forms.success_title')}</h2>
         <p className="text-muted-foreground text-sm">
-          Tu solicitud ha sido enviada. El centro revisará tu información y te notificará pronto.
+          {t('forms.success_description')}
         </p>
         <div className="p-4 bg-muted rounded-2xl text-sm text-muted-foreground">
-          Estado: <span className="font-medium text-foreground">Pendiente de revisión</span>
+          {t('submission.pending', { ns: 'pets' })}: <span className="font-medium text-foreground">{t('forms.success_status')}</span>
         </div>
         <a href="/pets" className="inline-block px-6 py-2.5 bg-pop-550 text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
-          Volver a mascotas
+          {t('forms.back_to_pets')}
         </a>
       </div>
     )
@@ -125,7 +127,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
             disabled={submitting}
             className="w-full py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Enviando...' : 'Enviar solicitud ->'}
+            {submitting ? t('forms.submitting') : t('forms.submit_button')}
           </button>
         </div>
       )}
@@ -146,6 +148,7 @@ interface FieldInputProps {
 }
 
 function FieldInput({ field, value, fileValue, error, preview, onChange, onFile, allAnswers, onAnswerChange }: FieldInputProps) {
+  const { t } = useTranslation('pets')
   const strVal    = typeof value === 'string' ? value : ''
   const arrVal    = Array.isArray(value) ? value : []
   const inputCls  = `w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring bg-background ${error ? 'border-destructive ring-2 ring-destructive' : 'border-input'}`
@@ -205,7 +208,7 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
       {field.type === 'dropdown' && (
         <select value={strVal} onChange={e => onChange(e.target.value)}
           className={inputCls} disabled={preview}>
-          <option value="">Selecciona...</option>
+          <option value="">{t('forms.select_placeholder')}</option>
           {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       )}
@@ -229,9 +232,9 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
         >
           <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl text-muted-foreground/40 mb-2" />
           <p className="text-sm text-muted-foreground">
-            {fileValue ? fileValue.name : 'Adjuntar archivo'}
+            {fileValue ? fileValue.name : t('forms.attach_file')}
           </p>
-          <p className="text-xs text-muted-foreground/60 mt-1">PNG, JPG, WEBP o PDF · max 10MB</p>
+          <p className="text-xs text-muted-foreground/60 mt-1">{t('forms.attach_hint')}</p>
           <input
             id={`file-input-${field.id}`}
             type="file"

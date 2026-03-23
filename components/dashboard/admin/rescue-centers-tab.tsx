@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faMapMarkerAlt, faPhone } from '@fortawesome/free-solid-svg-icons'
 import { RescueCenter } from '@/lib/api/rescue-centers'
@@ -9,11 +10,11 @@ import { MfaCodeInput } from '@/components/auth/mfa/mfa-code-input'
 
 type StatusFilter = 'all' | 'pending' | 'active' | 'rejected'
 
-const statusLabels: Record<StatusFilter, string> = {
-  all: 'Todos',
-  pending: 'Pendientes',
-  active: 'Activos',
-  rejected: 'Rechazados',
+const statusLabelKeys: Record<StatusFilter, string> = {
+  all: 'admin.status_all',
+  pending: 'admin.status_pending_plural',
+  active: 'admin.status_active_plural',
+  rejected: 'admin.status_rejected_plural',
 }
 
 const statusColors: Record<string, string> = {
@@ -22,13 +23,14 @@ const statusColors: Record<string, string> = {
   rejected: 'bg-destructive/20 text-destructive',
 }
 
-const statusText: Record<string, string> = {
-  pending: 'Pendiente',
-  active: 'Activo',
-  rejected: 'Rechazado',
+const statusTextKeys: Record<string, string> = {
+  pending: 'admin.status_pending',
+  active: 'admin.status_active',
+  rejected: 'admin.status_rejected',
 }
 
 export function RescueCentersTab() {
+  const { t } = useTranslation('pets')
   const [centers, setCenters] = useState<RescueCenter[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -91,7 +93,7 @@ export function RescueCentersTab() {
     <div className="space-y-4">
       {/* Status filter tabs */}
       <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit">
-        {(Object.keys(statusLabels) as StatusFilter[]).map((s) => (
+        {(Object.keys(statusLabelKeys) as StatusFilter[]).map((s) => (
           <button
             key={s}
             onClick={() => setFilter(s)}
@@ -99,7 +101,7 @@ export function RescueCentersTab() {
               filter === s ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            {statusLabels[s]}
+            {t(statusLabelKeys[s])}
           </button>
         ))}
       </div>
@@ -107,7 +109,7 @@ export function RescueCentersTab() {
       {/* Card grid */}
       {filtered.length === 0 ? (
         <p className="text-muted-foreground text-sm py-8 text-center">
-          No hay centros de rescate{filter !== 'all' ? ` con estado "${statusLabels[filter].toLowerCase()}"` : ''}.
+          {filter !== 'all' ? t('admin.no_centers_filtered', { status: t(statusLabelKeys[filter]).toLowerCase() }) : `${t('admin.no_centers')}.`}
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -120,7 +122,7 @@ export function RescueCentersTab() {
                   <p className="text-sm text-muted-foreground">{center.rnc || ''}</p>
                 </div>
                 <span className={`text-xs px-2 py-1 rounded-xl font-medium ${statusColors[center.status] || ''}`}>
-                  {statusText[center.status] || center.status}
+                  {statusTextKeys[center.status] ? t(statusTextKeys[center.status]) : center.status}
                 </span>
               </div>
 
@@ -141,7 +143,7 @@ export function RescueCentersTab() {
               {/* Reject reason */}
               {center.status === 'rejected' && center.reject_reason && (
                 <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-xl">
-                  Razón: {center.reject_reason}
+                  {t('admin.reject_reason')} {center.reject_reason}
                 </p>
               )}
 
@@ -152,7 +154,7 @@ export function RescueCentersTab() {
                     type="text"
                     value={rejectReason}
                     onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder="Razón del rechazo..."
+                    placeholder={t('admin.reject_placeholder')}
                     className="w-full px-3 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
                   />
                   <div className="flex gap-2">
@@ -161,13 +163,13 @@ export function RescueCentersTab() {
                       disabled={!rejectReason.trim()}
                       className="flex-1 py-1.5 px-3 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
                     >
-                      Confirmar
+                      {t('confirm', { ns: 'common' })}
                     </button>
                     <button
                       onClick={() => { setRejectingId(null); setRejectReason('') }}
                       className="flex-1 py-1.5 px-3 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
                     >
-                      Cancelar
+                      {t('cancel', { ns: 'common' })}
                     </button>
                   </div>
                 </div>
@@ -182,13 +184,13 @@ export function RescueCentersTab() {
                         onClick={() => handleApprove(center.id)}
                         className="flex-1 py-1.5 px-3 bg-green-500/20 border border-green-500/40 rounded-xl text-sm font-medium text-green-500 hover:bg-green-500/30 transition-colors"
                       >
-                        Aprobar
+                        {t('admin.approve')}
                       </button>
                       <button
                         onClick={() => setRejectingId(center.id)}
                         className="flex-1 py-1.5 px-3 bg-destructive/20 border border-destructive/40 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/30 transition-colors"
                       >
-                        Rechazar
+                        {t('admin.reject')}
                       </button>
                     </>
                   )}
@@ -210,12 +212,12 @@ export function RescueCentersTab() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => { setDeletingId(null); setDeleteCode('') }} />
           <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-4 border shadow-lg">
-            <h3 className="font-semibold">¿Eliminar centro de rescate?</h3>
+            <h3 className="font-semibold">{t('admin.delete_title')}</h3>
             <p className="text-sm text-muted-foreground">
-              Esta acción no se puede deshacer. Se eliminará el centro de rescate y todos sus datos.
+              {t('admin.delete_description')}
             </p>
             <div className="space-y-2">
-              <p className="text-xs text-muted-foreground">Ingresa el código de tu app de autenticación:</p>
+              <p className="text-xs text-muted-foreground">{t('admin.delete_mfa_prompt')}</p>
               <MfaCodeInput onComplete={(code) => setDeleteCode(code)} error={null} />
             </div>
             <div className="flex gap-2">
@@ -224,13 +226,13 @@ export function RescueCentersTab() {
                 disabled={!deleteCode}
                 className="flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
               >
-                Eliminar
+                {t('delete', { ns: 'common' })}
               </button>
               <button
                 onClick={() => { setDeletingId(null); setDeleteCode('') }}
                 className="flex-1 py-2 px-4 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
               >
-                Cancelar
+                {t('cancel', { ns: 'common' })}
               </button>
             </div>
           </div>
