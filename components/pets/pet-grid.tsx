@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faCertificate, faCheck, faHouseChimney, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faCertificate, faCheck, faHouseChimney, faUser, faFilter } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl, ensureUrl } from '@/lib/utils'
@@ -58,6 +58,12 @@ export function PetGrid({
 }: PetGridProps) {
   const { t } = useTranslation('pets')
   const [sourceFilter, setSourceFilter] = useState<'all' | 'rc' | 'member'>('all')
+  const [showMobileFilters, setShowMobileFilters] = useState(false)
+
+  const mobileFilterCount = (activeFilter !== 'all' ? 1 : 0)
+    + (vaccinatedFilter ? 1 : 0)
+    + (castratedFilter ? 1 : 0)
+    + (sourceFilter !== 'all' ? 1 : 0)
 
   const handleFilterClick = (f: (typeof FILTERS)[number]) => {
     if (f.key === 'nearby') {
@@ -103,8 +109,8 @@ export function PetGrid({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Filter pills — single inline row */}
-      <div className="flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0 flex-wrap">
+      {/* Filter pills — desktop: inline row */}
+      <div className="hidden sm:flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0 flex-wrap">
         {FILTERS.map((f) => (
           <button
             key={f.key}
@@ -157,6 +163,81 @@ export function PetGrid({
           <FontAwesomeIcon icon={faUser} className="text-xs" />
           {t('grid.members')}
         </button>
+      </div>
+
+      {/* Filter button — mobile only */}
+      <div className="sm:hidden relative px-2 py-3 shrink-0">
+        <button
+          onClick={() => setShowMobileFilters(prev => !prev)}
+          className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
+            showMobileFilters || mobileFilterCount > 0
+              ? 'bg-pop-550 text-white'
+              : 'bg-background text-foreground hover:bg-secondary/80'
+          }`}
+        >
+          <FontAwesomeIcon icon={faFilter} className="text-xs" />
+          {t('grid.filters')}
+          {mobileFilterCount > 0 && (
+            <span className="ml-1 w-4 h-4 rounded-full bg-white text-pop-550 text-[10px] font-bold flex items-center justify-center">
+              {mobileFilterCount}
+            </span>
+          )}
+        </button>
+
+        {showMobileFilters && (
+          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-xl border bg-card shadow-lg p-4 space-y-3">
+            {/* Species */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.species')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                {FILTERS.filter(f => f.key !== 'all' && f.key !== 'nearby').map(f => (
+                  <button key={f.key} onClick={() => { handleFilterClick(f); }}
+                    className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                      activeFilter === f.key ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                    }`}>
+                    <FontAwesomeIcon icon={f.icon} className="text-xs" /> {t(`grid.${f.key}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Health */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.health')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button onClick={() => onVaccinatedChange(!vaccinatedFilter)}
+                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                    vaccinatedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  <FontAwesomeIcon icon={faSyringe} className="text-xs" /> {t('grid.vaccinated')}
+                </button>
+                <button onClick={() => onCastratedChange(!castratedFilter)}
+                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                    castratedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  <FontAwesomeIcon icon={faScissors} className="text-xs" /> {t('grid.castrated')}
+                </button>
+              </div>
+            </div>
+            {/* Source */}
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.source')}</p>
+              <div className="flex flex-wrap gap-1.5">
+                <button onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
+                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                    sourceFilter === 'rc' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  <FontAwesomeIcon icon={faHouseChimney} className="text-xs" /> {t('grid.centers')}
+                </button>
+                <button onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
+                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                    sourceFilter === 'member' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  <FontAwesomeIcon icon={faUser} className="text-xs" /> {t('grid.members')}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Grid */}

@@ -18,6 +18,7 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet'
+import { PublicMobileNav } from './public-mobile-nav'
 
 const ROLE_LABELS: Record<string, { es: string; en: string }> = {
   adopter: { es: 'Adoptante', en: 'Adopter' },
@@ -184,7 +185,7 @@ export function PetsHeader() {
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
-                Admin
+                {t('admin.title')}
               </Link>
             )}
             {user?.role === 'member' && (
@@ -218,7 +219,7 @@ export function PetsHeader() {
                 className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faTruckFast} className="text-lg text-muted-foreground" />
-                Transporte
+                {t('transport', { ns: 'common' })}
               </Link>
             )}
             <button
@@ -233,6 +234,8 @@ export function PetsHeader() {
       </Sheet>
 
       <MemberAddPetModal open={addPetOpen} onClose={() => setAddPetOpen(false)} />
+
+      <PublicMobileNav />
     </header>
   )
 }
