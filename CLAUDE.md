@@ -58,30 +58,11 @@ All API calls go through `lib/api/`. Three distinct fetch patterns exist:
 2. **Multipart uploads** — use raw `fetch` with `credentials: 'include'` because `multipart/form-data` must not have `Content-Type` set manually. Used in: `pets.ts` (`uploadPhotos`), `submissions.ts` (`uploadSubmissionFile`), `businesses.ts` (`uploadBusinessPhoto`)
 3. **Public endpoints** — use raw `fetch` with no auth headers. Used in: `pets-public.ts` (public pet listing/detail, pet form, slug lookup)
 
-API modules:
-- `client.ts` — fetch wrapper with `credentials: 'include'`, token refresh, `signalSessionCleared()`
-- `auth.ts` — `login`, `register`, `logout`, `setRole`, `googleRedirect`
-- `rescue-centers.ts` — CRUD for rescue centers
-- `pets.ts` — RC-scoped pet CRUD + photo management (throws errors — known exception to `{ data, error }` pattern)
-- `pets-public.ts` — public pet listing, detail, slug lookup, pet form retrieval (no auth)
-- `forms.ts` — adoption form CRUD (form builder)
-- `submissions.ts` — adoption form submissions + file upload + review (approve/reject)
-- `businesses.ts` — business CRUD + cover photo upload
-- `user-pets.ts` — member's personal pets
-- `admin.ts` — admin dashboard: RC approvals, form templates, status management
-- `chat.ts` — chat conversations and messages
-- `mfa.ts` — multi-factor auth setup (TOTP, WebAuthn, recovery codes)
-- `metrics.ts` — pet view/adoption click tracking
-- `notifications-api.ts` — app notifications
-- `transport.ts` — transport trip requests, status updates, stop completion
-- `service-providers.ts` — member service provider registration + unified provider discovery (planned)
-
-API functions return `{ data, error }` for consistent error handling. Never throw errors. (`lib/api/pets.ts` is the known exception — it throws.)
+API functions return `{ data, error }` for consistent error handling. Never throw errors. See Gotchas for the one exception.
 
 ### WebSocket
 
 `lib/contexts/websocket-context.tsx` provides real-time messaging via `useWebSocket()`. Connects for all authenticated roles (member, rescue_center, business). Key patterns:
-- Incoming `new_message` events nest the message payload inside `data.message` (not at the top level of `data`)
 - Use `subscribe(eventType, callback)` to listen for events
 - Supports read receipts and typing indicators
 - Transport events: `location_update`, `trip_status_update`, `stop_completed` (client→server); `driver_location`, `trip_status_changed`, `stop_completed`, `trip_requested` (server→client)
@@ -96,28 +77,16 @@ Use `ProtectedRoute` wrapper (`components/auth/protected-route.tsx`):
 </ProtectedRoute>
 ```
 
-Automatically redirects unauthenticated users to `/auth/login` and checks role requirements.
+Automatically redirects unauthenticated users to `/auth/login` and checks role requirements. Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
 
-## App Router Routes
+## Gotchas
 
-| Route | Component | Access |
-|---|---|---|
-| `/` | Redirects to `/pets` | Public |
-| `/pets` | `components/pets/pets-page.tsx` | Public |
-| `/about` | `components/landing/landing-page.tsx` | Public |
-| `/p/[slug]` | Short URL → pet detail | Public |
-| `/adopt/[pet-id]` | Adoption form fill page | Authenticated (`member`) |
-| `/auth/login` | `components/auth/login-page.tsx` | Public |
-| `/auth/register` | `components/auth/register-page.tsx` | Public |
-| `/auth/role-selection` | `components/auth/role-selection.tsx` | Authenticated (no role yet) |
-| `/auth/google/callback` | OAuth redirect target | Public |
-| `/auth/onboarding/[role]` | `components/auth/onboarding/onboarding-client.tsx` | Authenticated; routes to role-specific wizard |
-| `/chat` | `components/chat/chat-page.tsx` | Authenticated (`member`, `rescue_center`) |
-| `/transporte` | `components/transport/transport-page.tsx` | Authenticated (member, rescue_center) via ProtectedRoute |
-| `/dashboard/rescue-center` | `components/dashboard/rescue-center/` | `rescue_center` role only |
-| `/dashboard/admin` | `components/dashboard/admin/` | `admin` role only |
-
-Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
+- **`lib/api/pets.ts` throws errors** — unlike every other API module which returns `{ data, error }`. This is a known exception.
+- **WebSocket `new_message` event structure** — incoming `new_message` events nest the message payload inside `data.message`, not at the top level of `data`.
+- **Multipart uploads must NOT set `Content-Type`** — the browser sets the boundary automatically. Setting it manually breaks the request.
+- **`hooks/` at the project root** is a Claude Code protection script (prevents reading `.env` files), **not** a React hooks directory.
+- **No `tailwind.config.ts`** — this project uses Tailwind v4. All theme configuration lives in `app/globals.css` via the `@theme {}` block.
+- **Forms API uses PATCH** — not PUT. Verify both route and CORS when working with form endpoints.
 
 ## Design System
 
@@ -127,7 +96,7 @@ Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute
 - **Dark Red**: `oklch(25.8% 0.092 26.042)` - Accent (use sparingly!)
 - **Pop** (`--color-pop-*`): Gradient accent color used for step indicators, beams, and CTAs (shades: 450, 500, 550)
 
-Configured in `app/globals.css` via `@theme {}` block (Tailwind v4 — no `tailwind.config.ts`) with full shade ranges (50-900).
+Configured in `app/globals.css` via `@theme {}` block with full shade ranges (50-900).
 
 ### Geometry Rules
 - **Cards**: Always use `rounded-2xl`
@@ -150,8 +119,6 @@ import { faGoogle } from '@fortawesome/free-brands-svg-icons'
 ```
 
 Use `text-*` classes (`text-sm`, `text-base`, `text-lg`, etc.) for sizing — not `w-*`/`h-*`.
-
-Packages installed: `@fortawesome/fontawesome-svg-core`, `@fortawesome/react-fontawesome`, `@fortawesome/free-solid-svg-icons`, `@fortawesome/free-regular-svg-icons`, `@fortawesome/free-brands-svg-icons`
 
 ## Internationalization (i18n)
 
@@ -176,38 +143,6 @@ When adding new UI text:
 2. Add English translation in `public/locales/en/{namespace}.json`
 3. Import the new JSON files in `lib/i18n/index.ts` and add to `resources`
 4. Reference types in `lib/i18n/config.ts`
-
-## Key Components
-
-- `components/Stepper.tsx` — Multi-step wizard UI with animated slide transitions (uses `motion/react`). Exports `Stepper` (default) and `Step`. Key props: `onFinalStepCompleted`, `title`, `subtitle`, `headerLeft`, `renderStepIndicator`, `backButtonText`/`nextButtonText`, `disableStepIndicators`.
-- `components/Carousel.tsx` — Image carousel used in pet card previews.
-- `components/auth/onboarding/onboarding-nav.tsx` — `OnboardingNav` breadcrumb bar. Items with `changeRole: true` set a `pelu_changing_role` flag in localStorage before navigating.
-- `components/auth/onboarding/onboarding-client.tsx` — Routes to role-specific wizard based on URL param: `adopter-wizard`, `member-wizard`, `rescue-center-wizard`, `business-wizard`
-- `components/forms/form-renderer.tsx` — Shared renderer for adoption forms (used in `/adopt/[pet-id]` and form preview)
-- `components/pets/` — Pet discovery: split grid + detail panel layout (`pets-page.tsx`, `pet-grid.tsx`, `pet-detail.tsx`, `pets-header.tsx`)
-- `components/dashboard/rescue-center/` — Dashboard shell, sidebar, mobile nav, and tabs: pets, interested, forms, notifications, agenda, settings. `add-pet-modal.tsx` handles pet creation + photo upload. `logo-upload.tsx` for RC logo.
-- `components/dashboard/admin/` — Admin dashboard: RC approvals, form template management, settings. Protected by `admin-guard.tsx`.
-- `components/chat/` — Chat system: conversation list + message thread panel. Uses WebSocket for real-time messaging.
-- `components/transport/` — Transport tracking: full-screen Leaflet map (transport-map.tsx, dynamic import with ssr:false), floating step indicator (transport-stepper.tsx), bottom Vaul drawer with peek/expand states (transport-drawer.tsx), trip creation form with Nominatim geocoding (transport-creation-form.tsx), page container with state machine + WebSocket subscriptions (transport-page.tsx)
-
-> Note: `hooks/` at the project root is a **Claude Code protection script** (prevents reading `.env` files), not React hooks.
-
-## TypeScript Types
-
-User-related types in `lib/types/user.ts`:
-```typescript
-type UserRole = 'member' | 'rescue_center' | 'business'
-type Language = 'es' | 'en'
-interface AuthUser { id, email, role: UserRole | null, display_name: string | null, auth_provider, preferred_lang }
-```
-
-Pet-related types are co-located in `lib/api/pets.ts`:
-```typescript
-interface Photo { id, url, position: number }
-interface Pet { id, rescue_center_id, name, description, age: number, gender: 'male'|'female', species: 'dog'|'cat', vaccinated: boolean, castrated: boolean, size: 'small'|'medium'|'large', status, short_slug, photos: Photo[], conditions: string[], condition_notes: string | null }
-```
-
-Form/submission types in `lib/api/forms.ts` and `lib/api/submissions.ts`.
 
 ## Environment Variables
 
@@ -254,15 +189,3 @@ Add components: `npx shadcn@latest add [component]`
 6. **Santo Domingo focus** for MVP (transport tracking scoped to this city initially)
 7. **`/pets` is the homepage** — landing page moved to `/about`
 8. **Logo asset organization** — Static assets stored in `public/assets/` for easy reuse
-
-## Future Phases
-
-The project follows a phased implementation plan (see `.claude/plans/wise-scribbling-shore.md`):
-- ✅ Phase 1: Project Foundation
-- ✅ Phase 2: Authentication
-- ✅ Phase 3: Landing Page
-- ✅ Phase 4: Rescue Center Dashboard + Pet Discovery + Sharing + Adoption Forms
-- ✅ Phase 5: Chat System
-- ✅ Phase 6: Transport Tracking
-- Phase 6b: Service Provider Discovery (backend complete — registration, admin approval, unified `/providers` listing)
-- Phase 7: Payment Integration (PayPal/Apple Wallet redirect only)
