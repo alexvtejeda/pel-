@@ -1,7 +1,7 @@
 # Backend Changes Needed by Frontend Specs
 
 **Date:** 2026-03-24
-**Context:** Three frontend specs were written today. This document lists all backend changes they require, organized by priority. Feed this to the backend session.
+**Context:** Four frontend specs were written today. This document lists all backend changes they require, organized by priority. Feed this to the backend session.
 
 ---
 
@@ -120,6 +120,25 @@ To populate `{pet_name}`: use `trip.PetDescription`, or if `pet_id` is set (item
 
 ---
 
+---
+
+## From Spec #1: Services Route (/aliados)
+
+### 12. Add `operating_hours` to `UnifiedProvider`
+
+- Include `operating_hours` (JSONB) in the UNION query — businesses select `b.operating_hours`, members select `NULL`
+- Add `OperatingHours` field to `UnifiedProvider` struct
+- Bundle with the other UNION query changes (items #2, #3, #4)
+
+### 13. Add `instagram` to `UnifiedProvider` (nice-to-have)
+
+- Include `instagram` in the UNION query — businesses select `b.instagram`, members select `NULL`
+- Add `Instagram *string` to `UnifiedProvider` struct
+
+**Note:** `description` already exists in `UnifiedProvider` — no change needed.
+
+---
+
 ## Summary Table
 
 | # | Change | Domain | Priority |
@@ -135,3 +154,5 @@ To populate `{pet_name}`: use `trip.PetDescription`, or if `pet_id` is set (item
 | 9 | `metadata JSONB` on notifications table | notifications | required |
 | 10 | Welcome system message on conversation creation | submissions/chat | required |
 | 11 | System messages for transport lifecycle events | transport | required |
+| 12 | `operating_hours` in UnifiedProvider | serviceproviders | required |
+| 13 | `instagram` in UnifiedProvider | serviceproviders | nice-to-have |
