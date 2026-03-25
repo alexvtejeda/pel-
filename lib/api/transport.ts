@@ -49,9 +49,10 @@ export async function requestTrip(payload: RequestTripPayload): Promise<{ data: 
   }
 }
 
-export async function listTrips(): Promise<{ data: Trip[] | null; error: string | null }> {
+export async function listTrips(role?: string): Promise<{ data: Trip[] | null; error: string | null }> {
   try {
-    const res = await apiClient('/api/v1/transport')
+    const qs = role ? `?role=${encodeURIComponent(role)}` : ''
+    const res = await apiClient(`/api/v1/transport${qs}`)
     const json = await res.json()
     if (!res.ok) return { data: null, error: json.error || 'Error al cargar viajes' }
     return { data: json, error: null }

@@ -31,6 +31,7 @@ export interface Business {
   other_service: string | null
   operating_hours?: OperatingHours
   cover_photo_url?: string
+  price?: number | null
   status: string
 }
 
@@ -63,6 +64,22 @@ export async function getMyBusiness(): Promise<{ data: Business | null; error: s
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al obtener negocio' }
   return { data: json, error: null }
+}
+
+export async function updateBusiness(
+  data: Partial<CreateBusinessInput & { price: number | null }>,
+): Promise<{ data: Business | null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/businesses/me', {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al actualizar negocio' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
 }
 
 export async function uploadBusinessPhoto(
