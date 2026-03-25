@@ -39,5 +39,19 @@
     "cancel_confirm_action": "Sí, cancelar",
     "cancel_dialog_dismiss": "No, volver",
     "new_trip": "Solicitar nuevo viaje"
+  },
+  "toasts": {
+    "submission_approved": "Tu solicitud para adoptar a {{pet_name}} fue aprobada",
+    "submission_rejected": "Tu solicitud para adoptar a {{pet_name}} fue rechazada",
+    "trip_accepted": "{{business_name}} aceptó el transporte",
+    "trip_rejected": "El proveedor rechazó la solicitud de transporte",
+    "trip_picking_up": "El conductor está en camino a recoger a {{pet_name}}",
+    "trip_in_transit": "{{pet_name}} está en camino",
+    "trip_completed": "Transporte completado — {{pet_name}} ha sido entregado/a",
+    "go_to_chat": "Ir al chat",
+    "view_tracking": "Ver seguimiento"
+  },
+  "chat": {
+    "request_transport": "Solicitar transporte"
   }
 }
