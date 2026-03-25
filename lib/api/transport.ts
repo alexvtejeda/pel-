@@ -1,6 +1,6 @@
 import { apiClient } from './client'
 
-export type TripStatus = 'pending' | 'active' | 'completed' | 'cancelled'
+export type TripStatus = 'requested' | 'accepted' | 'picking_up' | 'in_transit' | 'completed' | 'cancelled'
 
 export interface TripStop {
   id: string
@@ -20,6 +20,14 @@ export interface Trip {
   stops: TripStop[]
   created_at: string
   updated_at: string
+  pet_description?: string
+  target_driver_id?: string | null
+  conversation_id?: string | null
+  requester_name?: string
+  pet_name?: string
+  pet_photo_url?: string
+  pet_species?: string
+  pet_breed?: string
 }
 
 export interface DriverLocation {
@@ -31,8 +39,14 @@ export interface DriverLocation {
 
 interface RequestTripPayload {
   pet_id: string
+  pet_description?: string
+  target_driver_id: string
+  pickup_address: string
+  pickup_lat: number
+  pickup_lng: number
   stops: { address: string; lat: number; lng: number }[]
-  conversation_id?: string // links transport request to chat
+  conversation_id?: string
+  rescue_center_id?: string
 }
 
 export async function requestTrip(payload: RequestTripPayload): Promise<{ data: Trip | null; error: string | null }> {
