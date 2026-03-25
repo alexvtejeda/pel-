@@ -39,7 +39,7 @@ components/dashboard/business/
 
 `'requests' | 'chat' | 'agenda' | 'settings'`
 
-- **Requests** — incoming service/transport requests (recycled Interested tab UI)
+- **Requests** — incoming service/transport requests (new components, same visual pattern as Interested tab)
 - **Chat** — reuse existing chat components
 - **Agenda** — reuse existing agenda component
 - **Settings** — business profile + MFA + account management
@@ -50,18 +50,20 @@ Same patterns as RC: `SidebarProvider`, unsaved changes guard, notification bell
 
 ## 2. Requests Tab
 
-Recycled Interested tab UI with transport request data.
+Same **visual pattern** as the Interested tab (list/detail layout with status pills and filter bar), but built as new components — the data shapes are fundamentally different (Trip objects vs Submission objects).
 
 ### List view
 
 Each card shows:
-- Requester name (member or RC)
+- Requester name
 - Pet name + photo thumbnail
 - Pickup → dropoff addresses
 - Date requested
 - Status badge: `pendiente` / `aceptado` / `en curso` / `completado` / `cancelado`
 
-Filter bar: by status (maps to transport trip statuses).
+Status mapping from backend values: `requested` → "Pendiente", `accepted` → "Aceptado", `picking_up`/`in_transit` → "En curso", `completed` → "Completado", `cancelled` → "Cancelado".
+
+Filter bar: by status.
 
 ### Detail view
 
@@ -69,15 +71,17 @@ Filter bar: by status (maps to transport trip statuses).
 - Pickup and dropoff addresses with map preview
 - Requester contact info
 - Conversation link (if `conversation_id` exists on the trip)
-- Action buttons: "Aceptar" / "Rechazar" (for pending requests)
+- **Action buttons** (for pending requests):
+  - "Aceptar" → calls `PATCH /api/v1/transport/{id}/accept`
+  - "Rechazar" → calls `PATCH /api/v1/transport/{id}/cancel`
 
 ### Data source
 
-`GET /api/v1/transport?role=driver` — already supports filtering by driver role.
+`GET /api/v1/transport?role=driver` — the backend already returns trips where `driver_id` OR `target_driver_id` matches the authenticated user (including pending requests where `driver_id` is null).
 
 ### Backend change needed
 
-The `role=driver` filter currently checks `driver_id` (set on accept). It must also return trips where `target_driver_id` matches the business user and `driver_id` is still null — i.e., pending requests targeted at them.
+Enrich the trip list response to include requester display name and pet details (name, photo URL, species, breed). Currently returns raw Trip objects with only IDs. The backend should JOIN against `users` and `pets` tables to return enriched data, avoiding N+1 requests from the frontend.
 
 ---
 
@@ -93,12 +97,12 @@ Location: `components/transport/provider-picker.tsx`
 - Optional `lat`/`lng` props for proximity sorting
 - Each card shows:
   - Business/provider name
-  - Cover photo or avatar
+  - Cover photo (businesses) or initials avatar placeholder (members without photos)
   - Services offered (badges)
-  - Price (e.g., "RD$500") — from `price` field on business profile
+  - Price (e.g., "RD$500") — from `price` field on business profile; members show "Precio no disponible" if null
   - Trust badge: "Empresa verificada" (business) vs "Proveedor verificado" (member)
   - Distance (if coordinates available)
-- On selection: returns the selected provider's user ID (becomes `target_driver_id`)
+- On selection: returns the selected provider's **user ID** (becomes `target_driver_id`)
 
 ### Entry point A: Chat
 
@@ -118,13 +122,6 @@ In `transport-creation-form.tsx`:
 - If `provider_id` is in URL query params → skip picker (pre-selected from chat)
 - If no `provider_id` → show ProviderPicker as the first step before address entry
 
-### Backend changes needed
-
-- Add `price` column (integer, nullable) to `businesses` table
-- Include `price` in `UnifiedProvider` response from `GET /providers`
-- Add `price` to business update endpoint (`PATCH /businesses/me`)
-- Add `price` to business settings in `internal/config/` if needed
-
 ---
 
 ## 4. Admin — Businesses in RC Tab (Temporary)
@@ -134,13 +131,16 @@ Minimal change to the existing admin rescue centers tab.
 ### Frontend changes
 
 - Add type badge to each row: "Centro de Rescate" (blue) or "Empresa" (amber)
-- Fetch businesses alongside rescue centers, combine client-side
+- Fetch businesses from new admin endpoint, combine client-side with RC list
 - Same approve/reject action UI
 - Filter dropdown: "Todos" / "Centros de Rescate" / "Empresas"
 
-### Backend change needed
+### Backend changes needed
 
-- `PATCH /api/v1/admin/businesses/{id}/review` — approve/reject a business with optional reason (mirrors RC approval endpoint)
+- `GET /api/v1/admin/businesses` — list all businesses with status filter (mirrors `GET /admin/rescue-centers`)
+- `PATCH /api/v1/admin/businesses/{id}/review` — approve/reject a business with optional reason
+- Both endpoints use `RequireAuth + RequireAdmin` middleware, matching the existing admin RC routes
+- Frontend `lib/api/admin.ts` needs new functions for these endpoints
 
 ### Explicitly temporary
 
@@ -158,7 +158,7 @@ Same layout as RC settings tab with business-specific fields.
 - Business name
 - Cover photo (existing upload via `POST /businesses/me/photo`)
 - Phone, address
-- Instagram, website
+- Instagram
 - RNC (business tax ID)
 
 ### Services section
@@ -186,20 +186,23 @@ All fields match the business wizard — this is the wizard fields made editable
 
 | Change | Domain | Priority |
 |--------|--------|----------|
-| `GET /transport?role=driver` returns `target_driver_id` matches (pending requests) | transport | required |
+| Add `user_id` to `UnifiedProvider` struct and UNION queries | serviceproviders | **critical** |
 | Add `price` column to `businesses` table (integer, nullable) | business | required |
+| Add `price` (NULL for members) and `cover_photo_url` to `UnifiedProvider` UNION query | serviceproviders | required |
 | Include `price` in `PATCH /businesses/me` | business | required |
-| Include `price` in `GET /providers` unified response | serviceproviders | required |
-| `PATCH /admin/businesses/{id}/review` — approve/reject | business | required |
+| Enrich `GET /transport?role=driver` to JOIN requester name + pet details | transport | required |
+| `GET /admin/businesses` — list all businesses for admin (with `RequireAdmin`) | business | required |
+| `PATCH /admin/businesses/{id}/review` — approve/reject (with `RequireAdmin`) | business | required |
 
 ---
 
 ## i18n
 
-New keys needed in `common` or new `business` namespace:
+New `business` namespace (`public/locales/{es,en}/business.json`), registered in `lib/i18n/index.ts`:
+
 - Tab labels: "Solicitudes", "Chat", "Agenda", "Configuración"
 - Request statuses: "Pendiente", "Aceptado", "En curso", "Completado", "Cancelado"
-- Provider picker: "Selecciona un proveedor de transporte", "Empresa verificada", "Proveedor verificado"
+- Provider picker: "Selecciona un proveedor de transporte", "Empresa verificada", "Proveedor verificado", "Precio no disponible"
 - Settings labels: "Precio por servicio", "¿Cuánto cobras por servicio?"
 - Admin badges: "Centro de Rescate", "Empresa"
 
@@ -215,3 +218,4 @@ Add to both `es` and `en` locale files.
 - Business metrics/analytics tab
 - Dedicated admin businesses tab (temporary: shares RC tab)
 - Service provider matching based on pet conditions
+- `website` field on business profile (does not exist in backend — add later if needed)
