@@ -1,0 +1,95 @@
+{
+  "tabs": {
+    "requests": "Solicitudes",
+    "chat": "Chat",
+    "agenda": "Agenda",
+    "settings": "Configuración"
+  },
+  "request_status": {
+    "pending": "Pendiente",
+    "accepted": "Aceptado",
+    "in_progress": "En curso",
+    "completed": "Completado",
+    "cancelled": "Cancelado"
+  },
+  "requests": {
+    "empty": "No hay solicitudes",
+    "empty_filtered": "No hay solicitudes con estado {{status}}",
+    "filter_all": "Todas",
+    "accept": "Aceptar",
+    "reject": "Rechazar",
+    "pickup": "Recogida",
+    "dropoff": "Entrega",
+    "requester": "Solicitante",
+    "pet": "Mascota",
+    "date": "Fecha",
+    "status_update": {
+      "picking_up": "En camino a recoger",
+      "in_transit": "En tránsito",
+      "completed": "Completado"
+    },
+    "open_in_waze": "Abrir en Waze",
+    "open_in_maps": "Abrir en Google Maps",
+    "conversation": "Ir a conversación"
+  },
+  "provider": {
+    "select_title": "Selecciona un proveedor de transporte",
+    "business_verified": "Empresa verificada",
+    "member_verified": "Proveedor verificado",
+    "price_unavailable": "Precio no disponible",
+    "no_providers": "No hay proveedores disponibles"
+  },
+  "settings": {
+    "profile": "Perfil del negocio",
+    "display_name": "Nombre para mostrar",
+    "business_name": "Nombre del negocio",
+    "cover_photo": "Foto de portada",
+    "phone": "Teléfono",
+    "address": "Dirección",
+    "instagram": "Instagram",
+    "rnc": "RNC",
+    "services_title": "Servicios",
+    "price_label": "Precio por servicio",
+    "price_placeholder": "¿Cuánto cobras por servicio?",
+    "operating_hours": "Horario de operación",
+    "other_service": "Otro servicio",
+    "security": "Seguridad",
+    "danger_zone": "Zona de peligro",
+    "logout": "Cerrar sesión",
+    "delete_account": "Eliminar cuenta",
+    "save": "Guardar cambios",
+    "saved": "Cambios guardados"
+  },
+  "admin": {
+    "type_rescue_center": "Centro de Rescate",
+    "type_business": "Empresa",
+    "filter_all": "Todos",
+    "filter_rescue_centers": "Centros de Rescate",
+    "filter_businesses": "Empresas"
+  },
+  "aliados": {
+    "title": "Aliados",
+    "schedule": "Horario de atención",
+    "closed": "Cerrado",
+    "contact": "Contactar",
+    "description": "Descripción",
+    "empty": "No hay aliados registrados aún",
+    "days": {
+      "monday": "Lun",
+      "tuesday": "Mar",
+      "wednesday": "Mié",
+      "thursday": "Jue",
+      "friday": "Vie",
+      "saturday": "Sáb",
+      "sunday": "Dom"
+    },
+    "filters": {
+      "all": "Todos",
+      "transport": "Transporte",
+      "walking": "Paseo",
+      "grooming": "Baño y corte",
+      "sitting": "Cuidado",
+      "training": "Entrenamiento"
+    }
+  }
+}

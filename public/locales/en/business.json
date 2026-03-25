@@ -1,0 +1,95 @@
+{
+  "tabs": {
+    "requests": "Requests",
+    "chat": "Chat",
+    "agenda": "Agenda",
+    "settings": "Settings"
+  },
+  "request_status": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "in_progress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled"
+  },
+  "requests": {
+    "empty": "No requests",
+    "empty_filtered": "No requests with status {{status}}",
+    "filter_all": "All",
+    "accept": "Accept",
+    "reject": "Reject",
+    "pickup": "Pickup",
+    "dropoff": "Dropoff",
+    "requester": "Requester",
+    "pet": "Pet",
+    "date": "Date",
+    "status_update": {
+      "picking_up": "On the way to pick up",
+      "in_transit": "In transit",
+      "completed": "Completed"
+    },
+    "open_in_waze": "Open in Waze",
+    "open_in_maps": "Open in Google Maps",
+    "conversation": "Go to conversation"
+  },
+  "provider": {
+    "select_title": "Select a transport provider",
+    "business_verified": "Verified business",
+    "member_verified": "Verified provider",
+    "price_unavailable": "Price unavailable",
+    "no_providers": "No providers available"
+  },
+  "settings": {
+    "profile": "Business profile",
+    "display_name": "Display name",
+    "business_name": "Business name",
+    "cover_photo": "Cover photo",
+    "phone": "Phone",
+    "address": "Address",
+    "instagram": "Instagram",
+    "rnc": "RNC",
+    "services_title": "Services",
+    "price_label": "Price per service",
+    "price_placeholder": "How much do you charge per service?",
+    "operating_hours": "Operating hours",
+    "other_service": "Other service",
+    "security": "Security",
+    "danger_zone": "Danger zone",
+    "logout": "Log out",
+    "delete_account": "Delete account",
+    "save": "Save changes",
+    "saved": "Changes saved"
+  },
+  "admin": {
+    "type_rescue_center": "Rescue Center",
+    "type_business": "Business",
+    "filter_all": "All",
+    "filter_rescue_centers": "Rescue Centers",
+    "filter_businesses": "Businesses"
+  },
+  "aliados": {
+    "title": "Partners",
+    "schedule": "Business hours",
+    "closed": "Closed",
+    "contact": "Contact",
+    "description": "Description",
+    "empty": "No partners registered yet",
+    "days": {
+      "monday": "Mon",
+      "tuesday": "Tue",
+      "wednesday": "Wed",
+      "thursday": "Thu",
+      "friday": "Fri",
+      "saturday": "Sat",
+      "sunday": "Sun"
+    },
+    "filters": {
+      "all": "All",
+      "transport": "Transport",
+      "walking": "Walking",
+      "grooming": "Grooming",
+      "sitting": "Pet sitting",
+      "training": "Training"
+    }
+  }
+}
