@@ -49,49 +49,74 @@ The frontend needs the business/provider's `user_id` to set `target_driver_id` o
 - `GET /api/v1/admin/businesses` — list all businesses with optional `?status=` filter (pending/active/rejected/all). Uses `RequireAuth + RequireAdmin` middleware. Mirrors `GET /admin/rescue-centers`.
 - `PATCH /api/v1/admin/businesses/{id}/review` — approve or reject a business. Body: `{ "status": "active"|"rejected", "reason": "optional" }`. Uses `RequireAuth + RequireAdmin`.
 - Mount both under the admin router in `cmd/server/main.go`
+- Frontend `lib/api/admin.ts` will need corresponding functions — no backend work needed for that, just noting it.
 
-### 6. Enrich transport trip list for business dashboard
+### 6. Add `pet_id` to transport trips + enrich trip list
 
-`GET /api/v1/transport?role=driver` currently returns raw Trip objects with only IDs. The business Requests tab needs:
+**Decision (resolved):** Add `pet_id` as a nullable UUID foreign key to `transport_trips`. Keep `pet_description` as a fallback for trips without a linked pet.
 
-- Requester display name (JOIN `users` on `requester_id`)
-- Pet name, photo URL, species, breed (JOIN `pets` on trip's pet reference — note: trips currently have `pet_description` as free text, not a `pet_id` foreign key)
-
-**Decision needed:** Either add a `pet_id` column to `transport_trips` and JOIN against `pets`, or keep `pet_description` and have the frontend display that instead of structured pet data. Adding `pet_id` is cleaner but requires a migration.
+- New migration: add `pet_id UUID REFERENCES pets(id)` (nullable) to `transport_trips`
+- Persist `pet_id` during `insertTrip` when provided in the request body
+- `GET /api/v1/transport` and `GET /api/v1/transport/{id}`: JOIN against `users` (for requester display name) and `pets` (for pet name, first photo URL, species, breed) when `pet_id` is set
+- Return enriched fields in the Trip response: `requester_name`, `pet_name`, `pet_photo_url`, `pet_species`, `pet_breed`
 
 ---
 
 ## From Spec #3: Adoption → Transport Flow
 
-### 7. Include `conversation_id` in `submission_reviewed` WebSocket event
+### 7. Add `conversation_id` to transport trips table (critical — system messages won't work without it)
 
-When a submission is approved, the `submission_reviewed` event broadcast to the member must include the `conversation_id` of the newly created conversation. Also include `rejection_note` when status is `rejected`.
+Currently `conversation_id` is passed in the request body during trip creation and used inline, but **never persisted** to `transport_trips`. The Accept, UpdateStatus, and Cancel handlers have no way to know which conversation to insert system messages into.
 
-### 8. Welcome system message on conversation creation
+- New migration: add `conversation_id UUID` (nullable) to `transport_trips`
+- Persist it during `insertTrip` when provided
+- Include it in all SELECT queries that populate the Trip struct
+- Add `ConversationID *string` to the Trip struct
+
+### 8. Include `conversation_id` in `submission_reviewed` WebSocket event
+
+When a submission is approved, the `submission_reviewed` event broadcast to the member must include the `conversation_id` of the newly created conversation.
+
+- In the submissions handler, **capture the return value of `EnsureConversation()`** (currently discarded on line ~208)
+- Add `conversation_id` to the event payload when status is `approved`
+- Also include `rejection_note` in the event when status is `rejected`
+
+### 9. Add `metadata` column to notifications table
+
+The notification bell needs to support navigation on click (e.g., approved → open chat, rejected → go to /pets).
+
+- New migration: add `metadata JSONB` (nullable) to `notifications` table
+- Update `insertNotification` to accept optional metadata parameter
+- On approval: `metadata: {"link": "/chat", "conversation_id": "..."}`
+- On rejection: `metadata: {"link": "/pets"}`
+- Include `metadata` in notification SELECT queries and response structs
+
+### 10. Welcome system message on conversation creation
 
 When `EnsureConversation()` creates a new conversation (on submission approval), insert a system message:
 
 > "¡Solicitud aprobada! Coordinen la entrega aquí. Si necesitan transporte, pueden solicitarlo desde el menú."
 
-This is a `sender_id = NULL` message (system message pattern already used for transport messages).
+This is a `sender_id = NULL` message (system message pattern already used for transport messages). Use the captured conversation return from item #8.
 
-### 9. System messages for transport lifecycle
+### 11. System messages for transport lifecycle
 
-Currently only trip creation inserts a system message in chat. Extend to the full lifecycle. Only insert when `conversation_id` is set on the trip.
+Currently only trip creation inserts a system message in chat. Extend to the full lifecycle. Only insert when `conversation_id` is set on the trip (now persisted per item #7).
 
 | Event | Handler location | System message text |
 |-------|-----------------|-------------------|
 | Trip requested | Already exists | "Transporte solicitado para {pet_name}" |
 | Trip accepted | `Accept` handler | "Transporte aceptado por {business_name}" |
-| Trip cancelled (by business) | `Cancel` handler | "Transporte cancelado por el proveedor" |
-| Trip cancelled (by requester) | `Cancel` handler | "Solicitud de transporte cancelada" |
+| Trip cancelled (by business) | `Cancel` handler (check `claims.Subject` against `trip.TargetDriverID`/`trip.DriverID`) | "Transporte cancelado por el proveedor" |
+| Trip cancelled (by requester) | `Cancel` handler (check `claims.Subject` against `trip.RequesterID`) | "Solicitud de transporte cancelada" |
 | Status → picking_up | `UpdateStatus` handler | "El conductor está en camino a recoger a {pet_name}" |
 | Status → in_transit | `UpdateStatus` handler | "{pet_name} está en camino" |
 | Status → completed | `UpdateStatus` handler | "Transporte completado — {pet_name} ha sido entregado/a" |
 
 Each system message should be broadcast via WebSocket to conversation participants as a `new_message` event, same pattern as the existing trip request message.
 
-To populate `{business_name}` and `{pet_name}` in these messages, the handler will need to query the business/user name and pet description. Use what's available on the trip record or do a quick lookup.
+To populate `{business_name}`: query `users.display_name` for the driver's user ID.
+To populate `{pet_name}`: use `trip.PetDescription`, or if `pet_id` is set (item #6), query `pets.name`.
 
 ---
 
@@ -101,10 +126,12 @@ To populate `{business_name}` and `{pet_name}` in these messages, the handler wi
 |---|--------|--------|----------|
 | 1 | `STORE_PHOTOS_LOCALLY` + `STORAGE_LOCAL_BASE_URL` env vars | config, main.go | **critical** (demo blocker) |
 | 2 | `user_id` in `UnifiedProvider` | serviceproviders | **critical** |
+| 7 | `conversation_id` column on `transport_trips` | transport | **critical** |
 | 3 | `price` column on businesses + in UnifiedProvider | business, serviceproviders | required |
 | 4 | `cover_photo_url` in UnifiedProvider | serviceproviders | required |
 | 5 | Admin business list + review endpoints | business | required |
-| 6 | Enrich trip list with requester/pet details | transport | required |
-| 7 | `conversation_id` + `rejection_note` in `submission_reviewed` event | submissions | required |
-| 8 | Welcome system message on conversation creation | submissions/chat | required |
-| 9 | System messages for transport lifecycle events | transport | required |
+| 6 | `pet_id` column on `transport_trips` + enrich trip list | transport | required |
+| 8 | `conversation_id` + `rejection_note` in `submission_reviewed` event | submissions | required |
+| 9 | `metadata JSONB` on notifications table | notifications | required |
+| 10 | Welcome system message on conversation creation | submissions/chat | required |
+| 11 | System messages for transport lifecycle events | transport | required |
