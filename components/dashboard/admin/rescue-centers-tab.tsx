@@ -5,10 +5,16 @@ import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash, faMapMarkerAlt, faPhone } from '@fortawesome/free-solid-svg-icons'
 import { RescueCenter } from '@/lib/api/rescue-centers'
+import { Business } from '@/lib/api/businesses'
 import * as adminApi from '@/lib/api/admin'
 import { MfaCodeInput } from '@/components/auth/mfa/mfa-code-input'
 
 type StatusFilter = 'all' | 'pending' | 'active' | 'rejected'
+type TypeFilter = 'all' | 'rescue_center' | 'business'
+
+type UnifiedItem =
+  | (RescueCenter & { _type: 'rescue_center' })
+  | (Business & { _type: 'business' })
 
 const statusLabelKeys: Record<StatusFilter, string> = {
   all: 'admin.status_all',
@@ -32,9 +38,11 @@ const statusTextKeys: Record<string, string> = {
 export function RescueCentersTab() {
   const { t } = useTranslation('pets')
   const [centers, setCenters] = useState<RescueCenter[]>([])
+  const [businesses, setBusinesses] = useState<Business[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [filter, setFilter] = useState<StatusFilter>('all')
+  const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
 
   // Reject state
   const [rejectingId, setRejectingId] = useState<string | null>(null)
@@ -45,26 +53,51 @@ export function RescueCentersTab() {
   const [deleteCode, setDeleteCode] = useState('')
 
   useEffect(() => {
-    adminApi.listAllRescueCenters().then(({ data, error: err }) => {
-      if (err || !data) { setError(err || 'Error'); setLoading(false); return }
-      setCenters(data)
+    Promise.all([
+      adminApi.listAllRescueCenters(),
+      adminApi.listAllBusinesses(),
+    ]).then(([rcResult, bizResult]) => {
+      if (rcResult.error || !rcResult.data) { setError(rcResult.error || 'Error'); setLoading(false); return }
+      setCenters(rcResult.data)
+      if (bizResult.data) setBusinesses(bizResult.data)
       setLoading(false)
     })
   }, [])
 
-  const filtered = filter === 'all' ? centers : centers.filter(c => c.status === filter)
+  const unified: UnifiedItem[] = [
+    ...centers.map(c => ({ ...c, _type: 'rescue_center' as const })),
+    ...businesses.map(b => ({ ...b, _type: 'business' as const })),
+  ]
 
-  const handleApprove = async (id: string) => {
-    const { data, error: err } = await adminApi.approveRescueCenter(id)
-    if (err || !data) return
-    setCenters(prev => prev.map(c => c.id === id ? data : c))
+  const filtered = unified.filter(item => {
+    const matchesType = typeFilter === 'all' || item._type === typeFilter
+    const matchesStatus = filter === 'all' || item.status === filter
+    return matchesType && matchesStatus
+  })
+
+  const handleApprove = async (item: UnifiedItem) => {
+    if (item._type === 'business') {
+      const { data, error: err } = await adminApi.approveBusiness(item.id)
+      if (err || !data) return
+      setBusinesses(prev => prev.map(b => b.id === item.id ? data : b))
+    } else {
+      const { data, error: err } = await adminApi.approveRescueCenter(item.id)
+      if (err || !data) return
+      setCenters(prev => prev.map(c => c.id === item.id ? data : c))
+    }
   }
 
-  const handleReject = async (id: string) => {
+  const handleReject = async (item: UnifiedItem) => {
     if (!rejectReason.trim()) return
-    const { data, error: err } = await adminApi.rejectRescueCenter(id, rejectReason.trim())
-    if (err || !data) return
-    setCenters(prev => prev.map(c => c.id === id ? data : c))
+    if (item._type === 'business') {
+      const { data, error: err } = await adminApi.rejectBusiness(item.id, rejectReason.trim())
+      if (err || !data) return
+      setBusinesses(prev => prev.map(b => b.id === item.id ? data : b))
+    } else {
+      const { data, error: err } = await adminApi.rejectRescueCenter(item.id, rejectReason.trim())
+      if (err || !data) return
+      setCenters(prev => prev.map(c => c.id === item.id ? data : c))
+    }
     setRejectingId(null)
     setRejectReason('')
   }
@@ -91,6 +124,24 @@ export function RescueCentersTab() {
 
   return (
     <div className="space-y-4">
+      {/* Type filter pills */}
+      <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit">
+        {(['all', 'rescue_center', 'business'] as TypeFilter[]).map((type) => {
+          const labelKey = type === 'all' ? 'admin.filter_all' : type === 'rescue_center' ? 'admin.filter_rescue_centers' : 'admin.filter_businesses'
+          return (
+            <button
+              key={type}
+              onClick={() => setTypeFilter(type)}
+              className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-colors ${
+                typeFilter === type ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {t(labelKey, { ns: 'business' })}
+            </button>
+          )
+        })}
+      </div>
+
       {/* Status filter tabs */}
       <div className="flex gap-1 bg-muted rounded-xl p-1 w-fit">
         {(Object.keys(statusLabelKeys) as StatusFilter[]).map((s) => (
@@ -113,97 +164,111 @@ export function RescueCentersTab() {
         </p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {filtered.map((center) => (
-            <div key={center.id} className="rounded-2xl border bg-card p-5 space-y-3">
-              {/* Header */}
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-semibold">{center.name}</h3>
-                  <p className="text-sm text-muted-foreground">{center.rnc || ''}</p>
-                </div>
-                <span className={`text-xs px-2 py-1 rounded-xl font-medium ${statusColors[center.status] || ''}`}>
-                  {statusTextKeys[center.status] ? t(statusTextKeys[center.status]) : center.status}
-                </span>
-              </div>
-
-              {/* Details */}
-              <div className="space-y-1 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faMapMarkerAlt} className="text-sm" />
-                  <span>{center.address}, {center.city}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FontAwesomeIcon icon={faPhone} className="text-sm" />
-                  <span>{center.phone}</span>
-                </div>
-                {center.website && <p className="text-xs truncate">{center.website}</p>}
-                {center.instagram && <p className="text-xs">{center.instagram}</p>}
-              </div>
-
-              {/* Reject reason */}
-              {center.status === 'rejected' && center.reject_reason && (
-                <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-xl">
-                  {t('admin.reject_reason')} {center.reject_reason}
-                </p>
-              )}
-
-              {/* Reject inline input */}
-              {rejectingId === center.id && (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={rejectReason}
-                    onChange={(e) => setRejectReason(e.target.value)}
-                    placeholder={t('admin.reject_placeholder')}
-                    className="w-full px-3 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => handleReject(center.id)}
-                      disabled={!rejectReason.trim()}
-                      className="flex-1 py-1.5 px-3 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
-                    >
-                      {t('confirm', { ns: 'common' })}
-                    </button>
-                    <button
-                      onClick={() => { setRejectingId(null); setRejectReason('') }}
-                      className="flex-1 py-1.5 px-3 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
-                    >
-                      {t('cancel', { ns: 'common' })}
-                    </button>
+          {filtered.map((item) => {
+            const city = item._type === 'rescue_center' ? (item as RescueCenter).city : undefined
+            const website = item._type === 'rescue_center' ? (item as RescueCenter).website : undefined
+            const rejectReason_ = item._type === 'rescue_center' ? (item as RescueCenter).reject_reason : undefined
+            return (
+              <div key={`${item._type}-${item.id}`} className="rounded-2xl border bg-card p-5 space-y-3">
+                {/* Header */}
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">{item.rnc || ''}</p>
+                    <span className={`inline-block text-xs px-2 py-1 rounded-xl font-medium ${
+                      item._type === 'rescue_center'
+                        ? 'bg-blue-500/20 text-blue-500'
+                        : 'bg-amber-500/20 text-amber-500'
+                    }`}>
+                      {t(item._type === 'rescue_center' ? 'admin.type_rescue_center' : 'admin.type_business', { ns: 'business' })}
+                    </span>
                   </div>
+                  <span className={`text-xs px-2 py-1 rounded-xl font-medium ${statusColors[item.status] || ''}`}>
+                    {statusTextKeys[item.status] ? t(statusTextKeys[item.status]) : item.status}
+                  </span>
                 </div>
-              )}
 
-              {/* Actions */}
-              {rejectingId !== center.id && (
-                <div className="flex gap-2">
-                  {center.status === 'pending' && (
-                    <>
-                      <button
-                        onClick={() => handleApprove(center.id)}
-                        className="flex-1 py-1.5 px-3 bg-green-500/20 border border-green-500/40 rounded-xl text-sm font-medium text-green-500 hover:bg-green-500/30 transition-colors"
-                      >
-                        {t('admin.approve')}
-                      </button>
-                      <button
-                        onClick={() => setRejectingId(center.id)}
-                        className="flex-1 py-1.5 px-3 bg-destructive/20 border border-destructive/40 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/30 transition-colors"
-                      >
-                        {t('admin.reject')}
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => setDeletingId(center.id)}
-                    className="py-1.5 px-3 border border-input rounded-xl text-sm text-muted-foreground hover:bg-muted transition-colors"
-                  >
-                    <FontAwesomeIcon icon={faTrash} className="text-sm" />
-                  </button>
+                {/* Details */}
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faMapMarkerAlt} className="text-sm" />
+                    <span>{item.address}{city ? `, ${city}` : ''}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FontAwesomeIcon icon={faPhone} className="text-sm" />
+                    <span>{item.phone}</span>
+                  </div>
+                  {website && <p className="text-xs truncate">{website}</p>}
+                  {item.instagram && <p className="text-xs">{item.instagram}</p>}
                 </div>
-              )}
-            </div>
-          ))}
+
+                {/* Reject reason */}
+                {item.status === 'rejected' && rejectReason_ && (
+                  <p className="text-xs text-destructive bg-destructive/10 p-2 rounded-xl">
+                    {t('admin.reject_reason')} {rejectReason_}
+                  </p>
+                )}
+
+                {/* Reject inline input */}
+                {rejectingId === item.id && (
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={rejectReason}
+                      onChange={(e) => setRejectReason(e.target.value)}
+                      placeholder={t('admin.reject_placeholder')}
+                      className="w-full px-3 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleReject(item)}
+                        disabled={!rejectReason.trim()}
+                        className="flex-1 py-1.5 px-3 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                      >
+                        {t('confirm', { ns: 'common' })}
+                      </button>
+                      <button
+                        onClick={() => { setRejectingId(null); setRejectReason('') }}
+                        className="flex-1 py-1.5 px-3 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
+                      >
+                        {t('cancel', { ns: 'common' })}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                {rejectingId !== item.id && (
+                  <div className="flex gap-2">
+                    {item.status === 'pending' && (
+                      <>
+                        <button
+                          onClick={() => handleApprove(item)}
+                          className="flex-1 py-1.5 px-3 bg-green-500/20 border border-green-500/40 rounded-xl text-sm font-medium text-green-500 hover:bg-green-500/30 transition-colors"
+                        >
+                          {t('admin.approve')}
+                        </button>
+                        <button
+                          onClick={() => setRejectingId(item.id)}
+                          className="flex-1 py-1.5 px-3 bg-destructive/20 border border-destructive/40 rounded-xl text-sm font-medium text-destructive hover:bg-destructive/30 transition-colors"
+                        >
+                          {t('admin.reject')}
+                        </button>
+                      </>
+                    )}
+                    {item._type === 'rescue_center' && (
+                      <button
+                        onClick={() => setDeletingId(item.id)}
+                        className="py-1.5 px-3 border border-input rounded-xl text-sm text-muted-foreground hover:bg-muted transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faTrash} className="text-sm" />
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 
