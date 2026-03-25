@@ -9,6 +9,7 @@ import { requestTrip, Trip } from '@/lib/api/transport'
 import { listUserPets } from '@/lib/api/user-pets'
 import { listPets } from '@/lib/api/pets'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
+import { ProviderPicker } from '@/components/transport/provider-picker'
 
 interface PetOption {
   id: string
@@ -18,6 +19,7 @@ interface PetOption {
 interface TransportCreationFormProps {
   initialPetId?: string
   conversationId?: string
+  providerId?: string
   onTripCreated: (trip: Trip) => void
 }
 
@@ -35,7 +37,7 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   }
 }
 
-export function TransportCreationForm({ initialPetId, conversationId, onTripCreated }: TransportCreationFormProps) {
+export function TransportCreationForm({ initialPetId, conversationId, providerId, onTripCreated }: TransportCreationFormProps) {
   const { t } = useTranslation('transport')
   const { user } = useAuth()
   const [pets, setPets] = useState<PetOption[]>([])
@@ -46,6 +48,8 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
   const [dropoffError, setDropoffError] = useState('')
   const [submitError, setSubmitError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [selectedProviderId, setSelectedProviderId] = useState(providerId ?? '')
+  const [pickerOpen, setPickerOpen] = useState(!providerId)
 
   // Load pets based on role
   useEffect(() => {
@@ -102,6 +106,10 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
 
     const { data, error } = await requestTrip({
       pet_id: selectedPetId,
+      target_driver_id: selectedProviderId,
+      pickup_address: pickupAddress,
+      pickup_lat: pickupCoords.lat,
+      pickup_lng: pickupCoords.lng,
       stops: [
         { address: pickupAddress, lat: pickupCoords.lat, lng: pickupCoords.lng },
         { address: dropoffAddress, lat: dropoffCoords.lat, lng: dropoffCoords.lng },
@@ -120,6 +128,18 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
 
   return (
     <div className="absolute mx-170 mb-90 bottom-4 left-4 right-4 z-20">
+      <ProviderPicker
+        open={pickerOpen}
+        onOpenChange={(open) => {
+          // Only allow closing if a provider is already selected
+          if (!open && selectedProviderId) setPickerOpen(false)
+          else if (open) setPickerOpen(true)
+        }}
+        onSelect={(userId) => {
+          setSelectedProviderId(userId)
+          setPickerOpen(false)
+        }}
+      />
       <form onSubmit={handleSubmit} className="bg-primary/95 backdrop-blur-xl rounded-2xl border border-pop-750 p-4 space-y-3">
         {/* Pickup */}
         <div>

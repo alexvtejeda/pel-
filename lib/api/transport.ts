@@ -40,10 +40,10 @@ export interface DriverLocation {
 interface RequestTripPayload {
   pet_id: string
   pet_description?: string
-  target_driver_id: string
-  pickup_address: string
-  pickup_lat: number
-  pickup_lng: number
+  target_driver_id?: string
+  pickup_address?: string
+  pickup_lat?: number
+  pickup_lng?: number
   stops: { address: string; lat: number; lng: number }[]
   conversation_id?: string
   rescue_center_id?: string

@@ -36,8 +36,10 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
 
   const statusMessage = (() => {
     switch (trip.status) {
-      case 'pending': return t('drawer.searching_driver')
-      case 'active': return t('drawer.pet_on_way')
+      case 'requested':
+      case 'accepted': return t('drawer.searching_driver')
+      case 'picking_up':
+      case 'in_transit': return t('drawer.pet_on_way')
       case 'completed': return t('drawer.delivery_complete')
       case 'cancelled': return t('drawer.trip_cancelled')
       default: return ''
@@ -46,8 +48,10 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
 
   const statusColor = (() => {
     switch (trip.status) {
-      case 'pending': return 'bg-yellow-500/20 text-yellow-500'
-      case 'active': return 'bg-pop-500/20 text-pop-500'
+      case 'requested':
+      case 'accepted': return 'bg-yellow-500/20 text-yellow-500'
+      case 'picking_up':
+      case 'in_transit': return 'bg-pop-500/20 text-pop-500'
       case 'completed': return 'bg-green-500/20 text-green-500'
       case 'cancelled': return 'bg-destructive/20 text-destructive'
       default: return 'bg-muted text-muted-foreground'
@@ -127,8 +131,8 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
             </div>
           </div>
 
-          {/* Cancel button — only for pending/active trips */}
-          {(trip.status === 'pending' || trip.status === 'active') && (
+          {/* Cancel button — only for pre-transit trips */}
+          {(trip.status === 'requested' || trip.status === 'accepted' || trip.status === 'picking_up' || trip.status === 'in_transit') && (
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <button className="w-full py-2.5 border border-red-500/40 text-red-500 rounded-xl text-xs font-medium">

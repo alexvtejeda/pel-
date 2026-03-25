@@ -12,7 +12,7 @@ import { TransportStepper } from './transport-stepper'
 import { TransportDrawer } from './transport-drawer'
 import { TransportCreationForm } from './transport-creation-form'
 
-type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'cancelled'
+type PageState = 'loading' | 'none' | 'requested' | 'accepted' | 'picking_up' | 'in_transit' | 'completed' | 'cancelled'
 
 interface TransportPageProps {
   initialPetId?: string
@@ -122,7 +122,7 @@ export function TransportPage({ initialPetId, conversationId, tripId, providerId
 
   return (
     <div className="relative h-screen w-full overflow-hidden">
-      {!connected && trip && (trip.status === 'pending' || trip.status === 'active') && (
+      {!connected && trip && (trip.status === 'requested' || trip.status === 'accepted' || trip.status === 'picking_up' || trip.status === 'in_transit') && (
         <div className="absolute top-16 left-4 right-4 z-30 bg-yellow-500/90 text-background text-center text-xs font-medium py-1.5 rounded-xl">
           {t('connection.reconnecting')}
         </div>
