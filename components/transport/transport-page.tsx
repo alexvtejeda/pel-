@@ -3,7 +3,7 @@
 import 'leaflet/dist/leaflet.css'
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Trip, DriverLocation, listTrips, cancelTrip as cancelTripApi } from '@/lib/api/transport'
+import { Trip, DriverLocation, listTrips, getTrip, cancelTrip as cancelTripApi } from '@/lib/api/transport'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import dynamic from 'next/dynamic'
 
@@ -17,9 +17,11 @@ type PageState = 'loading' | 'none' | 'pending' | 'active' | 'completed' | 'canc
 interface TransportPageProps {
   initialPetId?: string
   conversationId?: string
+  tripId?: string
+  providerId?: string
 }
 
-export function TransportPage({ initialPetId, conversationId }: TransportPageProps) {
+export function TransportPage({ initialPetId, conversationId, tripId, providerId }: TransportPageProps) {
   const { t } = useTranslation('transport')
   const { subscribe, connected } = useWebSocket()
   const [pageState, setPageState] = useState<PageState>('loading')
@@ -28,6 +30,17 @@ export function TransportPage({ initialPetId, conversationId }: TransportPagePro
   const tripIdRef = useRef<string | null>(null)
 
   useEffect(() => {
+    if (tripId) {
+      getTrip(tripId).then(({ data }) => {
+        if (data) {
+          setTrip(data)
+          setPageState(data.status as PageState)
+        } else {
+          setPageState('none')
+        }
+      })
+      return
+    }
     listTrips().then(({ data }) => {
       if (!data || data.length === 0) {
         setPageState('none')
@@ -133,9 +146,10 @@ export function TransportPage({ initialPetId, conversationId }: TransportPagePro
         <TransportCreationForm
           initialPetId={initialPetId}
           conversationId={conversationId}
+          providerId={providerId}
           onTripCreated={(newTrip) => {
             setTrip(newTrip)
-            setPageState('pending')
+            setPageState('requested')
           }}
         />
       )}
