@@ -43,7 +43,7 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   // Track unread per conversation for read_receipt decrements
   const unreadPerConvoRef = useRef<Map<string, number>>(new Map())
 
-  const shouldConnect = user?.role === 'member' || user?.role === 'rescue_center'
+  const shouldConnect = user?.role === 'member' || user?.role === 'rescue_center' || user?.role === 'business'
 
   const dispatch = useCallback((type: string, data: any) => {
     const handlers = subscribersRef.current.get(type)
