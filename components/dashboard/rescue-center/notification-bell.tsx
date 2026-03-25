@@ -7,6 +7,7 @@ import { faBell } from '@fortawesome/free-solid-svg-icons'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { listNotifications, markNotificationRead, AppNotification } from '@/lib/api/notifications-api'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
+import { useRouter } from 'next/navigation'
 
 function timeAgo(dateStr: string): string {
   const seconds = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
@@ -21,6 +22,7 @@ function timeAgo(dateStr: string): string {
 export function NotificationBell() {
   const { t } = useTranslation('pets')
   const { subscribe } = useWebSocket()
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<AppNotification[]>([])
 
@@ -67,11 +69,15 @@ export function NotificationBell() {
   }, [subscribe])
 
   const handleClickNotification = async (id: string) => {
+    const notification = notifications.find(n => n.id === id)
     const { error } = await markNotificationRead(id)
     if (!error) {
       setNotifications(prev =>
         prev.map(n => n.id === id ? { ...n, is_read: true } : n)
       )
+      if (notification?.metadata?.link) {
+        router.push(notification.metadata.link)
+      }
     }
   }
 

@@ -6,6 +6,7 @@ export interface AppNotification {
   body: string
   is_read: boolean
   created_at: string
+  metadata?: { link?: string; conversation_id?: string }
 }
 
 export async function listNotifications(): Promise<{ data: AppNotification[] | null; error: string | null }> {
