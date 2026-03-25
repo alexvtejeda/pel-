@@ -42,34 +42,51 @@ ingress:
 
 ## Backend Changes
 
+### Hard prerequisite: `STORE_PHOTOS_LOCALLY` refactoring
+
+The backend refactoring below **must be completed and tested before the demo env vars will work.** Currently, photo storage and the `/uploads/*` file server route are both gated behind `TESTING_MODE`. Setting `TESTING_MODE=false` without this refactoring will cause the server to require all S3/MinIO env vars and `log.Fatalf` if they're missing.
+
 ### New env var: `STORE_PHOTOS_LOCALLY`
 
 Decouples photo storage from `TESTING_MODE`:
 
-- `STORE_PHOTOS_LOCALLY=true` → photos stored in PostgreSQL (current `TESTING_MODE=true` behavior, extracted)
+- `STORE_PHOTOS_LOCALLY=true` → photos stored on local disk (`./uploads/`) and served via `/uploads/*` route
 - `STORE_PHOTOS_LOCALLY=false` → photos stored in MinIO/S3 (current production path)
 
 **Work required:**
 - Add `STORE_PHOTOS_LOCALLY` to `internal/config/`
-- Extract DB photo storage logic currently gated behind `TESTING_MODE`, rewire to `STORE_PHOTOS_LOCALLY`
+- Extract local photo storage logic currently gated behind `TESTING_MODE`, rewire to `STORE_PHOTOS_LOCALLY`
+- Move the `/uploads/*` file server route gate from `cfg.TestingMode` to `cfg.StorePhotosLocally`
+- **Parameterize the local storage base URL**: `NewLocalClient("./uploads", baseURL)` must use a configurable base URL (e.g., `STORAGE_LOCAL_BASE_URL`) so photo URLs resolve to `https://api.pelurd.com/uploads/...` in demo mode instead of `http://localhost:2701/uploads/...`
 - Remove photo storage responsibility from `TESTING_MODE` entirely
-- `TESTING_MODE` retains only OTP/TOTP bypass (`"000000"` acceptance)
+- `TESTING_MODE` retains only OTP/TOTP bypass (`"000000"` acceptance) and seed data behavior
 
 ### Environment Variable Reference
 
 | Variable | Local dev | Demo (Cloudflare) |
 |---|---|---|
+| `PORT` | `2701` | `2701` |
 | `TESTING_MODE` | `true` | `false` |
 | `STORE_PHOTOS_LOCALLY` | `true` | `true` |
+| `STORAGE_LOCAL_BASE_URL` | `http://localhost:2701/uploads` | `https://api.pelurd.com/uploads` |
 | `FRONTEND_URL` | `http://localhost:3000` | `https://pelurd.com` |
 | `CORS_ALLOWED_ORIGINS` | `http://localhost:3000` | `https://pelurd.com` |
 | `COOKIE_DOMAIN` | *(empty)* | `.pelurd.com` |
 | `WEBAUTHN_RPID` | `localhost` | `pelurd.com` |
 | `WEBAUTHN_ORIGIN` | `http://localhost:3000` | `https://pelurd.com` |
 | `GOOGLE_REDIRECT_URL` | `http://localhost:2701/api/v1/auth/google/callback` | `https://api.pelurd.com/api/v1/auth/google/callback` |
+| `RESEND_API_KEY` | *(set)* | *(set — required for real MFA)* |
+| `RESEND_FROM_EMAIL` | `noreply@pelurd.com` | `noreply@pelurd.com` |
 | `NEXT_PUBLIC_API_URL` (frontend) | `http://localhost:2701` | `https://api.pelurd.com` |
 
 `TESTING_MODE` and hosting are orthogonal — any combination works.
+
+### MFA strategy for demo
+
+With `TESTING_MODE=false`, real MFA is enforced for `rescue_center` and `business` roles. This means:
+- `RESEND_API_KEY` and `RESEND_FROM_EMAIL` must be configured for email OTP delivery
+- The RC user will need to complete MFA enrollment during demo (TOTP app, email OTP, or passkey)
+- Alternatively, set `TESTING_MODE=true` during demo to bypass MFA — this only affects OTP validation, not photo storage (after the refactoring)
 
 ## Frontend Changes
 
@@ -85,10 +102,14 @@ WebSocket URL derives from `NEXT_PUBLIC_API_URL` automatically → resolves to `
 ## Demo Day Checklist (2026-03-28)
 
 ### Before
-1. Backend: update `.env` with demo values, restart server
-2. Frontend: update `.env.local` with `NEXT_PUBLIC_API_URL=https://api.pelurd.com`, restart dev server
-3. Start tunnel: `cloudflared tunnel run pelu-demo`
-4. Verify: open `https://pelurd.com` and `https://api.pelurd.com` in browser
+1. **Backend refactoring**: `STORE_PHOTOS_LOCALLY` must be implemented and tested
+2. **Google Cloud Console**: add `https://api.pelurd.com/api/v1/auth/google/callback` as an authorized redirect URI in OAuth credentials
+3. **Cloudflare**: add a redirect rule from `www.pelurd.com` → `pelurd.com` (or note: don't share the `www` URL)
+4. Backend: update `.env` with demo values, restart server
+5. Frontend: update `.env.local` with `NEXT_PUBLIC_API_URL=https://api.pelurd.com`, restart dev server
+6. Start tunnel: `cloudflared tunnel run pelu-demo`
+7. Verify: open `https://pelurd.com` and `https://api.pelurd.com` in browser
+8. Test: register a user, upload a photo, verify photo loads from public URL
 
 ### During
 - Tunnel running in a terminal
