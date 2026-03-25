@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faHandshake } from '@fortawesome/free-solid-svg-icons'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import {
@@ -101,6 +101,13 @@ export function PetsHeader() {
             className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/pets' ? 'font-medium' : 'font-light'}`}
           >
             {t('header.pets')}
+          </Link>
+          <Link
+            href="/aliados"
+            className={`flex items-center gap-1.5 text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/aliados' ? 'font-medium' : 'font-light'}`}
+          >
+            <FontAwesomeIcon icon={faHandshake} className="text-base" />
+            {t('aliados.title', { ns: 'business' })}
           </Link>
           <Link
             href="/about"
