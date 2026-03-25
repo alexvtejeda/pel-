@@ -1,6 +1,7 @@
 import { apiClient } from './client'
 import { RescueCenter } from './rescue-centers'
 import { Form, FormField } from './forms'
+import { Business } from './businesses'
 
 // --- Rescue Centers ---
 
@@ -75,6 +76,47 @@ export async function updateFormTemplate(data: { name?: string; fields?: FormFie
     })
     const json = await res.json()
     if (!res.ok) return { data: null, error: json.error || 'Error al guardar plantilla' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+// --- Businesses ---
+
+export async function listAllBusinesses(): Promise<{ data: Business[] | null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/admin/businesses')
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar negocios' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function approveBusiness(id: string): Promise<{ data: Business | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/businesses/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'active' }),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al aprobar negocio' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function rejectBusiness(id: string, reason: string): Promise<{ data: Business | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/businesses/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: 'rejected', reason }),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al rechazar negocio' }
     return { data: json, error: null }
   } catch {
     return { data: null, error: 'Error de conexión' }
