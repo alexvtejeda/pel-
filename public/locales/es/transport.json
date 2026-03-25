@@ -52,6 +52,7 @@
     "view_tracking": "Ver seguimiento"
   },
   "chat": {
-    "request_transport": "Solicitar transporte"
+    "request_transport": "Solicitar transporte",
+    "welcome_toast": "¡Solicitud aprobada! Coordinen la entrega aquí. Si necesitan transporte, pueden solicitarlo desde el menú."
   }
 }

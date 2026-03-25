@@ -52,6 +52,7 @@
     "view_tracking": "View tracking"
   },
   "chat": {
-    "request_transport": "Request transport"
+    "request_transport": "Request transport",
+    "welcome_toast": "Submission approved! Coordinate the delivery here. If you need transport, you can request it from the menu."
   }
 }

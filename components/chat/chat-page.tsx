@@ -1,16 +1,31 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faComments } from '@fortawesome/free-solid-svg-icons'
+import { toast } from 'sonner'
 import { PetsHeader } from '@/components/pets/pets-header'
 import ChatConversationList from '@/components/chat/chat-conversation-list'
 import ChatMessageThread from '@/components/chat/chat-message-thread'
 import { Conversation } from '@/lib/api/chat'
 
 export function ChatPage() {
-  const { t } = useTranslation('pets')
+  const { t } = useTranslation(['pets', 'transport'])
+  const searchParams = useSearchParams()
+  const router = useRouter()
   const [active, setActive] = useState<Conversation | null>(null)
+  const welcomeShown = useRef(false)
+
+  // Show welcome toast when arriving from submission approval
+  useEffect(() => {
+    if (searchParams.get('welcome') === '1' && !welcomeShown.current) {
+      welcomeShown.current = true
+      toast.success(t('chat.welcome_toast', { ns: 'transport' }), { duration: 10000 })
+      // Clean URL without re-render
+      router.replace('/chat', { scroll: false })
+    }
+  }, [searchParams, t, router])
 
   return (
     <div className="min-h-screen bg-muted/30">
