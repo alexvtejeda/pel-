@@ -63,8 +63,8 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
         scale,
         opacity,
         // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
-        borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76)`),
-        boxShadow: useTransform(shadowOpacity, v => `0 0 30px oklch(69.6% 0.17 13.29 / ${v})`),
+        borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76 / ${v})`),
+        boxShadow: useTransform(shadowOpacity, v => `0 0 30px oklch(0.7328 0.121 208.76 / ${v})`),
       }}
       transition={transition}
     >
@@ -98,12 +98,18 @@ export function TestimonialCarousel({
   // Offset so the active card sits centered in the container
   const centerOffset = Math.round((baseWidth - itemWidth) / 2)
 
+  // Clone 2 items on each side so 3 visible cards always have neighbors
+  const CLONES = 2
   const itemsForRender = useMemo(() => {
     if (items.length === 0) return []
-    return [items[items.length - 1], ...items, items[0]]
+    return [
+      items[items.length - 2], items[items.length - 1],
+      ...items,
+      items[0], items[1],
+    ]
   }, [items])
 
-  const [position, setPosition] = useState(1)
+  const [position, setPosition] = useState(CLONES)
   const x = useMotionValue(0)
   const [isHovered, setIsHovered] = useState(false)
   const [isJumping, setIsJumping] = useState(false)
@@ -136,26 +142,28 @@ export function TestimonialCarousel({
   }, [autoplay, autoplayDelay, isHovered, pauseOnHover, itemsForRender.length])
 
   useEffect(() => {
-    setPosition(1)
-    x.set(centerOffset - 1 * trackItemOffset)
+    setPosition(CLONES)
+    x.set(centerOffset - CLONES * trackItemOffset)
   }, [items.length, trackItemOffset, centerOffset, x])
 
   const effectiveTransition = isJumping ? { duration: 0 } : SPRING_OPTIONS
 
   const handleAnimationComplete = () => {
     if (itemsForRender.length <= 1) { setIsAnimating(false); return }
-    const lastCloneIndex = itemsForRender.length - 1
 
-    if (position === lastCloneIndex) {
+    // Jump when we've scrolled into the clone zone
+    const lastReal = CLONES + items.length - 1 // last real item index in itemsForRender
+    if (position > lastReal) {
       setIsJumping(true)
-      setPosition(1)
-      x.set(centerOffset - 1 * trackItemOffset)
+      const target = CLONES + (position - lastReal - 1)
+      setPosition(target)
+      x.set(centerOffset - target * trackItemOffset)
       requestAnimationFrame(() => { setIsJumping(false); setIsAnimating(false) })
       return
     }
-    if (position === 0) {
+    if (position < CLONES) {
       setIsJumping(true)
-      const target = items.length
+      const target = lastReal - (CLONES - 1 - position)
       setPosition(target)
       x.set(centerOffset - target * trackItemOffset)
       requestAnimationFrame(() => { setIsJumping(false); setIsAnimating(false) })
@@ -177,7 +185,7 @@ export function TestimonialCarousel({
     })
   }
 
-  const activeIndex = items.length === 0 ? 0 : (position - 1 + items.length) % items.length
+  const activeIndex = items.length === 0 ? 0 : (position - CLONES + items.length) % items.length
 
   return (
     <div className="flex flex-col items-end">
@@ -223,7 +231,7 @@ export function TestimonialCarousel({
               activeIndex === index ? 'bg-pop-550' : 'bg-muted-foreground/30'
             }`}
             animate={{ scale: activeIndex === index ? 1.2 : 1 }}
-            onClick={() => setPosition(index + 1)}
+            onClick={() => setPosition(index + CLONES)}
             transition={{ duration: 0.15 }}
           />
         ))}
