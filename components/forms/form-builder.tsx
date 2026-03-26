@@ -317,7 +317,7 @@ export function FormBuilder({ fields, onChange, formName, onNameChange, headerSl
           <div className="space-y-1">
             {field.options.slice(0, 3).map((o, i) => (
               <div key={i} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="w-3.5 h-3.5 rounded-sm border border-muted-foreground/40 shrink-0" />
+                <span className="w-3.5 h-3.5 rounded-2xl border border-muted-foreground/40 shrink-0" />
                 <span className="truncate">{o || t('forms.option_placeholder', { n: i + 1 })}</span>
               </div>
             ))}
@@ -410,7 +410,7 @@ export function FormBuilder({ fields, onChange, formName, onNameChange, headerSl
                   <span className="w-4 h-4 rounded-full border-2 border-muted-foreground/40 shrink-0" />
                 )}
                 {field.type === 'checkbox' && (
-                  <span className="w-4 h-4 rounded-sm border-2 border-muted-foreground/40 shrink-0" />
+                  <span className="w-4 h-4 rounded-2xl border-2 border-muted-foreground/40 shrink-0" />
                 )}
                 {field.type === 'dropdown' && (
                   <span className="text-sm text-muted-foreground w-5 text-right shrink-0">{idx + 1}.</span>

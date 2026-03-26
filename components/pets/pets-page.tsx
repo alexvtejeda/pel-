@@ -22,7 +22,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const useSheet = useMediaQuery('(min-width: 640px)')
   const [open, setOpen] = useState(false)
   const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
   const [castratedFilter, setCastratedFilter] = useState(false)
@@ -94,7 +94,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
       </div>
 
       {/* Desktop: Sheet from right */}
-      {isDesktop ? (
+      {useSheet ? (
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="right" className="p-0 overflow-y-auto">
             <SheetTitle className="sr-only">{selected?.name ?? ''}</SheetTitle>

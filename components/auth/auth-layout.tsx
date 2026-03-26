@@ -26,14 +26,14 @@ const accentText = {
 
 export function AuthLayout({ accent, heroTagline, children }: AuthLayoutProps) {
   return (
-    <div className="dark relative flex min-h-screen bg-[#0a0a0f]">
+    <div className="dark relative flex min-h-screen bg-primary">
       {/* Hero — desktop only */}
       <div className={`hidden md:flex flex-[1.1] relative items-center justify-center overflow-hidden ${heroGradients[accent]}`}>
         <BackgroundBeams variant={accent} />
         <PawSilhouettes className={pawColors[accent]} />
 
         <div className="relative z-10 text-center">
-          <h1 className="text-4xl font-bold text-white tracking-tight">Pelú</h1>
+          <h1 className="text-4xl font-bold text-background tracking-tight">Pelú</h1>
           <p className={`text-sm mt-2 font-medium opacity-85 ${accentText[accent]}`}>
             {heroTagline}
           </p>

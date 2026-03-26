@@ -67,7 +67,7 @@ export function DashboardShell() {
           <h1 className="text-lg font-semibold flex-1 text-sidebar-primary">{t(tabTitleKeys[activeTab])}</h1>
           <NotificationBell />
         </header>
-        <main className={`bg-background md:rounded-tl-2xl flex-1 min-h-0 ${activeTab === 'chat' ? 'overflow-hidden' : 'p-4 pb-20 md:pb-4 overflow-y-auto'}`}>
+        <main className={`bg-background md:rounded-tl-2xl flex-1 min-h-0 ${activeTab === 'chat' ? 'overflow-hidden pb-16 md:pb-0' : 'p-4 pb-20 md:pb-4 overflow-y-auto'}`}>
           {activeTab === 'pets' && <PetsTab ref={petsTabRef} onNavigateToSubmission={handleNavigateToSubmission} />}
           {activeTab === 'interested' && (
             <InterestedTab

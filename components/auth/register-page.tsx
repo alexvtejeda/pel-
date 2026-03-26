@@ -96,9 +96,7 @@ export function RegisterPage() {
         </div>
 
         <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border" />
-          </div>
+          <hr className="my-4"></hr>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-transparent text-muted-foreground">O continúa con</span>
           </div>

@@ -19,7 +19,7 @@ export function ChatPage() {
 
   // Show welcome toast when arriving from submission approval
   useEffect(() => {
-    if (searchParams.get('welcome') === '1' && !welcomeShown.current) {
+    if (searchParams?.get('welcome') === '1' && !welcomeShown.current) {
       welcomeShown.current = true
       toast.success(t('chat.welcome_toast', { ns: 'transport' }), { duration: 10000 })
       // Clean URL without re-render

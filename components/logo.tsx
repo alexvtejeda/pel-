@@ -16,6 +16,7 @@ export function Logo({ width = 40, height = 40, showText = true, className = '' 
         alt="Pelú"
         width={width}
         height={height}
+        style={{ height: 'auto' }}
         priority
       />
       {showText && (
