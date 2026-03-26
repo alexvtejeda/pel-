@@ -141,6 +141,7 @@ describe('Color & Styling Rules', () => {
     'pets-header.tsx',
     'paw-silhouettes.tsx',
     'logo.tsx',
+    'testimonial-carousel.tsx',
   ]
 
   it('10 — no inline style={{}} except allowlisted files', () => {
