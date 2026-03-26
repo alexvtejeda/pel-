@@ -108,7 +108,7 @@ export function PetGrid({
       : sortedPets.filter(p => !p.rescue_center)
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1">
       {/* Filter pills — desktop: inline row */}
       <div className="hidden sm:flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0 flex-wrap">
         {FILTERS.map((f) => (

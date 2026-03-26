@@ -35,7 +35,7 @@ export function ProviderGrid({
   const { t } = useTranslation('business')
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col flex-1">
       {/* Filter pills */}
       <div className="flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0">
         {FILTERS.map((f) => (
