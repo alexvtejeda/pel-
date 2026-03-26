@@ -40,12 +40,12 @@ interface CardProps {
 function TestimonialCard({ item, index, itemWidth, trackItemOffset, x, transition }: CardProps) {
   const range = [-(index + 1) * trackItemOffset, -index * trackItemOffset, -(index - 1) * trackItemOffset]
 
-  const rotateY = useTransform(x, range, [12, 0, -12], { clamp: false })
-  const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: false })
-  const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: false })
-  const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: false })
-  const borderOpacity = useTransform(x, range, [0, 0.25, 0], { clamp: false })
-  const shadowOpacity = useTransform(x, range, [0, 0.1, 0], { clamp: false })
+  const rotateY = useTransform(x, range, [12, 0, -12], { clamp: true })
+  const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
+  const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
+  const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
+  const borderOpacity = useTransform(x, range, [0, 0.25, 0], { clamp: true })
+  const shadowOpacity = useTransform(x, range, [0, 0.1, 0], { clamp: true })
 
   return (
     <motion.div
@@ -87,8 +87,10 @@ export function TestimonialCarousel({
   pauseOnHover = true,
 }: TestimonialCarouselProps) {
   const containerPadding = 16
-  const itemWidth = Math.round((baseWidth - containerPadding * 2) / 2.6)
+  const itemWidth = Math.round((baseWidth - containerPadding * 2) / 3.4)
   const trackItemOffset = itemWidth + GAP
+  // Offset so the active card sits centered in the container
+  const centerOffset = Math.round((baseWidth - itemWidth) / 2)
 
   const itemsForRender = useMemo(() => {
     if (items.length === 0) return []
@@ -129,8 +131,8 @@ export function TestimonialCarousel({
 
   useEffect(() => {
     setPosition(1)
-    x.set(-1 * trackItemOffset)
-  }, [items.length, trackItemOffset, x])
+    x.set(centerOffset - 1 * trackItemOffset)
+  }, [items.length, trackItemOffset, centerOffset, x])
 
   const effectiveTransition = isJumping ? { duration: 0 } : SPRING_OPTIONS
 
@@ -141,7 +143,7 @@ export function TestimonialCarousel({
     if (position === lastCloneIndex) {
       setIsJumping(true)
       setPosition(1)
-      x.set(-1 * trackItemOffset)
+      x.set(centerOffset - 1 * trackItemOffset)
       requestAnimationFrame(() => { setIsJumping(false); setIsAnimating(false) })
       return
     }
@@ -149,7 +151,7 @@ export function TestimonialCarousel({
       setIsJumping(true)
       const target = items.length
       setPosition(target)
-      x.set(-target * trackItemOffset)
+      x.set(centerOffset - target * trackItemOffset)
       requestAnimationFrame(() => { setIsJumping(false); setIsAnimating(false) })
       return
     }
@@ -172,24 +174,21 @@ export function TestimonialCarousel({
   const activeIndex = items.length === 0 ? 0 : (position - 1 + items.length) % items.length
 
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-end">
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-2xl"
-        style={{ width: `${baseWidth}px` }}
+        style={{ width: `${baseWidth}px`, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
           className="flex"
           drag={isAnimating ? false : 'x'}
           style={{
-            width: itemWidth,
             gap: `${GAP}px`,
-            perspective: 1000,
-            perspectiveOrigin: `${position * trackItemOffset + itemWidth / 2}px 50%`,
             x,
           }}
           onDragEnd={handleDragEnd}
-          animate={{ x: -(position * trackItemOffset) }}
+          animate={{ x: centerOffset - (position * trackItemOffset) }}
           transition={effectiveTransition}
           onAnimationStart={() => setIsAnimating(true)}
           onAnimationComplete={handleAnimationComplete}
