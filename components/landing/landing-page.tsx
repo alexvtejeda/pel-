@@ -73,10 +73,10 @@ export function LandingPage() {
 
           {/* Right — Marquee + Carousel */}
           <div className="flex-1 flex flex-col items-center w-full max-w-150">
-            <div className="w-full opacity-40 mb-4">
+            <div className="w-full opacity-40 mb-4 grayscale brightness-75 dark:brightness-200 dark:invert">
               <LogoLoop
                 logos={PARTNER_LOGOS}
-                logoHeight={30}
+                logoHeight={24}
                 gap={40}
                 speed={60}
                 pauseOnHover
