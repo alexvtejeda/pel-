@@ -63,7 +63,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
         scale,
         opacity,
         // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
-        borderColor: useTransform(borderOpacity, v => `oklch(69.6% 0.17 13.29 / ${v})`),
+        borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76)`),
         boxShadow: useTransform(shadowOpacity, v => `0 0 30px oklch(69.6% 0.17 13.29 / ${v})`),
       }}
       transition={transition}
@@ -93,7 +93,7 @@ export function TestimonialCarousel({
   pauseOnHover = true,
 }: TestimonialCarouselProps) {
   const containerPadding = 16
-  const itemWidth = Math.round((baseWidth - containerPadding * 2) / 3.4)
+  const itemWidth = Math.round((baseWidth - containerPadding * 2) / 2.4)
   const trackItemOffset = itemWidth + GAP
   // Offset so the active card sits centered in the container
   const centerOffset = Math.round((baseWidth - itemWidth) / 2)
@@ -187,7 +187,7 @@ export function TestimonialCarousel({
         style={{ width: `${baseWidth}px`, height: CENTER_HEIGHT, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
-          className="flex"
+          className="flex items-center"
           drag={isAnimating ? false : 'x'}
           style={{
             gap: `${GAP}px`,

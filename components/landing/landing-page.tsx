@@ -15,7 +15,7 @@ const PARTNER_LOGOS = [
   { src: '/assets/logos/partner-3.svg', alt: 'Partner 3' },
   { src: '/assets/logos/partner-4.svg', alt: 'Partner 4' },
   { src: '/assets/logos/partner-5.svg', alt: 'Partner 5' },
-  { src: '/assets/logos/partner-6.svg', alt: 'Partner 6' },
+  { src: '/assets/logos/partner-6.svg', alt: 'Partner 6'},
 ]
 
 const HOW_STEPS = [
@@ -76,7 +76,7 @@ export function LandingPage() {
             <div className="w-full opacity-40 mb-4">
               <LogoLoop
                 logos={PARTNER_LOGOS}
-                logoHeight={20}
+                logoHeight={30}
                 gap={40}
                 speed={60}
                 pauseOnHover
