@@ -56,6 +56,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, x, transitio
         rotateY,
         scale,
         opacity,
+        // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
         borderColor: useTransform(borderOpacity, v => `oklch(69.6% 0.17 13.29 / ${v})`),
         boxShadow: useTransform(shadowOpacity, v => `0 0 30px oklch(69.6% 0.17 13.29 / ${v})`),
       }}
