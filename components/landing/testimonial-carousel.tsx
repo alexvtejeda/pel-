@@ -33,19 +33,25 @@ interface CardProps {
   index: number
   itemWidth: number
   trackItemOffset: number
+  centerOffset: number
   x: any
   transition: any
 }
 
-function TestimonialCard({ item, index, itemWidth, trackItemOffset, x, transition }: CardProps) {
-  const range = [-(index + 1) * trackItemOffset, -index * trackItemOffset, -(index - 1) * trackItemOffset]
+function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset, x, transition }: CardProps) {
+  // Range accounts for centerOffset so the active card (at its animate position) gets center values
+  const range = [
+    centerOffset - (index + 1) * trackItemOffset,
+    centerOffset - index * trackItemOffset,
+    centerOffset - (index - 1) * trackItemOffset,
+  ]
 
   const rotateY = useTransform(x, range, [12, 0, -12], { clamp: true })
   const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
   const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
   const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
-  const borderOpacity = useTransform(x, range, [0, 0.25, 0], { clamp: true })
-  const shadowOpacity = useTransform(x, range, [0, 0.1, 0], { clamp: true })
+  const borderOpacity = useTransform(x, range, [0, 0.5, 0], { clamp: true })
+  const shadowOpacity = useTransform(x, range, [0, 0.15, 0], { clamp: true })
 
   return (
     <motion.div
@@ -81,7 +87,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, x, transitio
 
 export function TestimonialCarousel({
   items,
-  baseWidth = 520,
+  baseWidth = 600,
   autoplay = true,
   autoplayDelay = 4000,
   pauseOnHover = true,
@@ -178,7 +184,7 @@ export function TestimonialCarousel({
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-2xl"
-        style={{ width: `${baseWidth}px`, perspective: 1000, perspectiveOrigin: '50% 50%' }}
+        style={{ width: `${baseWidth}px`, height: CENTER_HEIGHT, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
           className="flex"
@@ -200,6 +206,7 @@ export function TestimonialCarousel({
               index={index}
               itemWidth={itemWidth}
               trackItemOffset={trackItemOffset}
+              centerOffset={centerOffset}
               x={x}
               transition={effectiveTransition}
             />
