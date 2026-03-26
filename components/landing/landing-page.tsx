@@ -72,13 +72,13 @@ export function LandingPage() {
           </div>
 
           {/* Right — Marquee + Carousel */}
-          <div className="flex-1 flex flex-col items-center w-full max-w-150">
-            <div className="w-full opacity-40 mb-4">
+          <div className="flex-1 flex flex-col items-center w-full max-w-150 bg-muted rounded-2xl p-8">
+            <div className="opacity-48 mb-4 -mx-8 w-[calc(100%+4rem)]">
               <LogoLoop
                 logos={PARTNER_LOGOS}
                 logoHeight={24}
-                gap={40}
-                speed={60}
+                gap={48}
+                speed={24}
                 pauseOnHover
                 className="[&_img]:grayscale [&_img]:brightness-75 dark:[&_img]:brightness-200 dark:[&_img]:invert"
               />
@@ -89,12 +89,10 @@ export function LandingPage() {
       </section>
 
       {/* Divider */}
-      <div className="container mx-auto max-w-6xl px-4">
-        <div className="h-px bg-border" />
-      </div>
+      <hr className="text-input"></hr>
 
       {/* How It Works */}
-      <section className="px-4 py-16">
+      <section className="bg-muted px-4 py-16">
         <div className="container mx-auto max-w-6xl text-center">
           <h2 className="text-2xl md:text-3xl font-bold mb-2">{t('how.title')}</h2>
           <p className="text-muted-foreground text-sm mb-10">{t('how.subtitle')}</p>

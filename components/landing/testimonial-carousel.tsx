@@ -50,12 +50,12 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
   const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
   const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
   const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
-  const borderOpacity = useTransform(x, range, [0, 0.5, 0], { clamp: true })
-  const shadowOpacity = useTransform(x, range, [0, 0.15, 0], { clamp: true })
+  const borderOpacity = useTransform(x, range, [0, 0.05, 0], { clamp: true })
+  const shadowOpacity = useTransform(x, range, [0, 0.2, 0], { clamp: true })
 
   return (
     <motion.div
-      className="relative shrink-0 flex flex-col justify-between bg-card border border-border rounded-2xl p-5 cursor-grab active:cursor-grabbing overflow-hidden"
+      className="relative shrink-0 flex flex-col justify-between bg-card border border-border rounded-2xl p-7 cursor-grab active:cursor-grabbing overflow-hidden"
       style={{
         width: itemWidth,
         height,
@@ -223,11 +223,11 @@ export function TestimonialCarousel({
       </div>
 
       {/* Dot indicators */}
-      <div className="flex gap-1.5 mt-4">
+      <div className="flex gap-1.5 mt-4 mr-4">
         {items.map((_, index) => (
           <motion.div
             key={index}
-            className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
+            className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-550 ${
               activeIndex === index ? 'bg-pop-550' : 'bg-muted-foreground/30'
             }`}
             animate={{ scale: activeIndex === index ? 1.2 : 1 }}
