@@ -75,7 +75,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen bg-muted">
+    <div className="flex flex-col min-h-screen bg-muted">
       <PetsHeader />
 
       <div className="container mx-auto flex-1 min-h-0 px-4 pb-16 sm:pb-0">
