@@ -88,5 +88,35 @@
     "privacy": "Privacy",
     "terms": "Terms",
     "rights": "© 2026 Pelú. All rights reserved."
+  },
+  "new_hero": {
+    "badge": "An ecosystem for your pets",
+    "title": "Find and care for your companion",
+    "subtitle": "Pelú connects adopters, rescue centers, and businesses in one place — so every pet finds a home.",
+    "cta_pets": "Browse pets",
+    "cta_register": "Sign up"
+  },
+  "how": {
+    "title": "How it works",
+    "subtitle": "Three steps to change a life",
+    "search": {
+      "title": "Search",
+      "description": "Explore available pets from verified rescue centers"
+    },
+    "adopt": {
+      "title": "Adopt",
+      "description": "Complete the adoption form and connect with the rescue center"
+    },
+    "transport": {
+      "title": "Transport",
+      "description": "Coordinate safe transport to your home with our partners"
+    }
+  },
+  "testimonials": {
+    "placeholder_1": { "quote": "Adopting Luna was the best decision. The process was super easy.", "name": "María G.", "role": "Adopter" },
+    "placeholder_2": { "quote": "Pelú helped us find homes for over 50 pets.", "name": "Rescate RD", "role": "Rescue Center" },
+    "placeholder_3": { "quote": "The transport arrived on time and my pet was safe.", "name": "Carlos P.", "role": "Adopter" },
+    "placeholder_4": { "quote": "As a partner business, we've grown alongside the platform.", "name": "PetCare SD", "role": "Partner" },
+    "placeholder_5": { "quote": "Adoption should always be this easy.", "name": "Ana R.", "role": "Adopter" }
   }
 }

@@ -88,5 +88,35 @@
     "privacy": "Privacidad",
     "terms": "Términos",
     "rights": "© 2026 Pelú. Todos los derechos reservados."
+  },
+  "new_hero": {
+    "badge": "Un ecosistema para tus mascotas",
+    "title": "Encuentra y cuida a tu compañero",
+    "subtitle": "Pelú conecta adoptantes, centros de rescate y negocios en un solo lugar — para que cada mascota encuentre un hogar.",
+    "cta_pets": "Ver mascotas",
+    "cta_register": "Registrarse"
+  },
+  "how": {
+    "title": "Cómo funciona",
+    "subtitle": "Tres pasos para cambiar una vida",
+    "search": {
+      "title": "Busca",
+      "description": "Explora mascotas disponibles de centros de rescate verificados"
+    },
+    "adopt": {
+      "title": "Adopta",
+      "description": "Completa el formulario de adopción y conecta con el rescate"
+    },
+    "transport": {
+      "title": "Transporta",
+      "description": "Coordina el transporte seguro hasta tu hogar con nuestros aliados"
+    }
+  },
+  "testimonials": {
+    "placeholder_1": { "quote": "Adoptar a Luna fue la mejor decisión. El proceso fue súper sencillo.", "name": "María G.", "role": "Adoptante" },
+    "placeholder_2": { "quote": "Pelú nos ayudó a encontrar hogares para más de 50 mascotas.", "name": "Rescate RD", "role": "Centro de Rescate" },
+    "placeholder_3": { "quote": "El transporte llegó a tiempo y mi mascota estaba segura.", "name": "Carlos P.", "role": "Adoptante" },
+    "placeholder_4": { "quote": "Como negocio aliado, hemos crecido junto a la plataforma.", "name": "PetCare SD", "role": "Aliado" },
+    "placeholder_5": { "quote": "La adopción debería ser siempre así de fácil.", "name": "Ana R.", "role": "Adoptante" }
   }
 }
