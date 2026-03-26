@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
+import { Footer } from '@/components/footer'
 
 const rolePaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
@@ -14,7 +15,7 @@ const rolePaths: Record<UserRole, string> = {
   business: '/',
 }
 
-export function LandingPage() {
+export function AboutPage() {
   const { t } = useTranslation('landing')
   const { user } = useAuth()
 
@@ -224,34 +225,7 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-12 px-4 bg-primary text-muted-foreground">
-        <div className="container mx-auto max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            <div>
-              <div className="text-2xl font-bold text-primary-foreground mb-2">Pelú</div>
-              <p className="text-sm">{t('footer.tagline')}</p>
-            </div>
-            <div>
-              <h4 className="text-primary-foreground font-semibold mb-3">{t('footer.about')}</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.about')}</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.contact')}</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-primary-foreground font-semibold mb-3">Legal</h4>
-              <ul className="space-y-2 text-sm">
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.privacy')}</Link></li>
-                <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.terms')}</Link></li>
-              </ul>
-            </div>
-          </div>
-          <div className="pt-8 border-t border-border text-center text-sm">
-            {t('footer.rights')}
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }
