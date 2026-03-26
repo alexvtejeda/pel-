@@ -50,8 +50,8 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
   const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
   const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
   const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
-  const borderOpacity = useTransform(x, range, [0, 0.05, 0], { clamp: true })
-  const shadowOpacity = useTransform(x, range, [0, 0.2, 0], { clamp: true })
+  const borderOpacity = useTransform(x, range, [0, 0.1, 0], { clamp: true })
+  const shadowOpacity = useTransform(x, range, [0, 0.18, 0], { clamp: true })
 
   return (
     <motion.div
@@ -64,7 +64,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
         opacity,
         // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
         borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76 / ${v})`),
-        boxShadow: useTransform(shadowOpacity, v => `0 0 30px oklch(0.7328 0.121 208.76 / ${v})`),
+        boxShadow: useTransform(shadowOpacity, v => `0 0 20px oklch(20% 0.008 264.695 / ${v})`),
       }}
       transition={transition}
     >
@@ -191,8 +191,8 @@ export function TestimonialCarousel({
     <div className="flex flex-col items-end">
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-2xl"
-        style={{ width: `${baseWidth}px`, height: CENTER_HEIGHT, perspective: 1000, perspectiveOrigin: '50% 50%' }}
+        className="relative overflow-hidden rounded-2xl py-4"
+        style={{ width: `${baseWidth}px`, height: CENTER_HEIGHT + 32, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
           className="flex items-center"
