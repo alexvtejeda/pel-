@@ -33,7 +33,7 @@ bun run lint
 
 **Important**: Assume the dev server (`bun run dev`) is already running. Do not start it yourself.
 
-**Testing**: Vitest + React Testing Library. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file.
+**Testing**: Vitest + React Testing Library. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file. Use `renderWithProviders()` from `components/__tests__/test-utils.tsx` instead of raw `render()` — it wraps components with i18n provider and mocks `next/navigation` + `next/image`.
 
 ## Architecture & Data Flow
 
@@ -68,7 +68,11 @@ API functions return `{ data, error }` for consistent error handling. Never thro
 - Transport events: `location_update`, `trip_status_update`, `stop_completed` (client→server); `driver_location`, `trip_status_changed`, `stop_completed`, `trip_requested` (server→client)
 - Hub uses `RegisterHandler` pattern — domains register their own WebSocket message types without modifying the chat hub
 
-### Protected Routes
+### Provider Stack (Root Layout)
+
+`app/layout.tsx` nests providers in this order: `I18nProvider` → `AuthProvider` → `WebSocketProvider` → children + `<Toaster />` (Sonner).
+
+### Protected Routes & Guards
 
 Use `ProtectedRoute` wrapper (`components/auth/protected-route.tsx`):
 ```tsx
@@ -78,6 +82,21 @@ Use `ProtectedRoute` wrapper (`components/auth/protected-route.tsx`):
 ```
 
 Automatically redirects unauthenticated users to `/auth/login` and checks role requirements. Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
+
+Additional guards: `RescueCenterGuard` (RC dashboard), `AdminGuard` (admin dashboard). No Next.js middleware — all auth is client-side via guard components.
+
+### Toast Notifications
+
+Uses **Sonner** — already mounted in root layout (`<Toaster position="top-right" richColors />`):
+```tsx
+import { toast } from 'sonner'
+toast.success('Guardado')
+toast.error('Error al guardar')
+```
+
+### App Notifications
+
+Separate from toasts. Real-time notifications via WebSocket (`new_submission`, `submission_reviewed`) + REST API (`lib/api/notifications-api.ts`). `NotificationBell` component (sheet drawer) is shared across RC and Business dashboards. Notifications support `metadata.link` for click-to-navigate.
 
 ## Gotchas
 
@@ -151,6 +170,16 @@ Required in `.env.local`:
 NEXT_PUBLIC_API_URL   # REST API base URL, e.g. http://localhost:8080
 ```
 
+## Notable Libraries
+
+- **Sonner** — toast notifications
+- **Framer Motion** / **Motion** — animations
+- **React Leaflet** + **Leaflet** — maps (transport tracking)
+- **Recharts** — charts/metrics dashboard
+- **date-fns** — date utilities
+- **qrcode.react** — QR code generation
+- **Vaul** — drawer components
+
 ## Electron Configuration
 
 - **Main process**: `electron/main.js` - Window management, app lifecycle
@@ -169,23 +198,22 @@ Configuration: `components.json`
 
 Add components: `npx shadcn@latest add [component]`
 
-## Implementation Workflow
+### Dashboard Shell Pattern
 
-> **Single plan file**: `~/.claude/plans/wise-scribbling-shore.md` is the single source of truth for all implementation plans. Never create a new plan file — always append to or edit that file only.
+All three dashboards (RC, Business, Admin) share the same layout structure: shadcn `SidebarProvider` + `SidebarInset` with a desktop sidebar and `MobileBottomNav` for mobile. Business dashboard reuses `ChatTab` and `AgendaTab` from the rescue-center components.
 
-1. Create plan in `tasks/todo.md` with checkboxes
-2. Get user approval before starting
-3. Implement incrementally, checking off items
-4. Keep changes minimal and focused
-5. Add review section to `tasks/todo.md` when complete
+## Route Structure
 
-## Key Implementation Decisions
+- `/pets` — homepage (public pet discovery grid)
+- `/about` — landing page
+- `/p/[slug]` — short URL pet detail page
+- `/adopt/[pet-id]` — adoption form fill page (member)
+- `/auth/*` — login, register, role-selection, Google callback
+- `/dashboard/rescue-center` — rescue center dashboard (tabs: pets, interested, forms, settings, agenda, metrics)
+- `/dashboard/business` — business dashboard (tabs: requests, chat, agenda, settings)
+- `/dashboard/admin` — admin dashboard
+- `/aliados` — public providers listing
+- `/chat` — messaging (member role)
+- `/transporte` — transport tracking
 
-1. **Next.js static export** for Electron compatibility (no SSR at runtime)
-2. **Custom REST API** backend replaces Firebase; auth via secure HTTP-only cookies (no client-side token storage)
-3. **Spanish-first** design — all UI defaults to Spanish
-4. **Role-based access** enforced by the backend API
-5. **Email/Password + Google OAuth** — Apple OAuth not included (requires Apple Developer Program)
-6. **Santo Domingo focus** for MVP (transport tracking scoped to this city initially)
-7. **`/pets` is the homepage** — landing page moved to `/about`
-8. **Logo asset organization** — Static assets stored in `public/assets/` for easy reuse
+**Note**: `pages/` directory exists but is empty — this project uses App Router (`app/`), not Pages Router.
