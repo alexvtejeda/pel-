@@ -72,7 +72,7 @@ export function LandingPage() {
           </div>
 
           {/* Right — Marquee + Carousel */}
-          <div className="flex-1 flex flex-col items-center w-full max-w-150 bg-muted rounded-2xl p-8">
+          <div className="flex-1 flex flex-col items-center w-full max-w-150 bg-muted rounded-2xl p-8 inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
             <div className="opacity-48 mb-4 -mx-8 w-[calc(100%+4rem)]">
               <LogoLoop
                 logos={PARTNER_LOGOS}

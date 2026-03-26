@@ -50,7 +50,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
   const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
   const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
   const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
-  const borderOpacity = useTransform(x, range, [0, 0.1, 0], { clamp: true })
+  const borderOpacity = useTransform(x, range, [0, 0.2, 0], { clamp: true })
   const shadowOpacity = useTransform(x, range, [0, 0.18, 0], { clamp: true })
 
   return (
@@ -64,7 +64,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
         opacity,
         // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
         borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76 / ${v})`),
-        boxShadow: useTransform(shadowOpacity, v => `0 0 20px oklch(20% 0.008 264.695 / ${v})`),
+        boxShadow: useTransform(shadowOpacity, v => `0 0 5px oklch(20% 0.008 264.695 / ${v})`),
       }}
       transition={transition}
     >
