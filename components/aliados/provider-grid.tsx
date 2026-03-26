@@ -50,7 +50,7 @@ export function ProviderGrid({
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-4 inset-shadow-2xl rounded-t-2xl shadow-2xl bg-background">
+      <div className="flex-1 overflow-y-auto p-4 inset-shadow-2xl rounded-t-2xl min-h-screen shadow-2xl bg-background">
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {Array.from({ length: 8 }).map((_, i) => (
