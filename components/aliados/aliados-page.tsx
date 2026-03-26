@@ -8,6 +8,7 @@ import { ProviderDetail } from './provider-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
+import { Footer } from '@/components/footer'
 
 export function AliadosPage() {
   const [providers, setProviders] = useState<UnifiedProvider[]>([])
@@ -73,6 +74,7 @@ export function AliadosPage() {
           </DrawerContent>
         </Drawer>
       )}
+      <Footer />
     </div>
   )
 }

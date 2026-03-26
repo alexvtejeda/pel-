@@ -10,6 +10,7 @@ import { PetDetail } from './pet-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
+import { Footer } from '@/components/footer'
 
 interface PetsPageProps {
   initialSelected?: Pet | null
@@ -113,6 +114,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           </DrawerContent>
         </Drawer>
       )}
+      <Footer />
     </div>
   )
 }
