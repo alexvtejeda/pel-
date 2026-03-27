@@ -127,7 +127,7 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
   }
 
   return (
-    <div className="absolute mx-170 mb-90 bottom-4 left-4 right-4 z-20">
+    <div className="absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-lg sm:max-w-xl md:max-w-2xl">
       <ProviderPicker
         open={pickerOpen}
         onOpenChange={(open) => {
