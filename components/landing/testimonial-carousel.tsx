@@ -55,15 +55,23 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
 
   return (
     <motion.div
-      className="relative shrink-0 flex flex-col justify-between bg-card border border-border rounded-2xl p-7 cursor-grab active:cursor-grabbing overflow-hidden"
+      className="relative shrink-0 flex flex-col justify-between bg-card border-2 border-primary rounded-2xl p-7 cursor-grab active:cursor-grabbing overflow-hidden"
       style={{
         width: itemWidth,
         height,
         rotateY,
         scale,
         opacity,
-        // pop-550 raw value — useTransform can't reference CSS vars; sync with --color-pop-550 in globals.css
-        borderColor: useTransform(borderOpacity, v => `oklch(0.7328 0.121 208.76 / ${v})`),
+        // Interpolate between primary (sides) and pop-550 (center). Raw OKLCH values because useTransform can't reference CSS vars.
+        borderColor: useTransform(borderOpacity, v => {
+          // v goes 0 (side) → 0.2 (center) → 0 (side)
+          const t = Math.min(v / 0.2, 1) // normalize to 0–1
+          // primary light: oklch(12.9% 0.042 264.695), pop-550: oklch(73.28% 0.121 208.76)
+          const l = 0.129 + t * (0.7328 - 0.129)
+          const c = 0.042 + t * (0.121 - 0.042)
+          const h = 264.695 + t * (208.76 - 264.695)
+          return `oklch(${l} ${c} ${h}/ 0.15)` // final alpha is 0.3 for subtlety
+        }),
         boxShadow: useTransform(shadowOpacity, v => `0 0 5px oklch(20% 0.008 264.695 / ${v})`),
       }}
       transition={transition}
@@ -106,8 +114,10 @@ export function TestimonialCarousel({
 
   const effectiveWidth = measuredWidth || baseWidth
   const containerPadding = 16
-  const itemWidth = Math.round((effectiveWidth - containerPadding * 2) / 2.4)
-  const trackItemOffset = itemWidth + GAP
+  const gap = effectiveWidth < 500 ? 8 : GAP
+  const divisor = effectiveWidth < 500 ? 1.2 : 2.0
+  const itemWidth = Math.round((effectiveWidth - containerPadding * 2) / divisor)
+  const trackItemOffset = itemWidth + gap
   // Offset so the active card sits centered in the container
   const centerOffset = Math.round((effectiveWidth - itemWidth) / 2)
 
@@ -152,9 +162,13 @@ export function TestimonialCarousel({
     return () => clearInterval(timer)
   }, [autoplay, autoplayDelay, isHovered, pauseOnHover, itemsForRender.length])
 
+  const prevItemsLength = useRef(items.length)
   useEffect(() => {
-    setPosition(CLONES)
-    x.set(centerOffset - CLONES * trackItemOffset)
+    if (prevItemsLength.current !== items.length) {
+      prevItemsLength.current = items.length
+      setPosition(CLONES)
+      x.set(centerOffset - CLONES * trackItemOffset)
+    }
   }, [items.length, trackItemOffset, centerOffset, x])
 
   const effectiveTransition = isJumping ? { duration: 0 } : SPRING_OPTIONS
@@ -199,7 +213,7 @@ export function TestimonialCarousel({
   const activeIndex = items.length === 0 ? 0 : (position - CLONES + items.length) % items.length
 
   return (
-    <div className="flex flex-col items-end">
+    <div className="flex flex-col items-end w-full">
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-2xl py-4"
@@ -209,7 +223,7 @@ export function TestimonialCarousel({
           className="flex items-center"
           drag={isAnimating ? false : 'x'}
           style={{
-            gap: `${GAP}px`,
+            gap: `${gap}px`,
             x,
           }}
           onDragEnd={handleDragEnd}

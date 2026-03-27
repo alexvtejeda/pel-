@@ -6,3 +6,7 @@
 | 4 | Marketplace Vision (Post-MVP) | Prompt7.m4a | idea-dump | pending | |
 | 5 | Hosting Strategy for Friday Demo | Prompt7.m4a | idea-dump | done | `docs/superpowers/specs/2026-03-24-hosting-cloudflare-tunnel-design.md` |
 | 6 | Validation Plan & Thesis Deadline | Prompt7.m4a | idea-dump | pending | |
+| 7 | Landing page carousel overflow on mobile | Prompt8.m4a | bug | in-progress | `docs/superpowers/specs/2026-03-27-mobile-responsiveness-design.md` |
+| 8 | Pet grid / Partners grid gap before footer | Prompt8.m4a | bug | in-progress | `docs/superpowers/specs/2026-03-27-mobile-responsiveness-design.md` |
+| 9 | Modal scroll conflict on mobile | Prompt8.m4a | bug | in-progress | `docs/superpowers/specs/2026-03-27-mobile-responsiveness-design.md` |
+| 10 | Passkeys support | Prompt8.m4a | feature-idea | in-progress | Moved to backend session |

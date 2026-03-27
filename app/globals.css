@@ -111,6 +111,17 @@
 
   --inset-shadow-decoration: inset 1px 1px 1px var(--color-pop-450);
 
+  --animate-marquee: marquee 25s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
   @keyframes accordion-down {
     from {
       height: 0;

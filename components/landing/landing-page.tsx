@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRight, faMagnifyingGlass, faPaw, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { PetsHeader } from '@/components/pets/pets-header'
 import { Footer } from '@/components/footer'
-import { LogoLoop } from '@/components/LogoLoop'
+import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
 
 const PARTNER_LOGOS = [
@@ -74,16 +74,16 @@ export function LandingPage() {
           {/* Right — Marquee + Carousel */}
           <div className="flex-1 flex flex-col items-center w-full md:max-w-150 md:bg-muted md:rounded-2xl md:p-8 md:inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
             <div className="opacity-48 mb-4 md:-mx-8 md:w-[calc(100%+4rem)]">
-              <LogoLoop
+              <LogoMarquee
                 logos={PARTNER_LOGOS}
                 logoHeight={24}
                 gap={48}
-                speed={24}
-                pauseOnHover
-                className="[&_img]:grayscale [&_img]:brightness-75 dark:[&_img]:brightness-200 dark:[&_img]:invert"
+                className="grayscale brightness-75 dark:brightness-200 dark:invert"
               />
             </div>
-            <TestimonialCarousel items={testimonials} />
+            <div className="w-full md:-mx-8 md:w-[calc(100%+4rem)]">
+              <TestimonialCarousel items={testimonials} />
+            </div>
           </div>
         </div>
       </section>

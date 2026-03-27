@@ -185,7 +185,7 @@ export function PetGrid({
         </button>
 
         {showMobileFilters && (
-          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-xl border bg-card shadow-lg p-4 space-y-3">
+          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-xl bg-card shadow-lg p-4 space-y-3 ">
             {/* Species */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.species')}</p>
@@ -241,7 +241,7 @@ export function PetGrid({
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-4 inset-shadow-2xl rounded-t-2xl shadow-2xl bg-background">
+      <div className="flex-1 overflow-y-auto p-4 pb-20 sm:pb-4 sm:inset-shadow-2xl rounded-t-2xl sm:shadow-2xl bg-background min-h-screen">
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {Array.from({ length: 8 }).map((_, i) => (

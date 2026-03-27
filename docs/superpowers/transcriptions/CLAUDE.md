@@ -24,6 +24,18 @@ See [STATUS.md](STATUS.md) for pipeline tracking (pending → in-progress → do
 6. **Validation Plan & Thesis Deadline** — pending / idea-dump
    Three-segment validation plan (RC, business, adopter) and thesis timeline (~2026-04-07).
 
+7. **Landing page carousel overflow on mobile** — `pending` — bug / frontend
+   Carousel cards overflow container, LogoLoop paused, horizontal scroll and centering issues on mobile `/`
+
+8. **Pet grid / Partners grid gap before footer** — `pending` — bug / frontend
+   Large empty gap between grid content and footer on `/pets` and `/aliados`
+
+9. **Modal scroll conflict on mobile** — `pending` — bug / frontend
+   Bottom navbar overlaps publish button; modal doesn't lock background scroll on mobile
+
+10. **Passkeys support** — `pending` — feature-idea / fullstack
+    Passkey generation not working; nice-to-have, not needed for demo
+
 ## Update Rules
 
 When the brainstorming skill completes a spec from a brief, update:
