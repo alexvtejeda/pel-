@@ -83,7 +83,7 @@ Use `ProtectedRoute` wrapper (`components/auth/protected-route.tsx`):
 
 Automatically redirects unauthenticated users to `/auth/login` and checks role requirements. Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
 
-Additional guards: `RescueCenterGuard` (RC dashboard), `AdminGuard` (admin dashboard). No Next.js middleware — all auth is client-side via guard components.
+Additional guards: `RescueCenterGuard` (RC dashboard), `BusinessGuard` (business dashboard), `AdminGuard` (admin dashboard). No Next.js middleware — all auth is client-side via guard components.
 
 ### Toast Notifications
 
@@ -106,6 +106,8 @@ Separate from toasts. Real-time notifications via WebSocket (`new_submission`, `
 - **`hooks/` at the project root** is a Claude Code protection script (prevents reading `.env` files), **not** a React hooks directory.
 - **No `tailwind.config.ts`** — this project uses Tailwind v4. All theme configuration lives in `app/globals.css` via the `@theme {}` block.
 - **Forms API uses PATCH** — not PUT. Verify both route and CORS when working with form endpoints.
+- **`LogoMarquee` over `LogoLoop`** — the landing page uses a CSS `@keyframes` marquee (`components/landing/logo-marquee.tsx`) instead of the ReactBits `LogoLoop` component. `LogoLoop` uses `requestAnimationFrame` which freezes on mobile Safari after React re-renders. The CSS animation runs on the compositor thread and never freezes.
+- **Testimonial carousel uses `ResizeObserver`** — card width is dynamic, not hardcoded. The `baseWidth` prop is only a fallback before the first measurement. Don't set a fixed pixel width on the carousel container.
 
 ## Design System
 
@@ -145,7 +147,7 @@ Use `text-*` classes (`text-sm`, `text-base`, `text-lg`, etc.) for sizing — no
 
 Translation files: `public/locales/{locale}/{namespace}.json`
 
-Namespaces: `common`, `landing`, `auth`, `pets`, `transport` (implemented) — `chat` is planned but doesn't exist yet.
+Namespaces: `common`, `landing`, `auth`, `pets`, `transport`, `business` (implemented) — `chat` is planned but doesn't exist yet.
 
 **How translations work** — react-i18next with bundled resources (no HTTP fetch):
 ```tsx
@@ -173,7 +175,7 @@ NEXT_PUBLIC_API_URL   # REST API base URL, e.g. http://localhost:8080
 ## Notable Libraries
 
 - **Sonner** — toast notifications
-- **Framer Motion** / **Motion** — animations
+- **Framer Motion** / **Motion** — animations (testimonial carousel coverflow effect)
 - **React Leaflet** + **Leaflet** — maps (transport tracking)
 - **Recharts** — charts/metrics dashboard
 - **date-fns** — date utilities
@@ -204,8 +206,9 @@ All three dashboards (RC, Business, Admin) share the same layout structure: shad
 
 ## Route Structure
 
-- `/pets` — homepage (public pet discovery grid)
-- `/about` — landing page
+- `/` — landing page (hero, testimonial carousel, logo marquee, how it works)
+- `/pets` — public pet discovery grid
+- `/about` — about page
 - `/p/[slug]` — short URL pet detail page
 - `/adopt/[pet-id]` — adoption form fill page (member)
 - `/auth/*` — login, register, role-selection, Google callback
