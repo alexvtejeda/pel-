@@ -104,8 +104,10 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
       return
     }
 
+    const selectedPet = pets.find(p => p.id === selectedPetId)
     const { data, error } = await requestTrip({
       pet_id: selectedPetId,
+      pet_description: selectedPet?.name ?? '',
       target_driver_id: selectedProviderId,
       pickup_address: pickupAddress,
       pickup_lat: pickupCoords.lat,
