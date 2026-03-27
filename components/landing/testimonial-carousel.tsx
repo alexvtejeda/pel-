@@ -92,11 +92,24 @@ export function TestimonialCarousel({
   autoplayDelay = 4000,
   pauseOnHover = true,
 }: TestimonialCarouselProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [measuredWidth, setMeasuredWidth] = useState(0)
+
+  useEffect(() => {
+    if (!containerRef.current) return
+    const observer = new ResizeObserver(([entry]) => {
+      setMeasuredWidth(entry.contentRect.width)
+    })
+    observer.observe(containerRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  const effectiveWidth = measuredWidth || baseWidth
   const containerPadding = 16
-  const itemWidth = Math.round((baseWidth - containerPadding * 2) / 2.4)
+  const itemWidth = Math.round((effectiveWidth - containerPadding * 2) / 2.4)
   const trackItemOffset = itemWidth + GAP
   // Offset so the active card sits centered in the container
-  const centerOffset = Math.round((baseWidth - itemWidth) / 2)
+  const centerOffset = Math.round((effectiveWidth - itemWidth) / 2)
 
   // Clone 2 items on each side so 3 visible cards always have neighbors
   const CLONES = 2
@@ -114,8 +127,6 @@ export function TestimonialCarousel({
   const [isHovered, setIsHovered] = useState(false)
   const [isJumping, setIsJumping] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
-
-  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (!pauseOnHover || !containerRef.current) return
@@ -192,7 +203,7 @@ export function TestimonialCarousel({
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-2xl py-4"
-        style={{ width: `${baseWidth}px`, height: CENTER_HEIGHT + 32, perspective: 1000, perspectiveOrigin: '50% 50%' }}
+        style={{ width: '100%', height: CENTER_HEIGHT + 32, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
           className="flex items-center"
