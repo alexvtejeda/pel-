@@ -65,10 +65,13 @@ bun run lint
 │   ├── chat/               # Real-time chat (conversation list + message thread)
 │   ├── dashboard/
 │   │   ├── rescue-center/  # RC dashboard (pets, interested, forms, settings, etc.)
+│   │   ├── business/       # Business dashboard (requests, chat, agenda, settings)
 │   │   └── admin/          # Admin dashboard (RC approvals, form templates)
 │   ├── forms/              # Adoption form builder and renderer
-│   ├── landing/            # Landing page (/about)
+│   ├── landing/            # Landing page, testimonial carousel, logo marquee
 │   ├── pets/               # Pet discovery: split grid + detail panel
+│   ├── aliados/            # Public providers listing (/aliados)
+│   ├── transport/          # Transport tracking and request flow
 │   └── ui/                 # shadcn/ui primitives
 ├── lib/
 │   ├── api/                # REST API modules (auth, pets, forms, chat, admin, etc.)
@@ -92,7 +95,7 @@ bun run lint
 ## Internationalization
 
 Spanish is the default language. Translation files live in `public/locales/{es,en}/`:
-- `common.json`, `landing.json`, `auth.json`, `pets.json`
+- `common.json`, `landing.json`, `auth.json`, `pets.json`, `transport.json`
 
 ## User Roles
 
@@ -106,12 +109,13 @@ Spanish is the default language. Translation files live in `public/locales/{es,e
 
 - ✅ Phase 1: Project foundation (Electron + Next.js, design system, i18n)
 - ✅ Phase 2: Authentication (HTTP-only cookies, Email/Password + Google OAuth, role selection, MFA)
-- ✅ Phase 3: Landing page
+- ✅ Phase 3: Landing page (hero, testimonial carousel, logo marquee, responsive mobile layout)
 - ✅ Phase 4: Rescue center dashboard, pet discovery, short URL sharing, adoption forms
-- Phase 5: Chat system (in progress)
-- Phase 6: Transport tracking (backend complete)
-- Phase 6b: Service provider discovery (backend complete)
-- Phase 7: Payment integration (PayPal/Apple Wallet redirect only)
+- ✅ Phase 5: Chat system (real-time messaging via WebSocket)
+- ✅ Phase 6: Transport tracking (request flow, live map, provider picker)
+- ✅ Phase 6b: Service provider discovery (/aliados public listing)
+- ✅ Phase 7: Business dashboard (onboarding, guard, settings)
+- Phase 8: Payment integration (PayPal/Apple Wallet redirect only)
 
 ## License
 
