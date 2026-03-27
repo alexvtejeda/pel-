@@ -33,6 +33,7 @@ export interface Business {
   cover_photo_url?: string
   price?: number | null
   status: string
+  rejection_reason?: string
 }
 
 export interface CreateBusinessInput {
