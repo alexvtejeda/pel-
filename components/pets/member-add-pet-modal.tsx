@@ -210,7 +210,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
           exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-50 flex items-center justify-center"
+          className="fixed inset-0 z-60 flex items-center justify-center"
           onClick={handleClose}
         >
           <div className="fixed inset-0 bg-black/50" />
@@ -219,7 +219,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
             animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
             transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-50 bg-card border rounded-2xl w-[90%] md:max-w-3xl flex flex-col overflow-hidden max-h-[90vh]"
+            className="relative z-60 bg-card border rounded-2xl w-[90%] md:max-w-3xl flex flex-col overflow-hidden max-h-[calc(90vh-4rem)] sm:max-h-[90vh] overscroll-contain"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
