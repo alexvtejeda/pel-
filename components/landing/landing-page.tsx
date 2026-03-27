@@ -39,7 +39,7 @@ export function LandingPage() {
       <PetsHeader />
 
       {/* Hero */}
-      <section className="px-4 pt-12 pb-16">
+      <section className="px-4 pt-12 pb-16 overflow-hidden">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row gap-12 md:gap-8 items-center">
           {/* Left — Copy */}
           <div className="flex-1 flex flex-col items-start">
@@ -72,8 +72,8 @@ export function LandingPage() {
           </div>
 
           {/* Right — Marquee + Carousel */}
-          <div className="flex-1 flex flex-col items-center w-full max-w-150 bg-muted rounded-2xl p-8 inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
-            <div className="opacity-48 mb-4 -mx-8 w-[calc(100%+4rem)]">
+          <div className="flex-1 flex flex-col items-center w-full md:max-w-150 md:bg-muted md:rounded-2xl md:p-8 md:inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
+            <div className="opacity-48 mb-4 md:-mx-8 md:w-[calc(100%+4rem)]">
               <LogoLoop
                 logos={PARTNER_LOGOS}
                 logoHeight={24}
