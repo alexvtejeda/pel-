@@ -29,7 +29,7 @@ export function ProviderPicker({ open, onOpenChange, onSelect }: ProviderPickerP
     if (!open) return
     setLoading(true)
     setError(null)
-    listProviders({ service: 'transport' }).then(({ data, error: err }) => {
+    listProviders({ service: 'taxi' }).then(({ data, error: err }) => {
       if (err || !data) {
         setError(err || 'Error')
         setLoading(false)
