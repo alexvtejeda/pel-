@@ -8,7 +8,8 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import {
@@ -72,6 +73,8 @@ export function PetsHeader() {
       }
     }).catch(() => {})
   }, [user])
+
+  const avatarInitial = (user?.display_name?.[0] || user?.email?.[0] || '?').toUpperCase()
 
   const lang = (i18n.language?.startsWith('en') ? 'en' : 'es') as 'es' | 'en'
   const roleLabel = user?.role ? ROLE_LABELS[user.role]?.[lang] ?? user.role : null
@@ -142,10 +145,15 @@ export function PetsHeader() {
           {user && (
             <button
               onClick={() => setSheetOpen(true)}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={t('header.my_account')}
             >
-              <FontAwesomeIcon icon={faCircleUser} className="text-xl" />
+              <Avatar className="h-8 w-8">
+                {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.display_name || user.email} />}
+                <AvatarFallback className="bg-muted text-muted-foreground text-sm font-medium">
+                  {avatarInitial}
+                </AvatarFallback>
+              </Avatar>
             </button>
           )}
         </div>
@@ -160,7 +168,12 @@ export function PetsHeader() {
 
           {/* Profile section */}
           <div className="flex flex-col items-center gap-3 pt-8 pb-6">
-            <FontAwesomeIcon icon={faCircleUser} className="text-7xl text-muted-foreground/40" />
+            <Avatar className="h-16 w-16">
+              {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.display_name || user.email} />}
+              <AvatarFallback className="bg-muted text-muted-foreground text-xl font-medium">
+                {avatarInitial}
+              </AvatarFallback>
+            </Avatar>
             <div className="text-center">
               <p className="text-lg font-semibold">
                 {user?.display_name || user?.email}
@@ -184,9 +197,16 @@ export function PetsHeader() {
               <Link
                 href={dashboardHref}
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
+                  user?.role === 'rescue_center'
+                    ? 'bg-pop-550/10 hover:bg-pop-550/20'
+                    : 'hover:bg-muted'
+                }`}
               >
-                <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
+                <FontAwesomeIcon
+                  icon={faTableColumns}
+                  className={user?.role === 'rescue_center' ? 'text-xl text-pop-550' : 'text-lg text-muted-foreground'}
+                />
                 {t('header.dashboard')}
               </Link>
             )}
