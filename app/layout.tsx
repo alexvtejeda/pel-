@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/contexts/auth-context"
 import { WebSocketProvider } from "@/lib/contexts/websocket-context"
 import { I18nProvider } from "@/components/i18n-provider"
 import { Toaster } from "sonner"
+import { RCApprovalListener } from "@/components/auth/rc-approval-listener"
 
 export const metadata: Metadata = {
   title: "Pelú - Adopción de Mascotas",
@@ -25,6 +26,7 @@ export default function RootLayout({
           <AuthProvider>
             <WebSocketProvider>
               {children}
+              <RCApprovalListener />
               <Toaster position="top-right" richColors />
             </WebSocketProvider>
           </AuthProvider>
