@@ -197,10 +197,10 @@ export function PetsHeader() {
               <Link
                 href={dashboardHref}
                 onClick={() => setSheetOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-xl transition-colors ${
+                className={`flex items-center gap-3 px-4 text-sm font-medium rounded-xl transition-colors ${
                   user?.role === 'rescue_center'
-                    ? 'bg-pop-550/10 hover:bg-pop-550/20'
-                    : 'hover:bg-muted'
+                    ? 'py-4 bg-pop-550/10 hover:bg-pop-550/20'
+                    : 'py-3 hover:bg-muted'
                 }`}
               >
                 <FontAwesomeIcon
