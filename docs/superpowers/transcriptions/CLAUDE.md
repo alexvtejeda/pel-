@@ -1,44 +1,14 @@
 # Transcriptions
 
-This directory contains structured briefs generated from voice recordings. Each brief captures a distinct topic, feature idea, or concern raised during brainstorming, meetings, or testing sessions.
-
-See [STATUS.md](STATUS.md) for pipeline tracking (pending → in-progress → done).
+This directory contains structured briefs generated from voice recordings. See `STATUS.md` for pipeline tracking.
 
 ## Briefs
 
-1. **Services Route & Business Discovery** — pending / idea-dump / frontend
-   New public route to display registered businesses and service-offering members.
-
-2. **Business Dashboard Features** — pending / idea-dump / fullstack
-   Dashboard feature set for business role, including fee/commission model decisions.
-
-3. **Adoption Flow — Transport Integration** — pending / idea-dump / fullstack
-   Finishing the adoption flow by connecting adopters with transport services.
-
-4. **Marketplace Vision (Post-MVP)** — pending / idea-dump
-   Member pet profiles, vaccination reminders, service targeting — future marketplace expansion.
-
-5. **Hosting Strategy for Friday Demo** — pending / idea-dump
-   Cloudflare Tunnel setup for the 2026-03-28 rescue center demo.
-
-6. **Validation Plan & Thesis Deadline** — pending / idea-dump
-   Three-segment validation plan (RC, business, adopter) and thesis timeline (~2026-04-07).
-
-7. **Landing page carousel overflow on mobile** — `pending` — bug / frontend
-   Carousel cards overflow container, LogoLoop paused, horizontal scroll and centering issues on mobile `/`
-
-8. **Pet grid / Partners grid gap before footer** — `pending` — bug / frontend
-   Large empty gap between grid content and footer on `/pets` and `/aliados`
-
-9. **Modal scroll conflict on mobile** — `pending` — bug / frontend
-   Bottom navbar overlaps publish button; modal doesn't lock background scroll on mobile
-
-10. **Passkeys support** — `pending` — feature-idea / fullstack
-    Passkey generation not working; nice-to-have, not needed for demo
+1. **RC Registration Flow Redesign** — `pending` — feature-idea — frontend — Remove optional pet upload from RC wizard, add post-registration "add pets while you wait?" step
+2. **Profile Avatar in Header** — `pending` — ui-tweak — frontend — Replace FA profile icon with shadcn Avatar, make dashboard link more prominent for RC
+3. **RC Approval Notification via WebSocket** — `pending` — feature-idea — frontend + backend — Real-time toast when admin approves RC, offer redirect to dashboard
+4. **Events System** — `pending` — feature-idea — frontend + backend — RC creates events from Agenda tab, new public /eventos route with attendance tracking
 
 ## Update Rules
 
-When the brainstorming skill completes a spec from a brief, update:
-- The brief's status in STATUS.md to `in-progress` or `done`
-- Record the spec path in the Spec Path column
-- Update the status label in the Briefs list above
+When the brainstorming skill completes a spec from a brief, update that brief's status in STATUS.md to `in-progress` or `done` and record the spec path.
