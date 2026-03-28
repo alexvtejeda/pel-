@@ -1,20 +1,75 @@
 'use client'
 import { OnboardingNav } from './onboarding-nav'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import type { ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faPaw,
+  faArrowUpFromBracket,
+  faPlus,
+  faXmark,
+  faMars,
+  faVenus,
+  faDog,
+  faCat,
+  faSyringe,
+  faScissors,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTranslation } from 'react-i18next'
 import { createRescueCenter, getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { BackgroundBeams } from '@/components/ui/beams'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { getMethods } from '@/lib/api/mfa'
+import Carousel from '@/components/Carousel'
+import { createPet, uploadPhotos } from '@/lib/api/pets'
+
+
+interface PendingPhoto {
+  url: string
+  file: File
+}
+
+function CardCarousel({ urls }: { urls: string[] }) {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [width, setWidth] = useState(0)
+
+  const items = urls.map((url, i) => ({
+    id: i,
+    image: url,
+    title: '',
+    description: '',
+    icon: null as unknown as ReactNode,
+  }))
+
+  useEffect(() => {
+    if (containerRef.current) setWidth(containerRef.current.offsetWidth)
+  }, [])
+
+  return (
+    <div ref={containerRef} className="w-full h-full">
+      {width > 0 && (
+        <Carousel
+          items={items}
+          baseWidth={width}
+          autoplay={urls.length > 1}
+          autoplayDelay={3000}
+          pauseOnHover
+          loop={urls.length > 1}
+          containerPadding={0}
+          dotsOverlay
+          className="relative overflow-hidden w-full h-full"
+        />
+      )}
+    </div>
+  )
+}
 
 
 export function RescueCenterWizard() {
   const router = useRouter()
+  const { t } = useTranslation('auth')
 
   // If RC already exists, redirect to dashboard (prevents re-showing form after approval)
   useEffect(() => {
@@ -35,6 +90,74 @@ export function RescueCenterWizard() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
+
+  // Post-registration pet upload state
+  const [showPetForm, setShowPetForm] = useState(false)
+  const [petName, setPetName] = useState('')
+  const [petDescription, setPetDescription] = useState('')
+  const [petAge, setPetAge] = useState('')
+  const [petGender, setPetGender] = useState<'male' | 'female'>('male')
+  const [petSpecies, setPetSpecies] = useState<'dog' | 'cat'>('dog')
+  const [petAgeUnit, setPetAgeUnit] = useState<'months' | 'years'>('years')
+  const [petVaccinated, setPetVaccinated] = useState(false)
+  const [petCastrated, setPetCastrated] = useState(false)
+  const [petSize, setPetSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [petPhotos, setPetPhotos] = useState<PendingPhoto[]>([])
+  const [dragging, setDragging] = useState(false)
+  const [petSubmitting, setPetSubmitting] = useState(false)
+  const [petAdded, setPetAdded] = useState(false)
+  const photoInputRef = useRef<HTMLInputElement>(null)
+  const MAX_PHOTOS = 5
+
+  const addFiles = (files: FileList | File[]) => {
+    const valid = Array.from(files)
+      .filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
+      .slice(0, MAX_PHOTOS - petPhotos.length)
+    if (valid.length === 0) return
+    setPetPhotos((prev) => [
+      ...prev,
+      ...valid.map((f) => ({ url: URL.createObjectURL(f), file: f })),
+    ])
+  }
+
+  const handlePetSubmit = async () => {
+    if (!petName.trim()) return
+    setPetSubmitting(true)
+    try {
+      const pet = await createPet({
+        name: petName.trim(),
+        description: petDescription.trim(),
+        age: petAge !== '' ? (petAgeUnit === 'years' ? parseInt(petAge, 10) * 12 : parseInt(petAge, 10)) : 0,
+        gender: petGender,
+        species: petSpecies,
+        vaccinated: petVaccinated,
+        castrated: petCastrated,
+        size: petSize,
+      })
+      if (petPhotos.length > 0) {
+        await uploadPhotos(pet.id, petPhotos.map((p) => p.file))
+      }
+      petPhotos.forEach((p) => URL.revokeObjectURL(p.url))
+      setPetAdded(true)
+    } catch {
+      // Pet creation failure is non-fatal
+    }
+    setPetSubmitting(false)
+  }
+
+  const resetPetForm = () => {
+    setPetName('')
+    setPetDescription('')
+    setPetAge('')
+    setPetGender('male')
+    setPetSpecies('dog')
+    setPetAgeUnit('years')
+    setPetVaccinated(false)
+    setPetCastrated(false)
+    setPetSize('medium')
+    setPetPhotos([])
+    setPetAdded(false)
+  }
 
   const handleSubmit = async () => {
     if (!centerName.trim() || !phone.trim() || !address.trim()) return
@@ -92,24 +215,217 @@ export function RescueCenterWizard() {
   }
 
   if (submitted) {
+    // Pet upload form
+    if (showPetForm && !petAdded) {
+      return (
+        <div className="dark relative min-h-screen overflow-hidden bg-background">
+          <BackgroundBeams />
+          <main className="backdrop-blur-sm my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30 inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
+            <h1 className="text-2xl font-bold tracking-tight mb-1">{t('rc_wizard.add_pets_prompt')}</h1>
+            <p className="text-sm text-muted-foreground mb-10">{t('rc_wizard.success_subtitle')}</p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-y-8 gap-x-8">
+              {/* Left: Pet fields */}
+              <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Nombre</label>
+                  <input type="text" placeholder="ej. Coco" value={petName} onChange={(e) => setPetName(e.target.value)}
+                    className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Descripción</label>
+                  <input type="text" placeholder="ej. Muy cariñoso, bueno con niños…" value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
+                    className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Edad</label>
+                  <div className="flex gap-2">
+                    <input type="number" min={0} placeholder="ej. 8" value={petAge} onChange={(e) => setPetAge(e.target.value)}
+                      className="flex-1 rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
+                    <button type="button" onClick={() => setPetAgeUnit('months')}
+                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petAgeUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                      Meses
+                    </button>
+                    <button type="button" onClick={() => setPetAgeUnit('years')}
+                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petAgeUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                      Años
+                    </button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Género</label>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setPetGender('male')}
+                        className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petGender === 'male' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                        <FontAwesomeIcon icon={faMars} /> Macho
+                      </button>
+                      <button type="button" onClick={() => setPetGender('female')}
+                        className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petGender === 'female' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                        <FontAwesomeIcon icon={faVenus} /> Hembra
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tipo</label>
+                    <div className="flex gap-2">
+                      <button type="button" onClick={() => setPetSpecies('dog')}
+                        className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petSpecies === 'dog' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                        <FontAwesomeIcon icon={faDog} /> Perro
+                      </button>
+                      <button type="button" onClick={() => setPetSpecies('cat')}
+                        className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petSpecies === 'cat' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
+                        <FontAwesomeIcon icon={faCat} /> Gato
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-4 mt-3">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={petVaccinated} onChange={e => setPetVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                    <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
+                    <span className="text-sm text-foreground">Vacunado</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" checked={petCastrated} onChange={e => setPetCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
+                    <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
+                    <span className="text-sm text-foreground">Castrado</span>
+                  </label>
+                </div>
+                <div className="flex flex-col gap-1.5 mt-3">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
+                  <select value={petSize} onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large')}
+                    className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
+                    <option value="small">Pequeño</option>
+                    <option value="medium">Mediano</option>
+                    <option value="large">Grande</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Right: Photo upload + preview */}
+              <div className="flex flex-col gap-2">
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vista Previa</label>
+                <input ref={photoInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden"
+                  onChange={(e) => { addFiles(e.target.files ?? []); e.target.value = '' }} />
+                {petPhotos.length > 0 ? (
+                  <div className="rounded-xl border inset-shadow-[0px_0px_1px_2px_var(--color-input)] bg-card overflow-hidden">
+                    <div className="relative aspect-square bg-muted/30">
+                      <CardCarousel urls={petPhotos.map((p) => p.url)} />
+                      <button type="button" onClick={() => { petPhotos.forEach((p) => URL.revokeObjectURL(p.url)); setPetPhotos([]) }}
+                        className="absolute top-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-background/90 shadow-sm hover:bg-background transition-colors">
+                        <FontAwesomeIcon icon={faXmark} className="text-primary" />
+                      </button>
+                      {petPhotos.length < MAX_PHOTOS && (
+                        <button type="button" onClick={() => photoInputRef.current?.click()}
+                          className="absolute bottom-2 right-2 z-10 flex items-center justify-center w-7 h-7 rounded-full bg-background/90 shadow-sm hover:bg-background transition-colors">
+                          <FontAwesomeIcon icon={faPlus} className="text-primary" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="p-3">
+                      <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                        {petAge && <span>·</span>}
+                        <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
+                        <span>·</span>
+                        <FontAwesomeIcon icon={petSpecies === 'dog' ? faDog : faCat} className="text-xs" />
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                        <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border inset-shadow-[1px_1px_1px_1px_var(--color-input)] bg-card overflow-hidden cursor-pointer"
+                    onClick={() => photoInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                    onDragLeave={() => setDragging(false)}
+                    onDrop={(e) => { e.preventDefault(); setDragging(false); addFiles(e.dataTransfer.files) }}>
+                    <div className={`relative aspect-square border-b-2 border-dashed flex items-center justify-center transition-colors ${dragging ? 'border-pop-550 bg-pop-550/5' : 'border-input hover:border-pop-550/30'}`}>
+                      <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-5xl text-muted-foreground/20" />
+                    </div>
+                    <div className="p-3">
+                      <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1">
+                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                        {petAge && <span>·</span>}
+                        <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
+                        <span>·</span>
+                        <FontAwesomeIcon icon={petSpecies === 'dog' ? faDog : faCat} className="text-xs" />
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                        <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground text-center">Arrastra y suelta · Click para subir imagen de mascota</p>
+              </div>
+
+              {/* Footer */}
+              <div className="col-span-full flex items-center justify-between mt-4">
+                <button type="button" onClick={() => { setShowPetForm(false); resetPetForm() }}
+                  className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+                  Volver
+                </button>
+                <button type="button" onClick={handlePetSubmit} disabled={!petName.trim() || petSubmitting}
+                  className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed">
+                  {petSubmitting ? 'Guardando…' : 'Guardar mascota →'}
+                </button>
+              </div>
+            </div>
+          </main>
+        </div>
+      )
+    }
+
+    // Decision point / Pet added confirmation
     return (
       <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
         <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
-          <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
-          <h1 className="text-2xl font-bold text-foreground">¡Solicitud enviada!</h1>
-          <p className="text-muted-foreground">
-            Tu centro de rescate está en revisión. Nuestro equipo verificará la información y te notificará cuando sea aprobado.
-          </p>
-          <div className="p-4 bg-muted border border-border rounded-2xl text-sm text-muted-foreground">
-            Estado: <span className="font-medium text-foreground">Pendiente de aprobación</span>
-          </div>
-          <button
-            onClick={() => router.push('/')}
-            className="px-6 py-3 bg-pop-550 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
-          >
-            Ir al inicio
-          </button>
+          {petAdded ? (
+            <>
+              <FontAwesomeIcon icon={faPaw} className="text-6xl text-pop-550" />
+              <h1 className="text-2xl font-bold text-foreground">{t('rc_wizard.pet_added')}</h1>
+              <div className="flex flex-col gap-3">
+                <button onClick={() => { resetPetForm(); setShowPetForm(true) }}
+                  className="px-6 py-3 bg-pop-550 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+                  {t('rc_wizard.add_another')}
+                </button>
+                <button onClick={() => router.push('/')}
+                  className="px-6 py-3 border border-border text-foreground rounded-xl font-medium hover:bg-muted transition-colors">
+                  {t('rc_wizard.go_home')}
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
+              <h1 className="text-2xl font-bold text-foreground">{t('rc_wizard.success_title')}</h1>
+              <p className="text-muted-foreground">{t('rc_wizard.success_subtitle')}</p>
+              <div className="p-4 bg-muted border border-border rounded-2xl text-sm text-muted-foreground">
+                Estado: <span className="font-medium text-foreground">Pendiente de aprobación</span>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button onClick={() => setShowPetForm(true)}
+                  className="px-6 py-3 bg-pop-550 text-white rounded-xl font-medium hover:opacity-90 transition-opacity">
+                  {t('rc_wizard.add_pets_prompt')}
+                </button>
+                <button onClick={() => router.push('/')}
+                  className="px-6 py-3 border border-border text-foreground rounded-xl font-medium hover:bg-muted transition-colors">
+                  {t('rc_wizard.go_home')}
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     )
