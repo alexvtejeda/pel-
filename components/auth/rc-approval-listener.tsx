@@ -21,7 +21,9 @@ export function RCApprovalListener() {
         toast.success(t('rc_notification.approved'), {
           action: {
             label: t('rc_notification.approved_action'),
-            onClick: () => router.push('/dashboard/rescue-center'),
+            onClick: () => {
+              window.location.href = '/dashboard/rescue-center'
+            },
           },
           duration: 10000,
         })
