@@ -3,34 +3,39 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCalendarDays, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCalendarDays, faClock, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { Calendar } from '@/components/ui/calendar'
 import { es, enUS } from 'react-day-picker/locale'
+import { Button } from '@/components/ui/button'
+import { AddEventModal } from './add-event-modal'
 
 export interface AgendaItem {
   id: string
   personName: string
   petName: string
   date: Date
-  type: 'meeting' | 'transport' | 'followup'
+  type: 'meeting' | 'transport' | 'followup' | 'event'
 }
 
 const typeLabelKeys: Record<AgendaItem['type'], string> = {
   meeting:   'agenda.type_meeting',
   transport: 'agenda.type_transport',
   followup:  'agenda.type_followup',
+  event:     'agenda.type_event',
 }
 
 const typeColors: Record<AgendaItem['type'], string> = {
   meeting:   'bg-blue-100 text-blue-800',
   transport: 'bg-amber-100 text-amber-800',
   followup:  'bg-purple-100 text-purple-800',
+  event:     'bg-pop-550/10 text-pop-550',
 }
 
 const typeBorderColors: Record<AgendaItem['type'], string> = {
   meeting:   'border-l-blue-500',
   transport: 'border-l-amber-500',
   followup:  'border-l-purple-500',
+  event:     'border-l-pop-550',
 }
 
 function isSameDay(a: Date, b: Date) {
@@ -43,13 +48,15 @@ function isSameDay(a: Date, b: Date) {
 
 interface AgendaTabProps {
   items: AgendaItem[]
+  onEventCreated?: (event: any) => void
 }
 
-export function AgendaTab({ items }: AgendaTabProps) {
+export function AgendaTab({ items, onEventCreated }: AgendaTabProps) {
   const { t, i18n } = useTranslation('pets')
   const calendarLocale = i18n.language?.startsWith('en') ? enUS : es
   const dateLocale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const [addEventOpen, setAddEventOpen] = useState(false)
   const today = new Date()
   const isToday = isSameDay(selectedDate, today)
 
@@ -66,6 +73,7 @@ export function AgendaTab({ items }: AgendaTabProps) {
     .slice(0, 3)
 
   return (
+    <>
     <div className="flex flex-col lg:flex-row gap-6 lg:items-stretch">
       {/* Left column: Calendar + upcoming */}
       <div className="w-full lg:w-85 shrink-0 space-y-4">
@@ -113,14 +121,20 @@ export function AgendaTab({ items }: AgendaTabProps) {
               month: 'long',
             })}
           </h3>
-          {!isToday && (
-            <button
-              onClick={() => setSelectedDate(new Date())}
-              className="text-xs font-medium text-pop-550 hover:text-pop-450 transition-colors"
-            >
-              {t('agenda.today')}
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {!isToday && (
+              <button
+                onClick={() => setSelectedDate(new Date())}
+                className="text-xs font-medium text-pop-550 hover:text-pop-450 transition-colors"
+              >
+                {t('agenda.today')}
+              </button>
+            )}
+            <Button onClick={() => setAddEventOpen(true)} className="rounded-xl gap-2 shrink-0">
+              <FontAwesomeIcon icon={faPlus} className="text-sm" />
+              {t('events.create', { ns: 'common' })}
+            </Button>
+          </div>
         </div>
 
         {dayEvents.length === 0 ? (
@@ -160,5 +174,15 @@ export function AgendaTab({ items }: AgendaTabProps) {
         )}
       </div>
     </div>
+
+    <AddEventModal
+      open={addEventOpen}
+      onConfirm={(event) => {
+        setAddEventOpen(false)
+        onEventCreated?.(event)
+      }}
+      onClose={() => setAddEventOpen(false)}
+    />
+    </>
   )
 }

@@ -82,7 +82,20 @@ export function DashboardShell() {
               onSaveRef={formsSaveRef}
             />
           )}
-          {activeTab === 'agenda' && <AgendaTab items={agendaItems} />}
+          {activeTab === 'agenda' && (
+            <AgendaTab
+              items={agendaItems}
+              onEventCreated={(event) => {
+                setAgendaItems(prev => [...prev, {
+                  id: event.id,
+                  personName: event.title,
+                  petName: event.location,
+                  date: new Date(`${event.date}T${event.time}`),
+                  type: 'event' as const,
+                }])
+              }}
+            />
+          )}
           {activeTab === 'chat' && <ChatTab />}
           {activeTab === 'metrics' && <MetricsTab />}
           {activeTab === 'settings' && <SettingsTab />}
