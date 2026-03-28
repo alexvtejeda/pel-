@@ -4,11 +4,12 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faCircleInfo, faHandshake } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faCircleInfo, faHandshake, faCalendarDays } from '@fortawesome/free-solid-svg-icons'
 
 const items = [
   { href: '/pets', icon: faPaw, labelKey: 'header.pets', ns: 'pets' },
   { href: '/aliados', icon: faHandshake, labelKey: 'aliados.title', ns: 'business' },
+  { href: '/eventos', icon: faCalendarDays, labelKey: 'header.events', ns: 'pets' },
   { href: '/about', icon: faCircleInfo, labelKey: 'header.about', ns: 'pets' },
 ] as const
 

@@ -109,6 +109,12 @@ export function PetsHeader() {
             {t('aliados.title', { ns: 'business' })}
           </Link>
           <Link
+            href="/eventos"
+            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/eventos' ? 'font-medium' : 'font-light'}`}
+          >
+            {t('header.events')}
+          </Link>
+          <Link
             href="/about"
             className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/about' ? 'font-medium' : 'font-light'}`}
           >
