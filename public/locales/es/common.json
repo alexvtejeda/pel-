@@ -43,5 +43,10 @@
       "photo": "Foto (opcional)",
       "submit": "Crear evento"
     }
+  },
+  "rc_notification": {
+    "approved": "¡Tu centro de rescate ha sido aprobado!",
+    "approved_action": "Ir al dashboard",
+    "rejected": "Tu solicitud ha sido rechazada."
   }
 }
