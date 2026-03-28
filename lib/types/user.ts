@@ -8,6 +8,7 @@ export interface AuthUser {
   auth_provider: string
   preferred_lang: string
   display_name: string | null
+  avatar_url: string | null
   mfa_setup_required?: boolean
 }
 
