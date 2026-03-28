@@ -24,5 +24,24 @@
     "spanish": "Español",
     "english": "Inglés",
     "switch": "Cambiar idioma"
+  },
+  "events": {
+    "title": "Eventos",
+    "subtitle": "Descubre los próximos eventos de adopción y rescate",
+    "empty": "No hay eventos próximos. ¡Mantente atento!",
+    "attending": "Asistiré",
+    "not_attending": "Asistiré",
+    "attendees": "asistentes",
+    "create": "Crear evento",
+    "created": "Evento creado exitosamente",
+    "form": {
+      "title": "Título",
+      "description": "Descripción",
+      "date": "Fecha",
+      "time": "Hora",
+      "location": "Ubicación",
+      "photo": "Foto (opcional)",
+      "submit": "Crear evento"
+    }
   }
 }

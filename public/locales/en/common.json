@@ -24,5 +24,24 @@
     "spanish": "Spanish",
     "english": "English",
     "switch": "Switch language"
+  },
+  "events": {
+    "title": "Events",
+    "subtitle": "Discover upcoming adoption and rescue events",
+    "empty": "No upcoming events. Stay tuned!",
+    "attending": "I'm going",
+    "not_attending": "I'm going",
+    "attendees": "attendees",
+    "create": "Create event",
+    "created": "Event created successfully",
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "date": "Date",
+      "time": "Time",
+      "location": "Location",
+      "photo": "Photo (optional)",
+      "submit": "Create event"
+    }
   }
 }

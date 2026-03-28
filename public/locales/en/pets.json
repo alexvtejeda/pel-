@@ -58,6 +58,7 @@
   },
   "header": {
     "pets": "Pets",
+    "events": "Events",
     "about": "About",
     "login": "Log in",
     "register": "Sign up",
@@ -160,6 +161,7 @@
     "more": "More"
   },
   "agenda": {
+    "type_event": "Event",
     "type_meeting": "Meeting",
     "type_transport": "Transport",
     "type_followup": "Follow-up",
