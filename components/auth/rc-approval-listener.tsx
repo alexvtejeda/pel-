@@ -16,26 +16,25 @@ export function RCApprovalListener() {
   useEffect(() => {
     if (user?.role !== 'rescue_center') return
 
-    const unsubApproved = subscribe('rc_approved', () => {
-      toast.success(t('rc_notification.approved'), {
-        action: {
-          label: t('rc_notification.approved_action'),
-          onClick: () => router.push('/dashboard/rescue-center'),
-        },
-        duration: 10000,
-      })
-    })
-
-    const unsubRejected = subscribe('rc_rejected', (data: any) => {
-      toast.error(t('rc_notification.rejected'), {
-        description: data?.reason || undefined,
-        duration: 10000,
-      })
+    const unsub = subscribe('rc_status_updated', (data: any) => {
+      if (data?.status === 'active') {
+        toast.success(t('rc_notification.approved'), {
+          action: {
+            label: t('rc_notification.approved_action'),
+            onClick: () => router.push('/dashboard/rescue-center'),
+          },
+          duration: 10000,
+        })
+      } else if (data?.status === 'rejected') {
+        toast.error(t('rc_notification.rejected'), {
+          description: data?.reason || undefined,
+          duration: 10000,
+        })
+      }
     })
 
     return () => {
-      unsubApproved()
-      unsubRejected()
+      unsub()
     }
   }, [user?.role, subscribe, t, router])
 
