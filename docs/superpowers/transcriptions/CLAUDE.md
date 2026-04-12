@@ -1,13 +1,15 @@
-# Transcriptions
+# Transcription Briefs
 
-This directory contains structured briefs generated from voice recordings. See `STATUS.md` for pipeline tracking.
+This directory contains structured briefs generated from voice recordings using the voice-to-specs skill.
 
-## Briefs
+See [STATUS.md](STATUS.md) for pipeline tracking.
 
-1. **RC Registration Flow Redesign** — `pending` — feature-idea — frontend — Remove optional pet upload from RC wizard, add post-registration "add pets while you wait?" step
-2. **Profile Avatar in Header** — `pending` — ui-tweak — frontend — Replace FA profile icon with shadcn Avatar, make dashboard link more prominent for RC
-3. **RC Approval Notification via WebSocket** — `pending` — feature-idea — frontend + backend — Real-time toast when admin approves RC, offer redirect to dashboard
-4. **Events System** — `pending` — feature-idea — frontend + backend — RC creates events from Agenda tab, new public /eventos route with attendance tracking
+## Briefs (Prompt10 — 2026-04-03)
+
+1. **Member Pet Profiles** — `pending` — feature-idea / fullstack — Let members register and manage their own pets with a dedicated profile section
+2. **Direct Member-to-Business Transport Requests** — `pending` — feature-idea / fullstack — Connect members directly to businesses for pet transport, bypassing rescue centers
+3. **Business Quote Generator & Pricing Config** — `pending` — feature-idea / fullstack — Automate PDF quote generation with per-km pricing, surcharges, and business T&C
+4. **Google Maps API Migration** — `deferred` — feature-idea / fullstack — Replace open-source maps with Google Maps API (post-demo)
 
 ## Update Rules
 

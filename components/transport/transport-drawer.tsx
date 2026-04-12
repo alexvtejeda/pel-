@@ -58,7 +58,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
     }
   })()
 
-  const completedStops = trip.stops.filter(s => s.completed_at).length
+  const completedStops = (trip.stops ?? []).filter(s => s.completed_at).length
 
   return (
     <Drawer
@@ -79,7 +79,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
               <DrawerDescription className="text-xs text-muted-foreground mt-0.5">
                 {driverLocation?.eta_minutes
                   ? t('drawer.eta', { minutes: driverLocation.eta_minutes })
-                  : t('drawer.stop_of', { current: completedStops + 1, total: trip.stops.length })}
+                  : t('drawer.stop_of', { current: completedStops + 1, total: (trip.stops ?? []).length })}
               </DrawerDescription>
             </div>
             <div className={`px-3 py-1 rounded-xl text-xs font-semibold ${statusColor}`}>
@@ -96,7 +96,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
               {t('drawer.stops')}
             </div>
             <div className="flex flex-col gap-2.5">
-              {trip.stops.map((stop, i) => {
+              {(trip.stops ?? []).map((stop, i) => {
                 const isCompleted = !!stop.completed_at
                 const isActive = !isCompleted && i === completedStops
                 return (
@@ -113,7 +113,7 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
                         {stop.address}
                       </div>
                       <div className="text-[9px] text-muted-foreground">
-                        {i === 0 ? t('steps.pickup') : i === trip.stops.length - 1 ? t('steps.delivered') : t('steps.in_transit')}
+                        {i === 0 ? t('steps.pickup') : i === (trip.stops ?? []).length - 1 ? t('steps.delivered') : t('steps.in_transit')}
                         {isCompleted && ` • ${t('drawer.completed_label')}`}
                       </div>
                     </div>

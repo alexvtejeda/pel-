@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  devIndicators: { position: 'bottom-right' },
+  devIndicators: {postion: "bottom-right"},
   output: 'export',
   distDir: 'out',
   images: {
