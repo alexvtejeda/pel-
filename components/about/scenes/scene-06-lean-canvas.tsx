@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { LEAN_CANVAS } from '@/lib/about/lean-canvas-content'
 import { useIsDesktop } from '@/lib/about/use-breakpoint'
 import { useReducedMotion } from '@/lib/about/use-reduced-motion'
+import { cn } from '@/lib/utils'
 
 export function Scene06LeanCanvas() {
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -22,27 +23,39 @@ export function Scene06LeanCanvas() {
         <h2 className="text-3xl md:text-4xl font-bold mb-12">Lean Canvas</h2>
 
         {canHover ? (
-          <motion.div layout className="grid grid-cols-5 gap-2 h-[500px]">
-            {LEAN_CANVAS.map((block) => (
-              <motion.div
-                layout
-                key={block.id}
-                onMouseEnter={() => setHoveredId(block.id)}
-                onMouseLeave={() => setHoveredId(null)}
-                className="rounded-2xl border border-border bg-background p-4 overflow-hidden"
-                style={{
-                  gridColumn: `${block.col}`,
-                  gridRow: `${block.row}`,
-                  flex: hoveredId === block.id ? 3 : 1,
-                }}
-              >
-                <h4 className="text-sm font-bold mb-2">{block.title}</h4>
-                <motion.p layout className="text-xs text-foreground/80 leading-snug">
-                  {hoveredId === block.id ? block.fullText : block.shortText}
-                </motion.p>
-              </motion.div>
-            ))}
-          </motion.div>
+          <div className="grid grid-cols-5 gap-2 auto-rows-fr h-[500px]">
+            {LEAN_CANVAS.map((block) => {
+              const isHovered = hoveredId === block.id
+              return (
+                <motion.div
+                  key={block.id}
+                  onMouseEnter={() => setHoveredId(block.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  animate={{
+                    scale: isHovered ? 1.05 : 1,
+                    boxShadow: isHovered
+                      ? '0 10px 30px -10px rgba(0,0,0,0.2)'
+                      : '0 0 0 0 rgba(0,0,0,0)',
+                  }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                  className={cn(
+                    'rounded-2xl border bg-background p-4 cursor-pointer',
+                    'flex flex-col gap-2',
+                    isHovered ? 'border-pop-700 z-10' : 'border-border z-0'
+                  )}
+                  style={{
+                    gridColumn: block.col,
+                    gridRow: block.row,
+                  }}
+                >
+                  <h4 className="text-sm font-bold">{block.title}</h4>
+                  <p className="text-xs text-foreground/80 leading-snug">
+                    {isHovered ? block.fullText : block.shortText}
+                  </p>
+                </motion.div>
+              )
+            })}
+          </div>
         ) : (
           <div className="space-y-4">
             {LEAN_CANVAS.map((block) => (

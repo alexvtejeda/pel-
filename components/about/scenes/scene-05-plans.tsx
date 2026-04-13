@@ -79,11 +79,15 @@ export function Scene05Plans() {
                   onMouseEnter={() => setHoveredId(plan.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   className={cn(
-                    'absolute w-56 rounded-2xl border border-border bg-background p-5 shadow-sm transition-transform cursor-default',
-                    hoveredId === plan.id && 'scale-110 shadow-lg border-pop-700',
-                    hoveredId && hoveredId !== plan.id && 'opacity-40'
+                    'absolute w-56 rounded-2xl border bg-background p-5 shadow-sm cursor-pointer',
+                    'transition-[opacity,box-shadow,border-color] duration-200',
+                    hoveredId === plan.id ? 'shadow-lg border-pop-700' : 'border-border'
                   )}
-                  style={{ transform: `translate(${x}px, ${y}px)` }}
+                  style={{
+                    transform: `translate(${x}px, ${y}px) scale(${hoveredId === plan.id ? 1.08 : 1})`,
+                    opacity: hoveredId && hoveredId !== plan.id ? 0.4 : 1,
+                    transition: 'transform 0.2s ease, opacity 0.2s ease',
+                  }}
                 >
                   <h3 className="text-lg font-bold mb-1">{plan.name}</h3>
                   <p className="text-sm text-pop-700 font-semibold">{plan.priceIntro}</p>
