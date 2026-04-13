@@ -55,6 +55,17 @@ export function SegmentsStage() {
       gsap.set(segmentEls[1], { autoAlpha: 0 })
       gsap.set(segmentEls[2], { autoAlpha: 0 })
 
+      // Seed wheel state per segment: orbit at rotation 0, dynamic counters at 0,
+      // slot 0 fully opaque, slot 1 (next) at ambient 0.2, the rest fully hidden.
+      segmentEls.forEach((segEl) => {
+        gsap.set(segEl.querySelector('[data-quadrant-orbit]'), { rotate: 0 })
+        gsap.set(segEl.querySelectorAll('[data-quadrant-counter]'), { rotate: 0 })
+        const slots = segEl.querySelectorAll('[data-quadrant]')
+        gsap.set(slots[0], { opacity: 1 })
+        gsap.set(slots[1], { opacity: 0.2 })
+        gsap.set([slots[2], slots[3], slots[4], slots[5]], { opacity: 0 })
+      })
+
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: sceneEl,
@@ -65,17 +76,30 @@ export function SegmentsStage() {
         },
       })
 
-      // Build each segment's quadrant beats: each beat shifts by one quadrant height
-      // (100 / BEATS_PER_SEGMENT % of the stack's own height).
+      // Build each segment's quadrant beats. Per beat, rotate the orbit -60deg
+      // (counterclockwise), counter-rotate each slot's dynamic counter +60deg to
+      // keep text upright, and ease the slots' opacities so the anchored slot is
+      // fully visible, its immediate neighbor sits at ambient 0.2, and the rest
+      // are hidden.
       const addQuadrantBeats = (segIndex: number, startLabel: number) => {
-        const stackEl = segmentEls[segIndex].querySelector('[data-quadrant-stack]')
-        const stepPct = 100 / BEATS_PER_SEGMENT
-        for (let i = 1; i < BEATS_PER_SEGMENT; i++) {
-          tl.to(
-            stackEl,
-            { yPercent: -stepPct * i, duration: 0.6, ease: 'power2.inOut' },
-            startLabel + i - 1 + 0.2,
-          )
+        const orbit = segmentEls[segIndex].querySelector('[data-quadrant-orbit]')
+        const counters = segmentEls[segIndex].querySelectorAll('[data-quadrant-counter]')
+        const slots = segmentEls[segIndex].querySelectorAll('[data-quadrant]')
+
+        for (let beat = 1; beat < BEATS_PER_SEGMENT; beat++) {
+          const at = startLabel + beat - 1 + 0.2
+
+          tl.to(orbit, { rotate: -60 * beat, duration: 0.6, ease: 'power2.inOut' }, at)
+          tl.to(counters, { rotate: 60 * beat, duration: 0.6, ease: 'power2.inOut' }, at)
+
+          slots.forEach((slot, slotIdx) => {
+            const dist = Math.min(
+              (slotIdx - beat + BEATS_PER_SEGMENT) % BEATS_PER_SEGMENT,
+              (beat - slotIdx + BEATS_PER_SEGMENT) % BEATS_PER_SEGMENT,
+            )
+            const target = dist === 0 ? 1 : dist === 1 ? 0.2 : 0
+            tl.to(slot, { opacity: target, duration: 0.6, ease: 'power2.inOut' }, at)
+          })
         }
       }
 
@@ -83,9 +107,12 @@ export function SegmentsStage() {
       const addTransition = (outIndex: number, inIndex: number, startLabel: number) => {
         const outChar = segmentEls[outIndex].querySelector('[data-character-col]')
         const inChar = segmentEls[inIndex].querySelector('[data-character-col]')
+        const outWheel = segmentEls[outIndex].querySelector('[data-quadrant-wheel]')
+        const inWheel = segmentEls[inIndex].querySelector('[data-quadrant-wheel]')
         const inBg = bgEls[inIndex]
 
         tl.to(outChar, { xPercent: -120, duration: 0.6, ease: 'power2.in' }, startLabel)
+        tl.to(outWheel, { autoAlpha: 0, duration: 0.4 }, startLabel)
         tl.to(segmentEls[outIndex], { autoAlpha: 0, duration: 0.3 }, startLabel + 0.3)
         tl.set(segmentEls[inIndex], { autoAlpha: 1 }, startLabel + 0.1)
         tl.fromTo(
@@ -93,6 +120,12 @@ export function SegmentsStage() {
           { xPercent: 120 },
           { xPercent: 0, duration: 0.6, ease: 'power2.out' },
           startLabel + 0.1,
+        )
+        tl.fromTo(
+          inWheel,
+          { autoAlpha: 0 },
+          { autoAlpha: 1, duration: 0.4 },
+          startLabel + 0.25,
         )
         // Custom-property tween: GSAP CSSPlugin interpolates the --mask-radius
         // string as a plain percentage. Do NOT use calc() or any non-percentage
