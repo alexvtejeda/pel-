@@ -145,6 +145,8 @@ describe('Color & Styling Rules', () => {
     'about-header.tsx',
     'empathy-map.tsx',
     'logo-marquee.tsx',
+    'segments-stage.tsx',
+    'scene-04-segments.tsx',
     'scene-05-plans.tsx',
     'scene-06-lean-canvas.tsx',
   ]
