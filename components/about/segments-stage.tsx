@@ -187,14 +187,23 @@ export function SegmentsStage() {
                 {seg.personaName}, {seg.age}
               </p>
             </div>
-            <div className={styles.quadrantViewport}>
-              <div data-quadrant-stack className={styles.quadrantStack}>
-                {QUADRANT_ORDER.map((key) => {
+            <div data-quadrant-wheel className={styles.wheel}>
+              <div data-quadrant-orbit className={styles.orbit}>
+                {QUADRANT_ORDER.map((key, i) => {
                   const q = seg.quadrants[key]
                   return (
-                    <div key={key} data-quadrant={key} className={styles.quadrant}>
-                      <p className={styles.quadrantLabel}>{q.label}</p>
-                      <p className={styles.quadrantBody}>{q.body}</p>
+                    <div
+                      key={key}
+                      data-quadrant={key}
+                      className={styles.quadrantSlot}
+                      style={{ ['--slot-angle' as string]: `${i * 60}deg` }}
+                    >
+                      <div className={styles.quadrantCounter}>
+                        <div data-quadrant-counter className={styles.quadrantCounterDynamic}>
+                          <p className={styles.quadrantLabel}>{q.label}</p>
+                          <p className={styles.quadrantBody}>{q.body}</p>
+                        </div>
+                      </div>
                     </div>
                   )
                 })}
