@@ -17,7 +17,7 @@ export function Scene08Cta() {
         </p>
         <Link
           href="/pets"
-          className="inline-flex items-center gap-3 rounded-xl bg-pop-700 hover:bg-pop-650 text-white px-8 py-4 text-lg font-semibold transition-colors"
+          className="inline-flex items-center gap-3 rounded-xl bg-pop-700 hover:bg-pop-650 text-white px-8 py-4 text-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pop-500"
         >
           Ver mascotas
           <FontAwesomeIcon icon={faArrowRight} />
