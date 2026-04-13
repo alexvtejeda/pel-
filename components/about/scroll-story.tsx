@@ -14,13 +14,18 @@ import { Scene08Cta } from './scenes/scene-08-cta'
 
 export function ScrollStory() {
   useEffect(() => {
+    let cancelled = false
     let cleanup: (() => void) | undefined
     ;(async () => {
       const { registerGsap, killAllScrollTriggers } = await import('@/lib/about/gsap-register')
+      if (cancelled) return
       registerGsap()
       cleanup = () => killAllScrollTriggers()
     })()
-    return () => { cleanup?.() }
+    return () => {
+      cancelled = true
+      cleanup?.()
+    }
   }, [])
 
   return (
