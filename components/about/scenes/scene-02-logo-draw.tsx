@@ -59,9 +59,9 @@ export function Scene02LogoDraw() {
       data-scene="02-logo-draw"
       className="relative min-h-screen flex items-center justify-center bg-background"
     >
-      <div className="flex items-center gap-6">
+      <div aria-hidden="true" className="flex items-center gap-6">
         <div data-draw-logo>
-          <Image src="/assets/logo.svg" alt="Pelú" width={96} height={96} />
+          <Image src="/assets/logo.svg" alt="" width={96} height={96} />
         </div>
         <span data-draw-word className="text-6xl md:text-8xl font-bold">Pelú</span>
       </div>
