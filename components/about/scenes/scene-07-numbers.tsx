@@ -4,7 +4,7 @@ import { CounterUp } from '../counter-up'
 
 const METRICS = [
   { target: 45112, prefix: 'RD$', label: 'Inversión inicial' },
-  { target: 130, prefix: '~USD$', suffix: '/mes', label: 'Gastos operativos' },
+  { target: 7748, prefix: 'RD$', suffix: '/mes', label: 'Gastos operativos' },
   { target: 41, label: 'Encuestados en el estudio de mercado' },
   { target: 3, label: 'Segmentos identificados' },
 ]

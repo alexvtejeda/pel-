@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import Image from 'next/image'
+import { BackgroundBeams } from '@/components/ui/beams'
 import { useHeaderBridge } from '../header-bridge-context'
 import { useIsDesktop } from '@/lib/about/use-breakpoint'
 import { useReducedMotion } from '@/lib/about/use-reduced-motion'
@@ -68,22 +69,25 @@ export function Scene01Pitch() {
       data-scene="01-pitch"
       className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"
     >
-      <div className="absolute inset-0 pointer-events-none opacity-40 [background:radial-gradient(ellipse_at_top,theme(colors.pop.700/30%),transparent_60%)]" />
+      <BackgroundBeams />
+      <div className="absolute inset-0 pointer-events-none opacity-40 bg-slate-900" />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 text-center text-white">
         <h1 className="sr-only">Pelú — Centralizamos el ecosistema de adopción y cuidado de mascotas en RD</h1>
         <div ref={logoRef} aria-hidden="true" className="flex items-center gap-6 will-change-transform">
           <Image src="/assets/logo.svg" alt="" width={128} height={128} priority />
           <span className="text-7xl md:text-9xl font-bold tracking-tight">Pelú</span>
         </div>
-        <p data-fade-out className="max-w-2xl text-xl md:text-2xl text-white/80">
-          Centralizamos el ecosistema de adopción y cuidado de mascotas en República Dominicana.
-        </p>
-        <p data-fade-out className="max-w-xl text-base md:text-lg text-white/60">
-          Hoy está fragmentado. Nosotros lo organizamos.
-        </p>
-        <p data-fade-out className="text-sm uppercase tracking-widest text-white/50">
-          Alexander Tejeda · Maria Francisco · Nataly Corporan
-        </p>
+        <div data-fade-out className="flex flex-col items-center gap-6 rounded-2xl bg-primary px-8 py-10 md:px-12 md:py-12">
+          <p className="max-w-2xl text-xl md:text-2xl text-primary-foreground/90">
+            Centralizamos el ecosistema de adopción y cuidado de mascotas en República Dominicana.
+          </p>
+          <p className="max-w-xl text-base md:text-lg text-primary-foreground/70">
+            Hoy está fragmentado. Nosotros lo organizamos.
+          </p>
+          <p className="text-sm uppercase tracking-widest text-primary-foreground/60">
+            Alexander Tejeda · Maria Francisco · Nataly Corporan
+          </p>
+        </div>
         <p data-fade-out className="absolute bottom-10 text-xs uppercase tracking-widest text-white/40">
           Desliza para conocer más ↓
         </p>

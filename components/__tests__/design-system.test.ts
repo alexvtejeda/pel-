@@ -143,7 +143,6 @@ describe('Color & Styling Rules', () => {
     'logo.tsx',
     'testimonial-carousel.tsx',
     'about-header.tsx',
-    'empathy-map.tsx',
     'logo-marquee.tsx',
     'segments-stage.tsx',
     'scene-04-segments.tsx',

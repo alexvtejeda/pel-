@@ -87,7 +87,7 @@ export function Scene03Competition() {
     >
       <div className="max-w-6xl mx-auto px-6">
         <p className="text-xs uppercase tracking-widest text-foreground/60 mb-2">La competencia</p>
-        <h2 className="text-3xl md:text-4xl font-bold mb-12">Qué ya existe, y qué cambia con Pelú</h2>
+        <h2 className="text-3xl md:text-4xl font-bold mb-12">¿Qué ya existe? ¿Qué cambia con Pelú?</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {COMPETITORS.map((c) => (
             <div
