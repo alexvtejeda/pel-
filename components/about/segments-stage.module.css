@@ -1,0 +1,135 @@
+.scene {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+.bgStack {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+.bgLayer {
+  position: absolute;
+  inset: 0;
+  clip-path: circle(var(--mask-radius, 0%) at var(--mask-origin, 50% 50%));
+  will-change: clip-path;
+}
+
+.header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 4rem 2rem 0 2rem;
+  z-index: 10;
+  color: var(--primary-foreground);
+}
+
+.overline {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  opacity: 0.6;
+  margin: 0 0 0.5rem 0;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--primary-foreground);
+}
+
+@media (min-width: 768px) {
+  .title {
+    font-size: 2.25rem;
+  }
+}
+
+.segment {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  color: var(--primary-foreground);
+}
+
+.segmentInner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0 3rem;
+  width: 100%;
+}
+
+.characterCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  will-change: transform;
+}
+
+.marker {
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  opacity: 0.7;
+  margin: 0 0 1rem 0;
+  color: var(--primary-foreground);
+}
+
+.character {
+  width: 20rem;
+  height: 20rem;
+  object-fit: contain;
+}
+
+.personaName {
+  margin: 1rem 0 0 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary-foreground);
+}
+
+.quadrantViewport {
+  overflow: hidden;
+  height: 12rem;
+  display: flex;
+  align-items: center;
+}
+
+.quadrantStack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  will-change: transform;
+}
+
+.quadrant {
+  height: 12rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quadrantLabel {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  opacity: 0.85;
+}
+
+.quadrantBody {
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
