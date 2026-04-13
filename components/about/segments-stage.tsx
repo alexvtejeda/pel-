@@ -87,7 +87,9 @@ export function SegmentsStage() {
         const slots = segmentEls[segIndex].querySelectorAll('[data-quadrant]')
 
         for (let beat = 1; beat < BEATS_PER_SEGMENT; beat++) {
-          const at = startLabel + beat - 1 + 0.2
+          // Offset 1.0 gives the first quadrant (piensa) a full timeline unit of
+          // hold before the first beat fires, so it's readable as an entry state.
+          const at = startLabel + beat - 1 + 1.0
 
           tl.to(orbit, { rotate: -60 * beat, duration: 0.6, ease: 'power2.inOut' }, at)
           tl.to(counters, { rotate: 60 * beat, duration: 0.6, ease: 'power2.inOut' }, at)
