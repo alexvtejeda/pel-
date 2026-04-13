@@ -64,9 +64,9 @@ describe('SegmentsStage — structure', () => {
     for (const seg of EMPATHY_SEGMENTS) {
       const group = container.querySelector(`[data-segment="${seg.id}"]`)
       expect(group).not.toBeNull()
-      const stack = group!.querySelector('[data-quadrant-stack]')
-      expect(stack).not.toBeNull()
-      const quadrants = stack!.querySelectorAll('[data-quadrant]')
+      const orbit = group!.querySelector('[data-quadrant-orbit]')
+      expect(orbit).not.toBeNull()
+      const quadrants = orbit!.querySelectorAll('[data-quadrant]')
       expect(quadrants).toHaveLength(6)
       QUADRANT_ORDER.forEach((key, i) => {
         expect(quadrants[i]).toHaveAttribute('data-quadrant', key)
@@ -90,5 +90,24 @@ describe('SegmentsStage — structure', () => {
     render(<SegmentsStage />)
     expect(screen.getByText(/A quién servimos/i)).toBeInTheDocument()
     expect(screen.getByText(/Tres segmentos, tres historias/i)).toBeInTheDocument()
+  })
+
+  it('each quadrant slot has its --slot-angle CSS custom property', () => {
+    const { container } = render(<SegmentsStage />)
+    const slots = container.querySelectorAll('[data-segment="a"] [data-quadrant]')
+    expect(slots).toHaveLength(6)
+    slots.forEach((slot, i) => {
+      const angle = (slot as HTMLElement).style.getPropertyValue('--slot-angle')
+      expect(angle).toBe(`${i * 60}deg`)
+    })
+  })
+
+  it('each segment has a data-quadrant-wheel and data-quadrant-orbit', () => {
+    const { container } = render(<SegmentsStage />)
+    for (const id of ['a', 'b', 'c']) {
+      const group = container.querySelector(`[data-segment="${id}"]`)
+      expect(group!.querySelector('[data-quadrant-wheel]')).not.toBeNull()
+      expect(group!.querySelector('[data-quadrant-orbit]')).not.toBeNull()
+    }
   })
 })
