@@ -21,6 +21,8 @@ export type EmpathySegment = {
   }
 }
 
+export const QUADRANT_ORDER = ['piensa', 've', 'oye', 'dice', 'duele', 'aspira'] as const
+
 export const EMPATHY_SEGMENTS: EmpathySegment[] = [
   {
     id: 'a',
