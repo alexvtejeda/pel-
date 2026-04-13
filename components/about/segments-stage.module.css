@@ -98,26 +98,49 @@
   color: var(--primary-foreground);
 }
 
-.quadrantViewport {
-  overflow: hidden;
-  height: 12rem;
+.wheel {
+  --wheel-radius: 48rem;
+  --wheel-anchor-x: 0%;
+  --wheel-anchor-y: 50%;
+
   position: relative;
+  width: 100%;
+  height: 100%;
   min-width: 0;
+  overflow: visible;
 }
 
-.quadrantStack {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
+.orbit {
+  position: absolute;
+  top: var(--wheel-anchor-y);
+  left: var(--wheel-anchor-x);
+  width: 0;
+  height: 0;
+  transform-origin: 0 0;
   will-change: transform;
 }
 
-.quadrant {
-  height: 12rem;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  flex-shrink: 0;
+.quadrantSlot {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28rem;
+  margin-top: -6rem;
+  transform: rotate(var(--slot-angle)) translate(var(--wheel-radius));
+  transform-origin: 0 0;
+  will-change: transform, opacity;
+  opacity: 0;
+}
+
+.quadrantCounter {
+  display: block;
+  transform: rotate(calc(-1 * var(--slot-angle)));
+  transform-origin: 0 50%;
+}
+
+.quadrantCounterDynamic {
+  display: block;
+  will-change: transform;
 }
 
 .quadrantLabel {
