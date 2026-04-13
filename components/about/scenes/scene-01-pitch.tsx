@@ -70,8 +70,9 @@ export function Scene01Pitch() {
     >
       <div className="absolute inset-0 pointer-events-none opacity-40 [background:radial-gradient(ellipse_at_top,theme(colors.pop.700/30%),transparent_60%)]" />
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 text-center text-white">
-        <div ref={logoRef} className="flex items-center gap-6">
-          <Image src="/assets/logo.svg" alt="Pelú" width={128} height={128} priority />
+        <h1 className="sr-only">Pelú — Centralizamos el ecosistema de adopción y cuidado de mascotas en RD</h1>
+        <div ref={logoRef} aria-hidden="true" className="flex items-center gap-6 will-change-transform">
+          <Image src="/assets/logo.svg" alt="" width={128} height={128} priority />
           <span className="text-7xl md:text-9xl font-bold tracking-tight">Pelú</span>
         </div>
         <p data-fade-out className="max-w-2xl text-xl md:text-2xl text-white/80">

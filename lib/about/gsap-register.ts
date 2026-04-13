@@ -9,6 +9,13 @@ export function registerGsap() {
   registered = true
 }
 
+// Auto-register on first import in a browser context. Safe for static export
+// because this module is only reached via dynamic `await import(...)` from
+// client-side useEffect code — never during prerender.
+if (typeof window !== 'undefined') {
+  registerGsap()
+}
+
 export function killAllScrollTriggers() {
   ScrollTrigger.getAll().forEach((t) => t.kill())
 }
