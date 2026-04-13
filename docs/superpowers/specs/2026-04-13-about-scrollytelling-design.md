@@ -56,9 +56,9 @@
 **Scene 4 — Segmentos + empathy maps**
 - Section label: `A QUIÉN SERVIMOS`
 - Three sub-scenes stacked vertically inside one pinned scroll scene:
-  - **Segmento A — Laura, 24, Joven digital sin mascota** (color: navy `oklch(25.8% 0.092 264)`)
-  - **Segmento B — Carlos, 26, Joven dueño comprometido** (color: zinc `oklch(40% 0.01 286)`)
-  - **Segmento C — María, 52, Adulto familiar tradicional** (color: amber `oklch(70% 0.15 65)`)
+  - **Segmento A — Laura, 24, Joven digital sin mascota** — color: `--color-pop-700` (site's pop accent)
+  - **Segmento B — Carlos, 26, Joven dueño comprometido** — color: `--color-slate-500` (site's primary dark family)
+  - **Segmento C — María, 52, Adulto familiar tradicional** — color: amber `oklch(70% 0.15 65)` (intentionally off-palette so the third segment reads as distinct; amber pairs naturally with the site's cool tones)
 - Per-segment empathy map text (sourced verbatim from `pelu.pdf` pages 15-17):
   - Piensa y siente, Ve, Oye, Dice y hace, Le duele, Aspira — condensed to one short line each per quadrant
 
