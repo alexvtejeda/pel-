@@ -74,7 +74,9 @@ export function Scene04Segments() {
     <section
       ref={sectionRef}
       data-scene="04-segments"
-      className="relative min-h-screen overflow-hidden bg-background py-24"
+      className={`relative min-h-screen bg-background py-24 ${
+        isDesktop && !reduced ? 'overflow-hidden' : ''
+      }`}
     >
       <div className="px-6 max-w-6xl mx-auto">
         <p className="text-xs uppercase tracking-widest text-foreground/60 mb-2">A quién servimos</p>
