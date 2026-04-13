@@ -99,7 +99,7 @@ export function SegmentsStage() {
         // value here — CSSPlugin cannot interpolate those.
         tl.to(
           inBg,
-          { ['--mask-radius' as string]: '200%', duration: 0.8, ease: 'power2.out' },
+          { ['--mask-radius' as string]: '200%', duration: 1.6, ease: 'power2.out' },
           startLabel + 0.15,
         )
       }
