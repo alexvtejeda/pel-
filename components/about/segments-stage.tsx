@@ -65,13 +65,15 @@ export function SegmentsStage() {
         },
       })
 
-      // Build each segment's quadrant beats: the stack translates -100% per beat.
+      // Build each segment's quadrant beats: each beat shifts by one quadrant height
+      // (100 / BEATS_PER_SEGMENT % of the stack's own height).
       const addQuadrantBeats = (segIndex: number, startLabel: number) => {
         const stackEl = segmentEls[segIndex].querySelector('[data-quadrant-stack]')
+        const stepPct = 100 / BEATS_PER_SEGMENT
         for (let i = 1; i < BEATS_PER_SEGMENT; i++) {
           tl.to(
             stackEl,
-            { yPercent: -100 * i, duration: 0.6, ease: 'power2.inOut' },
+            { yPercent: -stepPct * i, duration: 0.6, ease: 'power2.inOut' },
             startLabel + i - 1 + 0.2,
           )
         }
