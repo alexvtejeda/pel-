@@ -67,7 +67,10 @@ client_secret.json
 
 pelu.pdf
 
+example-quote.pdf
+
 hooks/read_hooks.js
+scripts/swap-env.sh
 
 .superpowers/
 

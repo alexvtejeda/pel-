@@ -13,14 +13,14 @@ interface TransportStepperProps {
 export function TransportStepper({ stops, status }: TransportStepperProps) {
   const { t } = useTranslation('transport')
 
-  const completedCount = stops.filter(s => s.completed_at).length
+  const completedCount = (stops ?? []).filter(s => s.completed_at).length
   const isCancelled = status === 'cancelled'
   const isCompleted = status === 'completed'
 
   return (
     <div className="absolute top-3 left-4 right-4 z-20 bg-sidebar/92 backdrop-blur-xl rounded-2xl border border-border px-4 py-2.5">
       <div className="flex items-center justify-center gap-3">
-        {stops.map((stop, i) => {
+        {(stops ?? []).map((stop, i) => {
           const isStopCompleted = !!stop.completed_at || isCompleted
           const isActive = !isStopCompleted && i === completedCount
           const isPending = !isStopCompleted && !isActive

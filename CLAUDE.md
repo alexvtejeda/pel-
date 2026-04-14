@@ -33,7 +33,7 @@ bun run lint
 
 **Important**: Assume the dev server (`bun run dev`) is already running. Do not start it yourself.
 
-**Testing**: Vitest + React Testing Library. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file. Use `renderWithProviders()` from `components/__tests__/test-utils.tsx` instead of raw `render()` — it wraps components with i18n provider and mocks `next/navigation` + `next/image`.
+**Testing**: Vitest + React Testing Library configured but no tests written yet. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file. Use `renderWithProviders()` from `components/__tests__/test-utils.tsx` instead of raw `render()` — it wraps components with i18n provider and mocks `next/navigation` + `next/image`. Config: `vitest.config.ts` (jsdom environment, `@` path alias). `@testing-library/jest-dom` matchers (e.g. `toBeInTheDocument()`) are available globally via setup file.
 
 ## Architecture & Data Flow
 
@@ -147,7 +147,7 @@ Use `text-*` classes (`text-sm`, `text-base`, `text-lg`, etc.) for sizing — no
 
 Translation files: `public/locales/{locale}/{namespace}.json`
 
-Namespaces: `common`, `landing`, `auth`, `pets`, `transport`, `business` (implemented) — `chat` is planned but doesn't exist yet.
+Namespaces: `common`, `landing`, `auth`, `pets`, `transport`, `business`. No `chat` namespace — chat UI strings currently live in `common` or are hardcoded.
 
 **How translations work** — react-i18next with bundled resources (no HTTP fetch):
 ```tsx
@@ -216,7 +216,8 @@ All three dashboards (RC, Business, Admin) share the same layout structure: shad
 - `/dashboard/business` — business dashboard (tabs: requests, chat, agenda, settings)
 - `/dashboard/admin` — admin dashboard
 - `/aliados` — public providers listing
+- `/eventos` — public events listing
 - `/chat` — messaging (member role)
-- `/transporte` — transport tracking
+- `/transporte` — transport tracking (fully implemented: live driver location via WebSocket `location_update`/`driver_location`, React Leaflet map, trip status + stop completion events)
 
 **Note**: `pages/` directory exists but is empty — this project uses App Router (`app/`), not Pages Router.

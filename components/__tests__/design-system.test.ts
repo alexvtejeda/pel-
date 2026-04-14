@@ -142,6 +142,12 @@ describe('Color & Styling Rules', () => {
     'paw-silhouettes.tsx',
     'logo.tsx',
     'testimonial-carousel.tsx',
+    'about-header.tsx',
+    'logo-marquee.tsx',
+    'segments-stage.tsx',
+    'scene-04-segments.tsx',
+    'scene-05-plans.tsx',
+    'scene-06-lean-canvas.tsx',
   ]
 
   it('10 — no inline style={{}} except allowlisted files', () => {

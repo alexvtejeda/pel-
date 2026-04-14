@@ -110,7 +110,11 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
 
       listMessages(conversation.id, oldestCreatedAt).then(({ data }) => {
         if (data && data.length > 0) {
-          setMessages(prev => [...data.reverse(), ...prev])
+          const older = data.reverse()
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id))
+            return [...older.filter(m => !existingIds.has(m.id)), ...prev]
+          })
           if (data.length < 50) setHasMore(false)
           // Maintain scroll position
           requestAnimationFrame(() => {
@@ -138,7 +142,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         is_read: false,
         created_at: m.created_at || new Date().toISOString(),
       }
-      setMessages(prev => [...prev, msg])
+      setMessages(prev => prev.some(m => m.id === msg.id) ? prev : [...prev, msg])
 
       // Auto-scroll if at bottom
       if (isAtBottomRef.current) {
