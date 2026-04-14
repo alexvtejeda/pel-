@@ -11,7 +11,7 @@ import { Scene08Cta } from '@/components/about/scenes/scene-08-cta'
 
 // jsdom lacks matchMedia and IntersectionObserver by default
 beforeEach(() => {
-  window.matchMedia = vi.fn().mockImplementation((query) => ({
+  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
     matches: query.includes('min-width: 768px'),
     media: query,
     addEventListener: vi.fn(),
