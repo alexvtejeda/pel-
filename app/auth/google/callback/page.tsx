@@ -4,13 +4,7 @@ import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
-import { UserRole } from '@/lib/types/user'
-
-const rolePaths: Record<UserRole, string> = {
-  rescue_center: '/dashboard/rescue-center',
-  member: '/',
-  business: '/',
-}
+import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
 
 export default function GoogleCallbackPage() {
   const router = useRouter()
@@ -26,12 +20,7 @@ export default function GoogleCallbackPage() {
         }
         const user = await res.json()
         updateSession(user)
-
-        if (user.role) {
-          router.push(rolePaths[user.role as UserRole])
-        } else {
-          router.push('/auth/role-selection')
-        }
+        await postLoginRedirect(user, router)
       } catch {
         router.push('/auth/login')
       }
