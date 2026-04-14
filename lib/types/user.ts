@@ -20,6 +20,8 @@ export interface MfaChallengeResponse {
   mfa_required: true
   preferred_method: MfaMethod
   available_methods: MfaMethod[]
+  email: string
+  strong_methods_available: boolean
 }
 
 export type MfaMethod = 'webauthn' | 'totp' | 'email' | 'recovery'

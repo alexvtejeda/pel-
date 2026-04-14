@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import { AuthUser, MfaMethodsResponse } from '@/lib/types/user'
+import { AuthUser, MfaMethodsResponse, MfaChallengeResponse } from '@/lib/types/user'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
@@ -89,6 +89,16 @@ export async function webauthnAssertBegin(): Promise<{ data: unknown | null; err
   })
   const json = await res.json()
   if (!res.ok) return { data: null, error: json.error || 'Error al iniciar verificación' }
+  return { data: json, error: null }
+}
+
+export async function mfaChallenge(): Promise<{ data: MfaChallengeResponse | null; error: string | null }> {
+  const res = await fetch(`${BASE_URL}/api/v1/auth/mfa/challenge`, {
+    method: 'GET',
+    credentials: 'include',
+  })
+  const json = await res.json().catch(() => ({}))
+  if (!res.ok) return { data: null, error: json.error || 'Sesión MFA expirada' }
   return { data: json, error: null }
 }
 

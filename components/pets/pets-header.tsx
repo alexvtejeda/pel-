@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey } from '@fortawesome/free-solid-svg-icons'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
@@ -254,6 +254,14 @@ export function PetsHeader() {
                 {t('transport', { ns: 'common' })}
               </Link>
             )}
+            <Link
+              href="/auth/mfa/enrollment"
+              onClick={() => setSheetOpen(false)}
+              className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+            >
+              <FontAwesomeIcon icon={faKey} className="text-lg text-muted-foreground" />
+              {t('header.setup_mfa')}
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors w-full text-left"
