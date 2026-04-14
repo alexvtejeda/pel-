@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { TransitionLink } from '@/components/transitions/transition-link'
 import { useTranslation } from 'react-i18next'
 
 export function Footer() {
@@ -17,7 +18,7 @@ export function Footer() {
           <div>
             <h4 className="text-primary-foreground font-semibold mb-3">{t('footer.about')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/about" className="hover:text-primary-foreground transition-colors">{t('footer.about')}</Link></li>
+              <li><TransitionLink href="/about" className="hover:text-primary-foreground transition-colors">{t('footer.about')}</TransitionLink></li>
               <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.contact')}</Link></li>
             </ul>
           </div>

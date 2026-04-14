@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link'
+import { TransitionLink } from '@/components/transitions/transition-link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import { BackgroundBeams } from '@/components/ui/beams'
@@ -18,13 +18,13 @@ export function Scene08Cta() {
           <p className="text-xl md:text-2xl text-primary-foreground/80 mb-12">
             Explora las mascotas disponibles para adopción hoy.
           </p>
-          <Link
+          <TransitionLink
             href="/pets"
             className="inline-flex items-center gap-3 rounded-xl bg-pop-700 hover:bg-pop-650 text-primary-foreground px-8 py-4 text-lg font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-pop-500"
           >
             Ver mascotas
             <FontAwesomeIcon icon={faArrowRight} />
-          </Link>
+          </TransitionLink>
           <p className="mt-16 text-xs uppercase tracking-widest text-primary-foreground/60">
             Proyecto de tesis · PUCMM · 2026
           </p>

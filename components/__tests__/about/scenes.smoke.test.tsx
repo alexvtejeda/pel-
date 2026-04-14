@@ -1,5 +1,6 @@
 import { renderWithProviders } from '../test-utils'
 import { HeaderBridgeProvider } from '@/components/about/header-bridge-context'
+import { RouteTransitionProvider } from '@/components/transitions/route-transition-context'
 import { Scene01Pitch } from '@/components/about/scenes/scene-01-pitch'
 import { Scene02LogoDraw } from '@/components/about/scenes/scene-02-logo-draw'
 import { Scene03Competition } from '@/components/about/scenes/scene-03-competition'
@@ -28,7 +29,9 @@ beforeEach(() => {
 })
 
 const wrap = (ui: React.ReactElement) => (
-  <HeaderBridgeProvider>{ui}</HeaderBridgeProvider>
+  <RouteTransitionProvider>
+    <HeaderBridgeProvider>{ui}</HeaderBridgeProvider>
+  </RouteTransitionProvider>
 )
 
 describe('About scenes smoke', () => {
