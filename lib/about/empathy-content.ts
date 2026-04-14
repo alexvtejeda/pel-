@@ -65,7 +65,7 @@ export const EMPATHY_SEGMENTS: EmpathySegment[] = [
     age: 26,
     archetype: 'Joven dueño comprometido',
     blurb: 'Soltero, adoptó un perro callejero hace un año. Lo considera su hijo. Trabaja tiempo completo.',
-    colorVar: 'var(--color-slate-500)',
+    colorVar: 'var(--color-slate-900)',
     character: '/assets/about/empathy/segment-b-character.svg',
     quadrants: {
       piensa: {
@@ -100,7 +100,7 @@ export const EMPATHY_SEGMENTS: EmpathySegment[] = [
     age: 52,
     archetype: 'Adulto familiar tradicional',
     blurb: 'Casada, con hijos adultos. Ha tenido mascotas toda su vida. Considera adoptar de nuevo.',
-    colorVar: 'oklch(70% 0.15 65)',
+    colorVar: 'var(--color-pop-700)',
     character: '/assets/about/empathy/segment-c-character.svg',
     quadrants: {
       piensa: {
