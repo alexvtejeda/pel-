@@ -22,6 +22,12 @@ const MIN_SKELETON_MS = 150
 const ABOUT_WIPE_DURATION_MS = 600
 const SKIP_SCENE1_KEY = 'pelu:skip-scene-1-intro'
 
+function prefersReducedMotion() {
+  if (typeof window === 'undefined') return false
+  if (typeof window.matchMedia !== 'function') return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export interface RouteTransitionContextValue extends RouteTransitionState {
   navigate: (href: string) => Promise<void>
   setLogoRect: (rect: LogoRect | null) => void
@@ -69,7 +75,12 @@ export function RouteTransitionProvider({
       lockRef.current = true
       setState((s) => ({ ...s, status: 'exiting', type }))
 
-      const exitMs = type === 'skeleton' ? EXIT_DURATION_MS : ABOUT_WIPE_DURATION_MS
+      const reduced = prefersReducedMotion()
+      const exitMs = reduced
+        ? 0
+        : type === 'skeleton'
+          ? EXIT_DURATION_MS
+          : ABOUT_WIPE_DURATION_MS
       await wait(exitMs)
 
       if (type === 'about-in') {
@@ -88,8 +99,9 @@ export function RouteTransitionProvider({
 
       setState((s) => ({ ...s, status: 'entering' }))
 
-      const enterMs =
-        type === 'skeleton'
+      const enterMs = reduced
+        ? 50
+        : type === 'skeleton'
           ? MIN_SKELETON_MS + ENTER_DURATION_MS
           : ENTER_DURATION_MS
       await wait(enterMs)
@@ -113,7 +125,12 @@ export function RouteTransitionProvider({
       lockRef.current = true
       setState((s) => ({ ...s, status: 'exiting', type }))
 
-      const exitMs = type === 'skeleton' ? EXIT_DURATION_MS : ABOUT_WIPE_DURATION_MS
+      const reduced = prefersReducedMotion()
+      const exitMs = reduced
+        ? 0
+        : type === 'skeleton'
+          ? EXIT_DURATION_MS
+          : ABOUT_WIPE_DURATION_MS
       await wait(exitMs)
 
       if (type === 'about-in') {
@@ -126,8 +143,9 @@ export function RouteTransitionProvider({
 
       setState((s) => ({ ...s, status: 'entering' }))
 
-      const enterMs =
-        type === 'skeleton'
+      const enterMs = reduced
+        ? 50
+        : type === 'skeleton'
           ? MIN_SKELETON_MS + ENTER_DURATION_MS
           : ENTER_DURATION_MS
       await wait(enterMs)

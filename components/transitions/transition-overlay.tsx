@@ -1,12 +1,33 @@
 'use client'
 
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouteTransition } from './route-transition-context'
 
+function useReducedMotion() {
+  return useSyncExternalStore(
+    (cb) => {
+      if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+        return () => {}
+      }
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+      mq.addEventListener('change', cb)
+      return () => mq.removeEventListener('change', cb)
+    },
+    () => {
+      if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+        return false
+      }
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    },
+    () => false,
+  )
+}
+
 export function TransitionOverlay() {
   const { status, type, logoRect } = useRouteTransition()
+  const reduced = useReducedMotion()
   const active = status !== 'idle' && type !== null
 
   return (
@@ -19,12 +40,12 @@ export function TransitionOverlay() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2, ease: 'easeInOut' }}
+          transition={{ duration: reduced ? 0.05 : 0.2, ease: 'easeInOut' }}
           className="fixed inset-0 z-[100] bg-card pointer-events-none"
         />
       )}
       {active && (type === 'about-in' || type === 'about-out') && (
-        <AboutWipe key="about" type={type} logoRect={logoRect} status={status} />
+        <AboutWipe key="about" type={type} logoRect={logoRect} status={status} reduced={reduced} />
       )}
     </AnimatePresence>
   )
@@ -34,10 +55,12 @@ function AboutWipe({
   type,
   logoRect,
   status,
+  reduced,
 }: {
   type: 'about-in' | 'about-out'
   logoRect: { x: number; y: number; width: number; height: number } | null
   status: 'exiting' | 'entering'
+  reduced: boolean
 }) {
   const origin = logoRect
     ? { x: logoRect.x + logoRect.width / 2, y: logoRect.y + logoRect.height / 2 }
@@ -78,34 +101,36 @@ function AboutWipe({
         initial={{ clipPath: initialClip, opacity: 1 }}
         animate={{ clipPath: animateClip, opacity: status === 'entering' ? 0 : 1 }}
         transition={{
-          clipPath: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
-          opacity: { duration: 0.2, ease: 'easeOut' },
+          clipPath: { duration: reduced ? 0.05 : 0.6, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.2, ease: 'easeOut' },
         }}
         className="fixed inset-0 z-[100] bg-background pointer-events-none"
       />
-      <motion.div
-        className="fixed z-[101] pointer-events-none"
-        initial={{
-          top: startRect.y,
-          left: startRect.x,
-          width: startRect.width,
-          height: startRect.height,
-        }}
-        animate={{
-          top: endRect.y,
-          left: endRect.x,
-          width: endRect.width,
-          height: endRect.height,
-          opacity: status === 'entering' ? 0 : 1,
-        }}
-        transition={{
-          duration: 0.6,
-          ease: [0.22, 1, 0.36, 1],
-          opacity: { duration: 0.2, delay: 0.4 },
-        }}
-      >
-        <Image src="/assets/logo.svg" alt="Pelú" fill priority />
-      </motion.div>
+      {!reduced && (
+        <motion.div
+          className="fixed z-[101] pointer-events-none"
+          initial={{
+            top: startRect.y,
+            left: startRect.x,
+            width: startRect.width,
+            height: startRect.height,
+          }}
+          animate={{
+            top: endRect.y,
+            left: endRect.x,
+            width: endRect.width,
+            height: endRect.height,
+            opacity: status === 'entering' ? 0 : 1,
+          }}
+          transition={{
+            duration: 0.6,
+            ease: [0.22, 1, 0.36, 1],
+            opacity: { duration: 0.2, delay: 0.4 },
+          }}
+        >
+          <Image src="/assets/logo.svg" alt="Pelú" fill priority />
+        </motion.div>
+      )}
     </>
   )
 }
