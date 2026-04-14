@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -45,6 +46,10 @@ export function RouteTransitionProvider({
     logoRect: null,
   })
   const lockRef = useRef(false)
+  const pathnameRef = useRef(pathname)
+  useEffect(() => {
+    pathnameRef.current = pathname
+  }, [pathname])
 
   const setLogoRect = useCallback((rect: LogoRect | null) => {
     setState((s) => ({ ...s, logoRect: rect }))
@@ -76,6 +81,7 @@ export function RouteTransitionProvider({
       }
 
       router.push(href)
+      pathnameRef.current = href
       if (typeof window !== 'undefined') {
         window.scrollTo(0, 0)
       }
@@ -93,6 +99,46 @@ export function RouteTransitionProvider({
     },
     [pathname, router],
   )
+
+  useEffect(() => {
+    const onPopState = async () => {
+      if (lockRef.current) return
+      const from = pathnameRef.current
+      const to = window.location.pathname
+      const type = resolveTransitionType(from, to)
+      if (!type) {
+        pathnameRef.current = to
+        return
+      }
+      lockRef.current = true
+      setState((s) => ({ ...s, status: 'exiting', type }))
+
+      const exitMs = type === 'skeleton' ? EXIT_DURATION_MS : ABOUT_WIPE_DURATION_MS
+      await wait(exitMs)
+
+      if (type === 'about-in') {
+        try {
+          sessionStorage.setItem(SKIP_SCENE1_KEY, '1')
+        } catch {
+          // ignore
+        }
+      }
+
+      setState((s) => ({ ...s, status: 'entering' }))
+
+      const enterMs =
+        type === 'skeleton'
+          ? MIN_SKELETON_MS + ENTER_DURATION_MS
+          : ENTER_DURATION_MS
+      await wait(enterMs)
+
+      setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect }))
+      pathnameRef.current = to
+      lockRef.current = false
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
 
   const value = useMemo<RouteTransitionContextValue>(
     () => ({ ...state, navigate, setLogoRect }),
