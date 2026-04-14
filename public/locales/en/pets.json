@@ -63,7 +63,8 @@
     "login": "Log in",
     "register": "Sign up",
     "dashboard": "Dashboard",
-    "my_account": "My account"
+    "my_account": "My account",
+    "setup_mfa": "Set up MFA"
   },
   "profile": {
     "logout": "Log out"

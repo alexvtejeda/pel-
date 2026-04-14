@@ -63,7 +63,8 @@
     "login": "Iniciar sesión",
     "register": "Registrarse",
     "dashboard": "Mi panel",
-    "my_account": "Mi cuenta"
+    "my_account": "Mi cuenta",
+    "setup_mfa": "Configurar MFA"
   },
   "profile": {
     "logout": "Cerrar sesión"
