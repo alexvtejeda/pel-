@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { UnifiedProvider, listProviders } from '@/lib/api/providers'
-import { PetsHeader } from '@/components/pets/pets-header'
 import { ProviderGrid } from './provider-grid'
 import { ProviderDetail } from './provider-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
@@ -42,8 +41,6 @@ export function AliadosPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted">
-      <PetsHeader />
-
       <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
         <ProviderGrid
           providers={providers}

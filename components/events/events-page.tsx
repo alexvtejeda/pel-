@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarDays } from '@fortawesome/free-solid-svg-icons'
-import { PetsHeader } from '@/components/pets/pets-header'
 import { Footer } from '@/components/footer'
 import { EventBlock } from '@/components/events/event-block'
 import { getEvents, EventItem } from '@/lib/api/events'
@@ -23,8 +22,6 @@ export function EventsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PetsHeader />
-
       <section className="px-4 pt-16 pb-8 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{t('events.title')}</h1>
         <p className="text-muted-foreground max-w-md mx-auto">{t('events.subtitle')}</p>

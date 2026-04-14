@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters, listPublicPets } from '@/lib/api/pets-public'
-import { PetsHeader } from './pets-header'
 import { PetGrid, FilterKey } from './pet-grid'
 import { PetDetail } from './pet-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
@@ -76,8 +75,6 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
 
   return (
     <div className="flex flex-col min-h-screen bg-muted">
-      <PetsHeader />
-
       <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
         <PetGrid
           pets={pets}

@@ -4,7 +4,6 @@ import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRight, faMagnifyingGlass, faPaw, faTruckFast } from '@fortawesome/free-solid-svg-icons'
-import { PetsHeader } from '@/components/pets/pets-header'
 import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
@@ -36,8 +35,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PetsHeader />
-
       {/* Hero */}
       <section className="px-4 pt-12 pb-16 overflow-hidden">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row gap-12 md:gap-8 items-center">
