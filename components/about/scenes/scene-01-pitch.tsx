@@ -15,6 +15,13 @@ export function Scene01Pitch() {
   const reduced = useReducedMotion()
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    if (sessionStorage.getItem('pelu:skip-scene-1-intro') === '1') {
+      sessionStorage.removeItem('pelu:skip-scene-1-intro')
+    }
+  }, [])
+
+  useEffect(() => {
     if (!isDesktop || reduced) {
       progress.set(1) // header visible immediately in fallback
       return
