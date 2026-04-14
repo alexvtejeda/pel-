@@ -2,7 +2,7 @@
 
 **Date:** 2026-04-14
 **Scope:** `/auth/login` route, `MfaVerify` component, account sheet in `pets-header`, post-login redirect helper, Google OAuth callback, existing MFA enrollment page.
-**Context:** The backend now enforces TOTP for admins on sensitive actions (RC approval, deletions). When a Google-OAuth admin lands on the frontend, the backend sets an `mfa_token` cookie and redirects to `/auth/login?mfa=1`. Currently the frontend has no handling for that URL. This spec wires it up, refactors the existing `MfaVerify` from modal overlay to inline card content, and adds an MFA self-service entry point to the account sheet.
+**Context:** The backend now requires **strong MFA** (TOTP or WebAuthn / passkey — not email OTP or recovery codes) on sensitive admin actions (RC approval, deletions). Weak methods can log a user in, but the admin-route guard only accepts sessions with a `mfa_verified` claim that's stamped exclusively after a strong challenge. When a Google-OAuth user with MFA enrolled lands on the frontend, the backend sets an `mfa_token` cookie and redirects to `/auth/login?mfa=1`. Currently the frontend has no handling for that URL. This spec wires it up, refactors the existing `MfaVerify` from modal overlay to inline card content, and adds an MFA self-service entry point to the account sheet.
 
 ## Goal
 
@@ -23,7 +23,7 @@ type LoginMode = 'credentials' | 'loading' | 'mfa'
 
 **Initial value:** `'loading'` when `searchParams.get('mfa') === '1'`, otherwise `'credentials'`. The `loading` state exists solely to avoid flashing an empty card while `mfaChallenge()` is in flight.
 
-**Mount effect:** when `mode === 'loading'`, call `mfaChallenge()` once. On success, store the returned `MfaChallengeResponse` and switch to `mode: 'mfa'`. On error, fall back to `mode: 'credentials'` and surface a soft error: "Tu sesión MFA expiró, inicia sesión de nuevo."
+**Mount effect:** when `mode === 'loading'`, call `mfaChallenge()` once. On success, store the returned `MfaChallengeResponse` and switch to `mode: 'mfa'`. On error, fall back to `mode: 'credentials'` and surface a soft error: "Tu sesión MFA expiró, inicia sesión de nuevo." Use a `useRef<boolean>` flag to guard against React 19 strict-mode double-firing of the effect — only the first call should hit the network; subsequent invocations no-op.
 
 **Transitions driven by email+password login:**
 - `login()` returns `{ mfaChallenge }` → set challenge state, `setMode('mfa')`.
@@ -39,23 +39,31 @@ type LoginMode = 'credentials' | 'loading' | 'mfa'
 
 The credentials form JSX moves into an internal `CredentialsForm` component defined inside `login-page.tsx`. The root render uses `AnimatePresence` with `mode="wait"` + `initial={false}` so only one child is visible at a time, and the swap plays exit-then-enter with no overlap.
 
+A shared `shrinkExpandProps` object defined at module scope keeps all three children animating identically:
+
+```ts
+const shrinkExpandProps = {
+  initial: { opacity: 0, height: 0 },
+  animate: { opacity: 1, height: 'auto' as const },
+  exit: { opacity: 0, height: 0 },
+  transition: { duration: 0.2, ease: 'easeInOut' as const },
+  style: { overflow: 'hidden' },
+}
+```
+
 ```tsx
 <AuthLayout accent="amber" heroTagline="Bienvenido de vuelta">
   <AnimatePresence mode="wait" initial={false}>
     {mode === 'credentials' && (
-      <motion.div
-        key="credentials"
-        initial={{ opacity: 0, height: 0 }}
-        animate={{ opacity: 1, height: 'auto' }}
-        exit={{ opacity: 0, height: 0 }}
-        transition={{ duration: 0.2, ease: 'easeInOut' }}
-        style={{ overflow: 'hidden' }}
-      >
-        <CredentialsForm onMfaRequired={(challenge, email) => {
-          setChallenge(challenge)
-          setChallengeEmail(email)
-          setMode('mfa')
-        }} onSuccess={(user) => postLoginRedirect(user, router)} />
+      <motion.div key="credentials" {...shrinkExpandProps}>
+        <CredentialsForm
+          onMfaRequired={(challenge, email) => {
+            setChallenge(challenge)
+            setChallengeEmail(email)
+            setMode('mfa')
+          }}
+          onSuccess={(user) => postLoginRedirect(user, router)}
+        />
       </motion.div>
     )}
     {mode === 'loading' && (
@@ -78,8 +86,6 @@ The credentials form JSX moves into an internal `CredentialsForm` component defi
 </AuthLayout>
 ```
 
-`shrinkExpandProps` is a shared constant with the same `initial`/`animate`/`exit`/`transition`/`style` props so all three children animate consistently.
-
 Animation timings are tunable: 200ms duration, `easeInOut`. The vertical shrink uses `height: 'auto'` ↔ `0` with `overflow: hidden` on the wrapper so content is clipped during the collapse.
 
 ## MfaVerify refactor: modal → inline
@@ -91,7 +97,7 @@ Animation timings are tunable: 200ms duration, `easeInOut`. The vertical shrink 
 - `<div className="absolute inset-0 bg-black/60 backdrop-blur-md" />` backdrop.
 - `<div className="relative bg-card rounded-2xl p-6 w-full max-w-sm …">` inner card — redundant because the parent `AuthLayout` right-side slot already provides padding and rounding.
 
-**Method picker:** becomes an inline expanding section, not a separate full-screen modal. When "otro método" is clicked, the current code input collapses and the method list slides down in its place via the same `AnimatePresence` mechanism.
+**Method picker:** stays as a pre-existing `showMethodPicker` boolean state branch, but its container is no longer a full-screen fixed modal. When the picker is open, it renders in place of the code input inside the same card. Animation is not required — a plain state swap is fine. Removing the fixed-inset wrappers is the core change; the internal `showMethodPicker` logic stays untouched.
 
 **New prop signature:**
 
@@ -152,11 +158,20 @@ type RouterLike = { push: (path: string) => void }
 
 export async function postLoginRedirect(user: AuthUser, router: RouterLike) {
   // `GET /auth/me` returns is_admin + mfa_setup_required (backend-computed, unspoofable).
-  // mfa_setup_required is true when:
-  //   - user is rescue_center/business with no MFA (non-Google), OR
-  //   - user is an admin with no MFA (any provider, including Google)
-  // The backend README explicitly calls out this field as the signal to redirect to
-  // enrollment on app load, exactly for this flow.
+  // - mfa_setup_required is true when the user is RC/business with no MFA (non-Google)
+  //   OR an admin with no MFA (any provider). Signal designed exactly for this flow.
+  // - is_admin is true when the user's ID is in ADMIN_USER_IDS. Admin is NOT a Role
+  //   enum value — it's orthogonal to `user.role`, which remains one of
+  //   'member' | 'rescue_center' | 'business'. A user can be both an admin and a
+  //   member, for example.
+  //
+  // Decision order (highest priority first):
+  //   1. mfa_setup_required → forced enrollment
+  //   2. no role set → pick a role first (admin or not — can't route to admin
+  //      dashboard without a role established)
+  //   3. is_admin → admin dashboard (overrides role-specific destination)
+  //   4. role-specific dashboard
+  let isAdmin = false
   try {
     const res = await apiClient('/api/v1/auth/me')
     if (res.ok) {
@@ -165,9 +180,20 @@ export async function postLoginRedirect(user: AuthUser, router: RouterLike) {
         router.push('/auth/mfa/enrollment?mfa=1')
         return
       }
+      isAdmin = me.is_admin === true
     }
   } catch {
     // Fall through to role-based redirect on /auth/me failure
+  }
+
+  if (!user.role) {
+    router.push('/auth/role-selection')
+    return
+  }
+
+  if (isAdmin) {
+    router.push('/dashboard/admin')
+    return
   }
 
   switch (user.role) {
@@ -176,13 +202,6 @@ export async function postLoginRedirect(user: AuthUser, router: RouterLike) {
       return
     case 'business':
       router.push('/dashboard/business')
-      return
-    case 'admin':
-      // Admin role is exposed as the user's regular role — actual admin access
-      // comes from the ADMIN_USER_IDS env allow-list on the backend. Route admins
-      // to the admin dashboard only if `me.is_admin === true` (checked by the
-      // dashboard guard component itself; here we just send them to the right URL).
-      router.push('/dashboard/admin')
       return
     case 'member':
       router.push('/pets')
@@ -261,7 +280,7 @@ GSAP-style caveat: Framer Motion timing is not asserted. The tests check DOM sta
 
 3. **User refreshes while in `mode: 'mfa'` after email+password login.** URL has no `?mfa=1`, so `mode` resets to `'credentials'` on reload. The user enters credentials again. Persisting mode across refresh is out of scope.
 
-4. **Admin-with-MFA who logs in successfully but has no role set.** `postLoginRedirect` falls through to `/auth/role-selection`. Subsequent logins after role-set hit `/dashboard/admin` via the role switch.
+4. **Admin-with-MFA who logs in successfully but has no role set.** `postLoginRedirect` routes to `/auth/role-selection` first (step 2 in the decision order), because admin is not a role and the admin dashboard assumes an underlying role is established. After the user picks a role, the next login (or any subsequent `postLoginRedirect` call) routes directly to `/dashboard/admin` via step 3.
 
 5. **Admin loses TOTP device after forced enrollment.** Out of scope. Recovery via recovery codes or backend operator intervention.
 
