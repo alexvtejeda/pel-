@@ -9,7 +9,7 @@ interface AuthContextType {
   user: AuthUser | null
   loading: boolean
   mfaSetupRequired: boolean
-  login: (email: string, password: string) => Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null }>
+  login: (email: string, password: string) => Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null; user: AuthUser | null }>
   register: (email: string, password: string) => Promise<{ error: string | null }>
   logout: () => Promise<void>
   setRole: (role: UserRole) => Promise<{ error: string | null }>
@@ -20,7 +20,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   mfaSetupRequired: false,
-  login: async () => ({ error: null, mfaChallenge: null }),
+  login: async () => ({ error: null, mfaChallenge: null, user: null }),
   register: async () => ({ error: null }),
   logout: async () => {},
   setRole: async () => ({ error: null }),
@@ -70,16 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     init()
   }, [])
 
-  const login = async (email: string, password: string): Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null }> => {
+  const login = async (email: string, password: string): Promise<{ error: string | null; mfaChallenge: MfaChallengeResponse | null; user: AuthUser | null }> => {
     const { data, error } = await authApi.login(email, password)
-    if (error || !data) return { error, mfaChallenge: null }
+    if (error || !data) return { error, mfaChallenge: null, user: null }
 
     if (isMfaChallenge(data)) {
-      return { error: null, mfaChallenge: data }
+      return { error: null, mfaChallenge: data, user: null }
     }
 
     setUser(data.user)
-    return { error: null, mfaChallenge: null }
+    return { error: null, mfaChallenge: null, user: data.user }
   }
 
   const register = async (email: string, password: string): Promise<{ error: string | null }> => {
