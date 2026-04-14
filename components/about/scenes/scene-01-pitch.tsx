@@ -81,7 +81,7 @@ export function Scene01Pitch() {
       <div className="relative z-10 min-h-screen flex flex-col items-center justify-center gap-8 px-6 text-center text-white">
         <h1 className="sr-only">Pelú — Centralizamos el ecosistema de adopción y cuidado de mascotas en RD</h1>
         <div ref={logoRef} aria-hidden="true" className="flex items-center gap-6 will-change-transform">
-          <Image src="/assets/logo.svg" alt="" width={128} height={128} priority />
+          <Image src="/assets/logo.svg" alt="" width={128} height={128} priority data-about-hero-logo />
           <span className="text-7xl md:text-9xl font-bold tracking-tight">Pelú</span>
         </div>
         <div data-fade-out className="flex flex-col items-center gap-6 rounded-2xl bg-primary px-8 py-10 md:px-12 md:py-12">
