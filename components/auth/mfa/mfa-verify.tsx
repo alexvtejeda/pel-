@@ -6,17 +6,18 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faKey, faMobileScreen, faEnvelope } from '@fortawesome/free-solid-svg-icons'
 import { MfaCodeInput } from './mfa-code-input'
 import * as mfaApi from '@/lib/api/mfa'
-import { MfaChallengeResponse, MfaMethod } from '@/lib/types/user'
+import { AuthUser, MfaChallengeResponse, MfaMethod } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 interface MfaVerifyProps {
   challenge: MfaChallengeResponse
   loginEmail: string
-  onSuccess: () => void
+  onSuccess: (user: AuthUser) => void
   onExpired: () => void
+  onCancel: () => void
 }
 
-export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVerifyProps) {
+export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCancel }: MfaVerifyProps) {
   const { t } = useTranslation('auth')
   const { updateSession } = useAuth()
   const [activeMethod, setActiveMethod] = useState<MfaMethod>(challenge.preferred_method)
@@ -46,7 +47,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
 
     if (data) {
       updateSession(data.user)
-      onSuccess()
+      onSuccess(data.user)
     }
   }
 
@@ -108,97 +109,98 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired }: MfaVe
 
   if (showMethodPicker) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-        <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-4 border shadow-lg">
-          <div className="text-center">
-            <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
-            <h2 className="font-semibold">{t('mfa.verify.other_method')}</h2>
-          </div>
-
-          <div className="space-y-2">
-            {challenge.available_methods.filter(m => m !== 'recovery').map((method) => (
-              <button
-                key={method}
-                onClick={() => handleSwitchMethod(method)}
-                className={`w-full p-3 rounded-xl border text-left flex items-center gap-3 transition-colors ${
-                  activeMethod === method ? 'border-pop-450 bg-pop-450/10' : 'border-input hover:bg-muted'
-                }`}
-              >
-                <FontAwesomeIcon icon={methodIcons[method]} className="text-base" />
-                <span className="text-sm font-medium">{t(`mfa.enrollment.${method === 'webauthn' ? 'passkey' : method}`)}</span>
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => handleSwitchMethod('recovery')}
-            className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {t('mfa.verify.use_recovery')}
-          </button>
+      <div className="space-y-4" data-testid="mfa-method-picker">
+        <div className="text-center">
+          <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
+          <h2 className="font-semibold">{t('mfa.verify.other_method')}</h2>
         </div>
+
+        <div className="space-y-2">
+          {challenge.available_methods.filter(m => m !== 'recovery').map((method) => (
+            <button
+              key={method}
+              onClick={() => handleSwitchMethod(method)}
+              className={`w-full p-3 rounded-xl border text-left flex items-center gap-3 transition-colors ${
+                activeMethod === method ? 'border-pop-450 bg-pop-450/10' : 'border-input hover:bg-muted'
+              }`}
+            >
+              <FontAwesomeIcon icon={methodIcons[method]} className="text-base" />
+              <span className="text-sm font-medium">{t(`mfa.enrollment.${method === 'webauthn' ? 'passkey' : method}`)}</span>
+            </button>
+          ))}
+        </div>
+
+        <button
+          onClick={() => handleSwitchMethod('recovery')}
+          className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          {t('mfa.verify.use_recovery')}
+        </button>
       </div>
     )
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-      <div className="relative bg-card rounded-2xl p-6 w-full max-w-sm space-y-5 border shadow-lg">
-        <div className="text-center space-y-1">
-          <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
-          <h2 className="font-semibold">{t('mfa.verify.title')}</h2>
-          <p className="text-sm text-muted-foreground">{t(subtitleKeys[activeMethod])}</p>
-          {activeMethod === 'email' && emailSent && (
-            <p className="text-xs text-pop-450">{t('mfa.verify.email_sent', { email: maskedEmail })}</p>
-          )}
-        </div>
-
-        {(activeMethod === 'totp' || activeMethod === 'email') && (
-          <MfaCodeInput onComplete={handleVerify} disabled={loading} error={error} />
+    <div className="space-y-5" data-testid="mfa-verify-card">
+      <div className="text-center space-y-1">
+        <FontAwesomeIcon icon={faShieldHalved} className="text-2xl text-pop-550 mb-2" />
+        <h2 className="font-semibold">{t('mfa.verify.title')}</h2>
+        <p className="text-sm text-muted-foreground">{t(subtitleKeys[activeMethod])}</p>
+        {activeMethod === 'email' && emailSent && (
+          <p className="text-xs text-pop-450">{t('mfa.verify.email_sent', { email: maskedEmail })}</p>
         )}
-
-        {activeMethod === 'recovery' && (
-          <form onSubmit={(e) => { e.preventDefault(); const input = e.currentTarget.elements.namedItem('recovery') as HTMLInputElement; if (input.value) handleVerify(input.value) }} className="space-y-3">
-            <input
-              name="recovery"
-              type="text"
-              placeholder="XXXXXXXXXX"
-              className="w-full px-4 py-3 border border-input rounded-xl text-center font-mono tracking-widest focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
-              disabled={loading}
-            />
-            {error && <p className="text-destructive text-sm text-center">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? '...' : t('mfa.verify.verify_button')}
-            </button>
-          </form>
-        )}
-
-        {activeMethod === 'webauthn' && (
-          <div className="space-y-3">
-            {error && <p className="text-destructive text-sm text-center">{error}</p>}
-            <button
-              onClick={handlePasskeyVerify}
-              disabled={loading}
-              className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {loading ? '...' : t('mfa.verify.passkey_button')}
-            </button>
-          </div>
-        )}
-
-        <button
-          onClick={() => setShowMethodPicker(true)}
-          className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          {t('mfa.verify.other_method')} →
-        </button>
       </div>
+
+      {(activeMethod === 'totp' || activeMethod === 'email') && (
+        <MfaCodeInput onComplete={handleVerify} disabled={loading} error={error} />
+      )}
+
+      {activeMethod === 'recovery' && (
+        <form onSubmit={(e) => { e.preventDefault(); const input = e.currentTarget.elements.namedItem('recovery') as HTMLInputElement; if (input.value) handleVerify(input.value) }} className="space-y-3">
+          <input
+            name="recovery"
+            type="text"
+            placeholder="XXXXXXXXXX"
+            className="w-full px-4 py-3 border border-input rounded-xl text-center font-mono tracking-widest focus:outline-hidden focus:ring-2 focus:ring-ring focus:border-transparent"
+            disabled={loading}
+          />
+          {error && <p className="text-destructive text-sm text-center">{error}</p>}
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {loading ? '...' : t('mfa.verify.verify_button')}
+          </button>
+        </form>
+      )}
+
+      {activeMethod === 'webauthn' && (
+        <div className="space-y-3">
+          {error && <p className="text-destructive text-sm text-center">{error}</p>}
+          <button
+            onClick={handlePasskeyVerify}
+            disabled={loading}
+            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            {loading ? '...' : t('mfa.verify.passkey_button')}
+          </button>
+        </div>
+      )}
+
+      <button
+        onClick={() => setShowMethodPicker(true)}
+        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {t('mfa.verify.other_method')} →
+      </button>
+
+      <button
+        onClick={onCancel}
+        className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+      >
+        {t('mfa.verify.back_to_login')}
+      </button>
     </div>
   )
 }
