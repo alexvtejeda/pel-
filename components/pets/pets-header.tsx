@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
@@ -20,6 +20,7 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { PublicMobileNav } from './public-mobile-nav'
+import { usePublicHeaderLogoRect } from '@/components/transitions/use-public-header-logo-rect'
 
 const ROLE_LABELS: Record<string, { es: string; en: string }> = {
   adopter: { es: 'Adoptante', en: 'Adopter' },
@@ -38,6 +39,8 @@ export function PetsHeader() {
   const [addPetOpen, setAddPetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [navigating, setNavigating] = useState(false)
+  const logoRef = useRef<HTMLAnchorElement>(null)
+  usePublicHeaderLogoRect(logoRef)
 
   // Track scroll position
   useEffect(() => {
@@ -88,7 +91,7 @@ export function PetsHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" ref={logoRef} className="flex items-center gap-2">
           <Image src="/assets/logo.svg" alt="Pelú" width={56} height={56} style={{ height: 'auto' }} priority />
           <span
             className="text-2xl font-bold overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out"
