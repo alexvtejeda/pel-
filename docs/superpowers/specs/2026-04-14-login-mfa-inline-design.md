@@ -151,14 +151,17 @@ import { AuthUser } from '@/lib/types/user'
 type RouterLike = { push: (path: string) => void }
 
 export async function postLoginRedirect(user: AuthUser, router: RouterLike) {
-  // /auth/me exposes is_admin (computed from JWT sub ↔ backend .env allow-list)
-  // and mfa_enrolled. Both are server-computed and cannot be spoofed by the client.
-  // is_admin is intentionally NOT stored on AuthUser to prevent client-side tampering.
+  // `GET /auth/me` returns is_admin + mfa_setup_required (backend-computed, unspoofable).
+  // mfa_setup_required is true when:
+  //   - user is rescue_center/business with no MFA (non-Google), OR
+  //   - user is an admin with no MFA (any provider, including Google)
+  // The backend README explicitly calls out this field as the signal to redirect to
+  // enrollment on app load, exactly for this flow.
   try {
     const res = await apiClient('/api/v1/auth/me')
     if (res.ok) {
       const me = await res.json()
-      if (me.is_admin === true && me.mfa_enrolled !== true) {
+      if (me.mfa_setup_required === true) {
         router.push('/auth/mfa/enrollment?mfa=1')
         return
       }
@@ -175,6 +178,10 @@ export async function postLoginRedirect(user: AuthUser, router: RouterLike) {
       router.push('/dashboard/business')
       return
     case 'admin':
+      // Admin role is exposed as the user's regular role — actual admin access
+      // comes from the ADMIN_USER_IDS env allow-list on the backend. Route admins
+      // to the admin dashboard only if `me.is_admin === true` (checked by the
+      // dashboard guard component itself; here we just send them to the right URL).
       router.push('/dashboard/admin')
       return
     case 'member':
@@ -216,6 +223,21 @@ export async function mfaChallenge(): Promise<{ data: MfaChallengeResponse | nul
 ```
 
 Uses raw `fetch` with `credentials: 'include'` because the `mfa_token` cookie is the auth. Matches the pattern already used by `mfaVerify`, `mfaEmailSend`, and `webauthnAssertBegin`.
+
+**Response shape from the backend** (confirmed via `pelu-api/README.md`):
+
+```ts
+interface MfaChallengeResponse {
+  email: string              // already masked by backend: "a***@example.com"
+  preferred_method: MfaMethod
+  available_methods: MfaMethod[]
+  strong_methods_available: boolean
+}
+```
+
+The existing `MfaChallengeResponse` type in `lib/types/user.ts` must be checked against this shape and extended if needed. `strong_methods_available` is a new field — true iff the user has TOTP or WebAuthn enrolled. If the type is missing it, add it.
+
+**Strong-methods warning for admins (optional UX nicety):** when `strong_methods_available === false` AND the user is an admin (checked via `/auth/me` `is_admin` field), surface a soft warning inside the MFA card: "Tu método de MFA actual no permite acceso al panel de administración. Considera configurar TOTP o un passkey." This is from the backend README recommendation and is a nice-to-have — if it complicates implementation, defer to a follow-up.
 
 ## Tests
 
