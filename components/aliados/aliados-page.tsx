@@ -5,6 +5,7 @@ import { UnifiedProvider, listProviders } from '@/lib/api/providers'
 import { ProviderGrid } from './provider-grid'
 import { ProviderDetail } from './provider-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
+import { useRouteTransition } from '@/components/transitions/route-transition-context'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
 import { Footer } from '@/components/footer'
@@ -13,6 +14,10 @@ export function AliadosPage() {
   const [providers, setProviders] = useState<UnifiedProvider[]>([])
   const [selected, setSelected] = useState<UnifiedProvider | null>(null)
   const [loading, setLoading] = useState(true)
+  const { status: transitionStatus, type: transitionType } = useRouteTransition()
+  const [holdSkeleton, setHoldSkeleton] = useState(
+    () => transitionStatus === 'entering' && transitionType === 'skeleton',
+  )
   const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const useSheet = useMediaQuery('(min-width: 640px)')
@@ -31,6 +36,14 @@ export function AliadosPage() {
   }, [])
 
   useEffect(() => {
+    if (transitionStatus === 'entering' && transitionType === 'skeleton') {
+      setHoldSkeleton(true)
+      const t = setTimeout(() => setHoldSkeleton(false), 150)
+      return () => clearTimeout(t)
+    }
+  }, [transitionStatus, transitionType])
+
+  useEffect(() => {
     fetchProviders()
   }, [fetchProviders])
 
@@ -44,7 +57,7 @@ export function AliadosPage() {
       <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
         <ProviderGrid
           providers={providers}
-          loading={loading}
+          loading={loading || holdSkeleton}
           error={error}
           selectedId={selected?.id ?? null}
           onSelect={handleSelect}
