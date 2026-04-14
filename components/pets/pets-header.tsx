@@ -115,25 +115,25 @@ export function PetsHeader() {
         <nav className="hidden sm:flex items-center gap-20">
           <TransitionLink
             href="/pets"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/pets' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/pets' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.pets')}
           </TransitionLink>
           <TransitionLink
             href="/aliados"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/aliados' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/aliados' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('aliados.title', { ns: 'business' })}
           </TransitionLink>
           <TransitionLink
             href="/eventos"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/eventos' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/eventos' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.events')}
           </TransitionLink>
           <TransitionLink
             href="/about"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/about' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/about' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.about')}
           </TransitionLink>

@@ -74,6 +74,7 @@ export function Scene01Pitch() {
     <section
       ref={sectionRef}
       data-scene="01-pitch"
+      data-route="about"
       className="relative min-h-screen overflow-hidden bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900"
     >
       <BackgroundBeams />

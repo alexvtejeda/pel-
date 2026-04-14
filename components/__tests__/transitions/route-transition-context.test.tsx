@@ -59,6 +59,8 @@ describe('RouteTransitionProvider', () => {
     expect(mockPush).toHaveBeenCalledWith('/aliados')
     expect(result.current.status).toBe('entering')
 
+    document.body.innerHTML = '<div data-route="aliados"></div>'
+
     await act(async () => {
       await vi.advanceTimersByTimeAsync(400)
       await promise!
@@ -85,6 +87,7 @@ describe('RouteTransitionProvider', () => {
     act(() => {
       void result.current.navigate('/about')
     })
+    document.body.innerHTML = '<div data-about-hero-logo></div>'
     await act(async () => {
       await vi.advanceTimersByTimeAsync(800)
     })

@@ -34,7 +34,7 @@ export function EventsPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-route="eventos" className="min-h-screen bg-background">
       <section className="px-4 pt-16 pb-8 text-center">
         <h1 className="text-3xl md:text-4xl font-extrabold mb-3">{t('events.title')}</h1>
         <p className="text-muted-foreground max-w-md mx-auto">{t('events.subtitle')}</p>

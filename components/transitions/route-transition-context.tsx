@@ -39,6 +39,29 @@ function wait(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
 }
 
+function routeKeyFor(pathname: string): string {
+  if (pathname === '/') return 'home'
+  if (pathname === '/pets') return 'pets'
+  if (pathname === '/aliados') return 'aliados'
+  if (pathname === '/eventos') return 'eventos'
+  if (pathname === '/about') return 'about'
+  return ''
+}
+
+function waitForElement(selector: string, timeoutMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === 'undefined') return resolve()
+    if (document.querySelector(selector)) return resolve()
+    const start = Date.now()
+    const poll = () => {
+      if (document.querySelector(selector)) return resolve()
+      if (Date.now() - start > timeoutMs) return resolve()
+      setTimeout(poll, 16)
+    }
+    setTimeout(poll, 16)
+  })
+}
+
 export function RouteTransitionProvider({
   children,
 }: {
@@ -99,12 +122,18 @@ export function RouteTransitionProvider({
 
       setState((s) => ({ ...s, status: 'entering' }))
 
-      const enterMs = reduced
+      const targetSelector =
+        type === 'about-in'
+          ? '[data-about-hero-logo]'
+          : `[data-route="${routeKeyFor(href)}"]`
+      await waitForElement(targetSelector, 2000)
+
+      const settleMs = reduced
         ? 50
         : type === 'skeleton'
-          ? MIN_SKELETON_MS + ENTER_DURATION_MS
+          ? MIN_SKELETON_MS
           : ENTER_DURATION_MS
-      await wait(enterMs)
+      await wait(settleMs)
 
       setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect }))
       lockRef.current = false
@@ -143,12 +172,18 @@ export function RouteTransitionProvider({
 
       setState((s) => ({ ...s, status: 'entering' }))
 
-      const enterMs = reduced
+      const targetSelector =
+        type === 'about-in'
+          ? '[data-about-hero-logo]'
+          : `[data-route="${routeKeyFor(to)}"]`
+      await waitForElement(targetSelector, 2000)
+
+      const settleMs = reduced
         ? 50
         : type === 'skeleton'
-          ? MIN_SKELETON_MS + ENTER_DURATION_MS
+          ? MIN_SKELETON_MS
           : ENTER_DURATION_MS
-      await wait(enterMs)
+      await wait(settleMs)
 
       setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect }))
       pathnameRef.current = to

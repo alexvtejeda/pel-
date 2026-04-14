@@ -35,7 +35,7 @@ export function LandingPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-background">
+    <div data-route="home" className="min-h-screen bg-background">
       {/* Hero */}
       <section className="px-4 pt-12 pb-16 overflow-hidden">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row gap-12 md:gap-8 items-center">

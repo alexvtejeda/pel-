@@ -33,16 +33,35 @@ export function TransitionOverlay() {
   return (
     <AnimatePresence>
       {active && type === 'skeleton' && (
-        <motion.div
+        <div
           key="skeleton"
           data-transition-overlay
           data-testid="transition-overlay-skeleton"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: reduced ? 0.05 : 0.2, ease: 'easeInOut' }}
-          className="fixed inset-0 z-[100] bg-card pointer-events-none"
-        />
+          className="fixed inset-x-0 bottom-0 z-[100] pointer-events-none"
+          style={{ top: '64px' }}
+        >
+          <motion.div
+            className="absolute inset-0 bg-muted"
+            initial={{ y: '100%' }}
+            animate={{ y: '0%' }}
+            exit={{ y: '100%' }}
+            transition={{
+              duration: reduced ? 0.05 : 0.35,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          />
+          <motion.div
+            className="absolute inset-4 rounded-2xl bg-background border border-border shadow-xl"
+            initial={{ y: '110%' }}
+            animate={{ y: '0%' }}
+            exit={{ y: '110%' }}
+            transition={{
+              duration: reduced ? 0.05 : 0.5,
+              delay: reduced ? 0 : 0.1,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          />
+        </div>
       )}
       {active && (type === 'about-in' || type === 'about-out') && (
         <AboutWipe key="about" type={type} logoRect={logoRect} status={status} reduced={reduced} />
