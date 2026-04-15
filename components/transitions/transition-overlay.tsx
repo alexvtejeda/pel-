@@ -268,10 +268,10 @@ function LandingZigzagOverlay({
       className="fixed inset-x-0 bottom-0 overflow-hidden pointer-events-none z-100"
       style={{ top: `${headerHeight}px` }}
     >
-      {/* Desktop: 50/50 horizontal split — bg-background on LEFT, bg-muted on RIGHT */}
-      {/* Left panel slides in from the right edge, right panel slides in from the left edge — they cross */}
+      {/* Column split: bg-background on TOP with text skeletons, bg-muted on BOTTOM with card skeletons. */}
+      {/* Top slides in from the right, bottom from the left — zigzag horizontal entry, vertical split. */}
       <motion.div
-        className="hidden md:flex absolute top-0 bottom-0 left-0 w-1/2 bg-background items-center justify-center"
+        className="absolute top-0 left-0 right-0 h-1/2 bg-background flex items-center justify-center"
         initial={{ x: '100%', opacity: 1 }}
         animate={{ x: '0%', opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -280,29 +280,43 @@ function LandingZigzagOverlay({
           opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
         }}
       >
-        <div className="w-full max-w-md px-10 flex flex-col items-start gap-5">
-          {/* Badge */}
-          <div className="h-6 w-40 rounded-full bg-muted animate-pulse" />
-          {/* h1 lines */}
-          <div className="w-full space-y-3">
-            <div className="h-9 w-11/12 rounded-xl bg-muted animate-pulse" />
-            <div className="h-9 w-4/5 rounded-xl bg-muted animate-pulse" />
+        <div className="container mx-auto max-w-6xl px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-8">
+          {/* Left (copy) — real hero layout flips to row at md */}
+          <div className="flex-1 flex flex-col items-start gap-5 w-full">
+            <div className="h-7 w-44 rounded-full bg-muted animate-pulse" />
+            <div className="w-full space-y-3">
+              <div className="h-10 md:h-12 w-11/12 rounded-xl bg-muted animate-pulse" />
+              <div className="h-10 md:h-12 w-4/5 rounded-xl bg-muted animate-pulse" />
+            </div>
+            <div className="w-full max-w-md space-y-2">
+              <div className="h-3.5 w-full rounded bg-muted animate-pulse" />
+              <div className="h-3.5 w-5/6 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="flex gap-3 mt-2">
+              <div className="h-10 w-32 rounded-xl bg-muted animate-pulse" />
+              <div className="h-10 w-36 rounded-xl bg-pop-550/30 animate-pulse" />
+            </div>
           </div>
-          {/* Subtitle lines */}
-          <div className="w-full space-y-2">
-            <div className="h-3.5 w-full rounded bg-muted animate-pulse" />
-            <div className="h-3.5 w-5/6 rounded bg-muted animate-pulse" />
-          </div>
-          {/* CTAs */}
-          <div className="flex gap-3 mt-2">
-            <div className="h-10 w-32 rounded-xl bg-muted animate-pulse" />
-            <div className="h-10 w-36 rounded-xl bg-pop-550/30 animate-pulse" />
+          {/* Right (testimonial card) — hidden until md because it moves to bottom panel below md */}
+          <div className="hidden md:flex flex-1 w-full max-w-150">
+            <div className="w-full bg-muted rounded-2xl p-8 flex flex-col gap-4">
+              <div className="flex gap-6 justify-center opacity-60">
+                {[60, 72, 56, 68, 60].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-6 rounded bg-background animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
+              <div className="h-56 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
+            </div>
           </div>
         </div>
       </motion.div>
 
       <motion.div
-        className="hidden md:flex absolute top-0 bottom-0 right-0 w-1/2 bg-muted items-center justify-center"
+        className="absolute bottom-0 left-0 right-0 h-1/2 bg-muted flex items-center justify-center"
         initial={{ x: '-100%', opacity: 1 }}
         animate={{ x: '0%', opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -311,56 +325,39 @@ function LandingZigzagOverlay({
           opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
         }}
       >
-        <div className="w-full max-w-md px-10 flex flex-col gap-4">
-          {/* Marquee pill row */}
-          <div className="flex gap-6 justify-center opacity-60">
-            {[60, 72, 56, 68, 60].map((w, i) => (
-              <div
-                key={i}
-                className="h-6 rounded bg-background animate-pulse"
-                style={{ width: `${w}px` }}
-              />
-            ))}
+        {/* Mobile: card skel lives here. Desktop: reserved for "How it works" cards row. */}
+        <div className="container mx-auto max-w-6xl px-4 md:px-8">
+          <div className="md:hidden">
+            <div className="w-full bg-background rounded-2xl p-6 flex flex-col gap-4">
+              <div className="flex gap-4 justify-center opacity-60">
+                {[48, 60, 44, 56].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-5 rounded bg-muted animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
+              <div className="h-44 w-full rounded-2xl bg-muted animate-pulse" />
+            </div>
           </div>
-          {/* Testimonial card */}
-          <div className="h-64 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
-        </div>
-      </motion.div>
-
-      {/* Mobile: stacked — bg-background on top with text skel, bg-muted below with card skel */}
-      <motion.div
-        className="md:hidden absolute top-0 left-0 right-0 h-1/2 bg-background flex items-center justify-center"
-        initial={{ x: '100%', opacity: 1 }}
-        animate={{ x: '0%', opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{
-          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
-          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
-        }}
-      >
-        <div className="w-full px-8 flex flex-col items-start gap-4">
-          <div className="h-6 w-40 rounded-full bg-muted animate-pulse" />
-          <div className="h-8 w-11/12 rounded-xl bg-muted animate-pulse" />
-          <div className="h-8 w-4/5 rounded-xl bg-muted animate-pulse" />
-          <div className="flex gap-2 mt-2">
-            <div className="h-10 w-28 rounded-xl bg-muted animate-pulse" />
-            <div className="h-10 w-32 rounded-xl bg-pop-550/30 animate-pulse" />
+          <div className="hidden md:block text-center space-y-6">
+            <div className="h-7 w-64 rounded-xl bg-background mx-auto animate-pulse" />
+            <div className="h-3.5 w-80 rounded bg-background mx-auto animate-pulse" />
+            <div className="grid grid-cols-3 gap-6 mt-8">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="bg-card border border-border rounded-2xl p-7 flex flex-col items-center gap-3 animate-pulse"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-pop-550/20" />
+                  <div className="h-4 w-24 rounded bg-muted" />
+                  <div className="h-3 w-32 rounded bg-muted" />
+                  <div className="h-3 w-28 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </motion.div>
-
-      <motion.div
-        className="md:hidden absolute bottom-0 left-0 right-0 h-1/2 bg-muted flex items-center justify-center"
-        initial={{ x: '-100%', opacity: 1 }}
-        animate={{ x: '0%', opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{
-          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
-          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
-        }}
-      >
-        <div className="w-full px-8">
-          <div className="h-48 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
         </div>
       </motion.div>
     </div>
