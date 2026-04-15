@@ -1,11 +1,12 @@
 'use client'
 
+import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
 
-export default function MfaEnrollmentPage() {
+function MfaEnrollmentInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
@@ -38,5 +39,13 @@ export default function MfaEnrollmentPage() {
       onSkip={forced ? undefined : handleSkip}
       breadcrumbItems={breadcrumbItems}
     />
+  )
+}
+
+export default function MfaEnrollmentPage() {
+  return (
+    <Suspense fallback={null}>
+      <MfaEnrollmentInner />
+    </Suspense>
   )
 }

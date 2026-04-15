@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
@@ -20,6 +20,9 @@ import {
   SheetDescription,
 } from '@/components/ui/sheet'
 import { PublicMobileNav } from './public-mobile-nav'
+import { usePublicHeaderLogoRect } from '@/components/transitions/use-public-header-logo-rect'
+import { TransitionLink } from '@/components/transitions/transition-link'
+import { useRouteTransition } from '@/components/transitions/route-transition-context'
 
 const ROLE_LABELS: Record<string, { es: string; en: string }> = {
   adopter: { es: 'Adoptante', en: 'Adopter' },
@@ -38,6 +41,17 @@ export function PetsHeader() {
   const [addPetOpen, setAddPetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [navigating, setNavigating] = useState(false)
+  const logoRef = useRef<HTMLAnchorElement>(null)
+  usePublicHeaderLogoRect(logoRef)
+  const { navigate: navigateTransition, status: transitionStatus } = useRouteTransition()
+
+  const handleLogoClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    if (event.button !== 0) return
+    event.preventDefault()
+    if (transitionStatus !== 'idle') return
+    void navigateTransition('/')
+  }
 
   // Track scroll position
   useEffect(() => {
@@ -88,7 +102,7 @@ export function PetsHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <Link href="/" className="flex items-center gap-2">
+        <Link href="/" ref={logoRef} onClick={handleLogoClick} className="flex items-center gap-2">
           <Image src="/assets/logo.svg" alt="Pelú" width={56} height={56} style={{ height: 'auto' }} priority />
           <span
             className="text-2xl font-bold overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out"
@@ -99,30 +113,30 @@ export function PetsHeader() {
         </Link>
 
         <nav className="hidden sm:flex items-center gap-20">
-          <Link
+          <TransitionLink
             href="/pets"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/pets' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/pets' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.pets')}
-          </Link>
-          <Link
+          </TransitionLink>
+          <TransitionLink
             href="/aliados"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/aliados' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/aliados' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('aliados.title', { ns: 'business' })}
-          </Link>
-          <Link
+          </TransitionLink>
+          <TransitionLink
             href="/eventos"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/eventos' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/eventos' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.events')}
-          </Link>
-          <Link
+          </TransitionLink>
+          <TransitionLink
             href="/about"
-            className={`text-xl text-foreground hover:text-pop-550 transition-colors ${pathname === '/about' ? 'font-medium' : 'font-light'}`}
+            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/about' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.about')}
-          </Link>
+          </TransitionLink>
         </nav>
 
         <div className="flex items-center gap-3">

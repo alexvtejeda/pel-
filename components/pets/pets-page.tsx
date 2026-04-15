@@ -4,10 +4,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters, listPublicPets } from '@/lib/api/pets-public'
-import { PetsHeader } from './pets-header'
 import { PetGrid, FilterKey } from './pet-grid'
 import { PetDetail } from './pet-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
+import { useRouteTransition } from '@/components/transitions/route-transition-context'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
 import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
 import { Footer } from '@/components/footer'
@@ -21,6 +21,10 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [pets, setPets] = useState<Pet[]>([])
   const [selected, setSelected] = useState<Pet | null>(initialSelected)
   const [loading, setLoading] = useState(true)
+  const { status: transitionStatus, type: transitionType } = useRouteTransition()
+  const [holdSkeleton, setHoldSkeleton] = useState(
+    () => transitionStatus === 'entering' && transitionType === 'skeleton',
+  )
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
   const useSheet = useMediaQuery('(min-width: 640px)')
@@ -40,6 +44,14 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     }
     setLoading(false)
   }, [])
+
+  useEffect(() => {
+    if (transitionStatus === 'entering' && transitionType === 'skeleton') {
+      setHoldSkeleton(true)
+      const t = setTimeout(() => setHoldSkeleton(false), 150)
+      return () => clearTimeout(t)
+    }
+  }, [transitionStatus, transitionType])
 
   useEffect(() => {
     fetchPets({
@@ -75,13 +87,11 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   }, [])
 
   return (
-    <div className="flex flex-col min-h-screen bg-muted">
-      <PetsHeader />
-
+    <div data-route="pets" className="flex flex-col min-h-screen bg-muted">
       <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
         <PetGrid
           pets={pets}
-          loading={loading}
+          loading={loading || holdSkeleton}
           error={error}
           selectedId={selected?.id ?? null}
           activeFilter={activeFilter}

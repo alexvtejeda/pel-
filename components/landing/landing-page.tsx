@@ -1,10 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import { TransitionLink } from '@/components/transitions/transition-link'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRight, faMagnifyingGlass, faPaw, faTruckFast } from '@fortawesome/free-solid-svg-icons'
-import { PetsHeader } from '@/components/pets/pets-header'
 import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
@@ -35,9 +35,7 @@ export function LandingPage() {
   }))
 
   return (
-    <div className="min-h-screen bg-background">
-      <PetsHeader />
-
+    <div data-route="home" className="min-h-screen bg-background">
       {/* Hero */}
       <section className="px-4 pt-12 pb-16 overflow-hidden">
         <div className="container mx-auto max-w-6xl flex flex-col md:flex-row gap-12 md:gap-8 items-center">
@@ -54,13 +52,13 @@ export function LandingPage() {
               {t('new_hero.subtitle')}
             </p>
             <div className="flex gap-3">
-              <Link
+              <TransitionLink
                 href="/pets"
                 className="group inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:border-muted-foreground transition-colors"
               >
                 {t('new_hero.cta_pets')}
                 <FontAwesomeIcon icon={faArrowRight} className="text-xs -rotate-45 group-hover:rotate-0 transition-transform duration-200" />
-              </Link>
+              </TransitionLink>
               <Link
                 href="/auth/register"
                 className="group inline-flex items-center gap-2 px-5 py-2.5 bg-pop-550 text-white rounded-xl text-sm font-medium hover:bg-pop-500 transition-colors"
