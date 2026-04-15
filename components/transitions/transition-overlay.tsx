@@ -85,14 +85,44 @@ export function TransitionOverlay() {
             }}
           >
             <div className="container mx-auto flex-1 flex flex-col sm:px-4">
-              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background mt-8">
+              {/* Filter pill placeholders — desktop */}
+              <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
+                {[72, 72, 72, 80, 84, 88].map((w, i) => (
+                  <div
+                    key={`f1-${i}`}
+                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+                {[96, 96].map((w, i) => (
+                  <div
+                    key={`f2-${i}`}
+                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+                {[92, 92].map((w, i) => (
+                  <div
+                    key={`f3-${i}`}
+                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
+              {/* Filter pill placeholder — mobile */}
+              <div className="sm:hidden px-2 py-3 shrink-0">
+                <div className="h-8 w-24 rounded-xl bg-background shadow-xl animate-pulse" />
+              </div>
+              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div
                       key={i}
                       className="rounded-xl overflow-hidden bg-secondary animate-pulse"
                     >
-                      <div className="aspect-square bg-slate-muted " />
+                      <div className="aspect-square bg-muted" />
                       <div className="p-2 space-y-1.5">
                         <div className="h-3.5 bg-muted rounded w-2/3" />
                         <div className="h-3 bg-muted rounded w-1/3" />
