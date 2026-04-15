@@ -191,7 +191,7 @@ function AboutWipe({
         initial={{ clipPath: initialClip, opacity: 1 }}
         animate={{ clipPath: animateClip, opacity: status === 'entering' ? 0 : 1 }}
         transition={{
-          clipPath: { duration: reduced ? 0.05 : 0.6, ease: [0.22, 1, 0.36, 1] },
+          clipPath: { duration: reduced ? 0.05 : 0.6, ease: [0.3, 1, 0.35, 1] },
           opacity: { duration: reduced ? 0.05 : 0.2, ease: 'easeOut' },
         }}
         className="fixed inset-0 z-100 bg-background pointer-events-none"
@@ -214,7 +214,7 @@ function AboutWipe({
           }}
           transition={{
             duration: 0.6,
-            ease: [0.22, 1, 0.36, 1],
+            ease: [0.3, 1, 0.35, 1],
             opacity: { duration: 0.2, delay: 0.4 },
           }}
         >
