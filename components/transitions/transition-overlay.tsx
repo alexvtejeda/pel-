@@ -37,7 +37,7 @@ export function TransitionOverlay() {
           key="skeleton"
           data-transition-overlay
           data-testid="transition-overlay-skeleton"
-          className="fixed inset-x-0 bottom-0 z-[100] pointer-events-none"
+          className="fixed inset-x-0 bottom-0 overflow-hidden pointer-events-none z-100"
           style={{ top: '64px' }}
         >
           <motion.div
@@ -51,7 +51,7 @@ export function TransitionOverlay() {
             }}
           />
           <motion.div
-            className="absolute inset-4 rounded-2xl bg-background border border-border shadow-xl"
+            className="absolute inset-0 flex flex-col"
             initial={{ y: '110%' }}
             animate={{ y: '0%' }}
             exit={{ y: '110%' }}
@@ -60,7 +60,26 @@ export function TransitionOverlay() {
               delay: reduced ? 0 : 0.1,
               ease: [0.22, 1, 0.36, 1],
             }}
-          />
+          >
+            <div className="container mx-auto flex-1 flex flex-col sm:px-4">
+              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {Array.from({ length: 8 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="rounded-xl overflow-hidden bg-secondary animate-pulse"
+                    >
+                      <div className="aspect-square bg-muted" />
+                      <div className="p-2 space-y-1.5">
+                        <div className="h-3.5 bg-muted rounded w-2/3" />
+                        <div className="h-3 bg-muted rounded w-1/3" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       )}
       {active && (type === 'about-in' || type === 'about-out') && (
@@ -123,11 +142,11 @@ function AboutWipe({
           clipPath: { duration: reduced ? 0.05 : 0.6, ease: [0.22, 1, 0.36, 1] },
           opacity: { duration: reduced ? 0.05 : 0.2, ease: 'easeOut' },
         }}
-        className="fixed inset-0 z-[100] bg-background pointer-events-none"
+        className="fixed inset-0 z-100 bg-background pointer-events-none"
       />
       {!reduced && (
         <motion.div
-          className="fixed z-[101] pointer-events-none"
+          className="fixed z-101 pointer-events-none"
           initial={{
             top: startRect.y,
             left: startRect.x,
