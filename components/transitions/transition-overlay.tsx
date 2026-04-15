@@ -34,12 +34,13 @@ function useHeaderHeight() {
       if (el) setHeight(el.getBoundingClientRect().height)
     }
     measure()
-    const observer = new ResizeObserver(measure)
     const el = document.querySelector<HTMLElement>('header')
-    if (el) observer.observe(el)
+    const observer =
+      typeof ResizeObserver !== 'undefined' ? new ResizeObserver(measure) : null
+    if (el && observer) observer.observe(el)
     window.addEventListener('resize', measure)
     return () => {
-      observer.disconnect()
+      observer?.disconnect()
       window.removeEventListener('resize', measure)
     }
   }, [])
