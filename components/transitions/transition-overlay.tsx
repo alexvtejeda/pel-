@@ -65,23 +65,22 @@ export function TransitionOverlay() {
         >
           <motion.div
             className="absolute inset-0 bg-muted"
-            initial={{ y: '100%' }}
-            animate={{ y: '0%' }}
-            exit={{ y: '100%' }}
+            initial={{ y: '100%', opacity: 1 }}
+            animate={{ y: '0%', opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
-              duration: reduced ? 0.05 : 0.35,
-              ease: [0.22, 1, 0.36, 1],
+              y: { duration: reduced ? 0.05 : 0.35, ease: [0.22, 1, 0.36, 1] },
+              opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
             }}
           />
           <motion.div
             className="absolute inset-0 flex flex-col"
-            initial={{ y: '110%' }}
-            animate={{ y: '0%' }}
-            exit={{ y: '110%' }}
+            initial={{ y: '110%', opacity: 1 }}
+            animate={{ y: '0%', opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
-              duration: reduced ? 0.05 : 0.5,
-              delay: reduced ? 0 : 0.1,
-              ease: [0.22, 1, 0.36, 1],
+              y: { duration: reduced ? 0.05 : 0.5, delay: reduced ? 0 : 0.1, ease: [0.22, 1, 0.36, 1] },
+              opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
             }}
           >
             <div className="container mx-auto flex-1 flex flex-col sm:px-4">
