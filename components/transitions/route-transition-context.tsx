@@ -73,6 +73,7 @@ export function RouteTransitionProvider({
     status: 'idle',
     type: null,
     logoRect: null,
+    targetHref: null,
   })
   const lockRef = useRef(false)
   const pathnameRef = useRef(pathname)
@@ -96,7 +97,7 @@ export function RouteTransitionProvider({
       }
 
       lockRef.current = true
-      setState((s) => ({ ...s, status: 'exiting', type }))
+      setState((s) => ({ ...s, status: 'exiting', type, targetHref: href }))
 
       const reduced = prefersReducedMotion()
       const exitMs = reduced
@@ -135,7 +136,7 @@ export function RouteTransitionProvider({
           : ENTER_DURATION_MS
       await wait(settleMs)
 
-      setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect }))
+      setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect, targetHref: null }))
       lockRef.current = false
     },
     [pathname, router],
@@ -152,7 +153,7 @@ export function RouteTransitionProvider({
         return
       }
       lockRef.current = true
-      setState((s) => ({ ...s, status: 'exiting', type }))
+      setState((s) => ({ ...s, status: 'exiting', type, targetHref: to }))
 
       const reduced = prefersReducedMotion()
       const exitMs = reduced
@@ -185,7 +186,7 @@ export function RouteTransitionProvider({
           : ENTER_DURATION_MS
       await wait(settleMs)
 
-      setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect }))
+      setState((s) => ({ status: 'idle', type: null, logoRect: s.logoRect, targetHref: null }))
       pathnameRef.current = to
       lockRef.current = false
     }

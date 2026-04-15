@@ -47,8 +47,57 @@ function useHeaderHeight() {
   return height
 }
 
+function Pill({ width }: { width: number }) {
+  return (
+    <div
+      className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+      style={{ width: `${width}px` }}
+    />
+  )
+}
+
+function FilterPillPlaceholder({ targetHref }: { targetHref: string | null }) {
+  if (targetHref === '/aliados') {
+    // 6 plain pills, no separators (matches provider-grid.tsx)
+    return (
+      <>
+        <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 overflow-x-auto">
+          {[56, 88, 76, 88, 76, 88].map((w, i) => (
+            <Pill key={i} width={w} />
+          ))}
+        </div>
+        <div className="sm:hidden px-2 py-3 shrink-0">
+          <Pill width={96} />
+        </div>
+      </>
+    )
+  }
+
+  // Default: /pets layout (6 + sep + 2 + sep + 2)
+  return (
+    <>
+      <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
+        {[72, 72, 72, 80, 84, 88].map((w, i) => (
+          <Pill key={`f1-${i}`} width={w} />
+        ))}
+        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+        {[96, 96].map((w, i) => (
+          <Pill key={`f2-${i}`} width={w} />
+        ))}
+        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+        {[92, 92].map((w, i) => (
+          <Pill key={`f3-${i}`} width={w} />
+        ))}
+      </div>
+      <div className="sm:hidden px-2 py-3 shrink-0">
+        <Pill width={96} />
+      </div>
+    </>
+  )
+}
+
 export function TransitionOverlay() {
-  const { status, type, logoRect } = useRouteTransition()
+  const { status, type, logoRect, targetHref } = useRouteTransition()
   const reduced = useReducedMotion()
   const headerHeight = useHeaderHeight()
   const active = status !== 'idle' && type !== null
@@ -84,36 +133,7 @@ export function TransitionOverlay() {
             }}
           >
             <div className="container mx-auto flex-1 flex flex-col sm:px-4">
-              {/* Filter pill placeholders — desktop */}
-              <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
-                {[72, 72, 72, 80, 84, 88].map((w, i) => (
-                  <div
-                    key={`f1-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-                {[96, 96].map((w, i) => (
-                  <div
-                    key={`f2-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-                {[92, 92].map((w, i) => (
-                  <div
-                    key={`f3-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-              </div>
-              {/* Filter pill placeholder — mobile */}
-              <div className="sm:hidden px-2 py-3 shrink-0">
-                <div className="h-8 w-24 rounded-xl bg-background shadow-xl animate-pulse" />
-              </div>
+              <FilterPillPlaceholder targetHref={targetHref} />
               <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Array.from({ length: 8 }).map((_, i) => (
