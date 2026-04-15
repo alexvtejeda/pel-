@@ -25,9 +25,31 @@ function useReducedMotion() {
   )
 }
 
+function useHeaderHeight() {
+  const [height, setHeight] = useState(64)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const measure = () => {
+      const el = document.querySelector<HTMLElement>('header')
+      if (el) setHeight(el.getBoundingClientRect().height)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    const el = document.querySelector<HTMLElement>('header')
+    if (el) observer.observe(el)
+    window.addEventListener('resize', measure)
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [])
+  return height
+}
+
 export function TransitionOverlay() {
   const { status, type, logoRect } = useRouteTransition()
   const reduced = useReducedMotion()
+  const headerHeight = useHeaderHeight()
   const active = status !== 'idle' && type !== null
 
   return (
@@ -38,7 +60,7 @@ export function TransitionOverlay() {
           data-transition-overlay
           data-testid="transition-overlay-skeleton"
           className="fixed inset-x-0 bottom-0 overflow-hidden pointer-events-none z-100"
-          style={{ top: '64px' }}
+          style={{ top: `${headerHeight}px` }}
         >
           <motion.div
             className="absolute inset-0 bg-muted"
@@ -62,14 +84,14 @@ export function TransitionOverlay() {
             }}
           >
             <div className="container mx-auto flex-1 flex flex-col sm:px-4">
-              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
+              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background mt-8">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div
                       key={i}
                       className="rounded-xl overflow-hidden bg-secondary animate-pulse"
                     >
-                      <div className="aspect-square bg-muted" />
+                      <div className="aspect-square bg-slate-muted " />
                       <div className="p-2 space-y-1.5">
                         <div className="h-3.5 bg-muted rounded w-2/3" />
                         <div className="h-3 bg-muted rounded w-1/3" />
