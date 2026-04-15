@@ -18,12 +18,10 @@ export function usePublicHeaderLogoRect(ref: RefObject<HTMLElement | null>) {
     update()
     const observer = new ResizeObserver(update)
     observer.observe(el)
-    window.addEventListener('scroll', update, { passive: true })
     window.addEventListener('resize', update)
 
     return () => {
       observer.disconnect()
-      window.removeEventListener('scroll', update)
       window.removeEventListener('resize', update)
     }
   }, [ref, setLogoRect])
