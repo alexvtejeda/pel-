@@ -42,20 +42,20 @@ export function EventBlock({ event, index }: EventBlockProps) {
   const formattedDate = format(parseISO(event.date), "d 'de' MMMM, yyyy", { locale: es })
 
   return (
-    <div className={`flex flex-col md:flex-row gap-8 md:gap-12 items-center ${isReversed ? 'md:flex-row-reverse' : ''}`}>
+    <div className={`border-input border border-l-2 border-b-2 flex flex-col bg-background rounded-2xl md:flex-row gap-8 md:gap-12 items-center ${isReversed ? 'md:flex-row-reverse' : ''}`}>
       {/* Image */}
       <div className="flex-1 w-full">
         {event.photo_url ? (
-          <img src={event.photo_url} alt={event.title} className="w-full aspect-[3/2] object-cover rounded-2xl" />
+          <img src={event.photo_url} alt={event.title} className="w-full aspect-3/2 object-cover rounded-2xl shadow-[8px_0px_10px_var(--color-input)]" />
         ) : (
-          <div className="w-full aspect-[3/2] rounded-2xl bg-muted flex items-center justify-center">
+          <div className="w-full aspect-3/2 rounded-2xl bg-background border-input border-l-2 flex items-center justify-center shadow-xl">
             <FontAwesomeIcon icon={faCalendarDays} className="text-4xl text-muted-foreground/30" />
           </div>
         )}
       </div>
 
       {/* Text */}
-      <div className="flex-1 flex flex-col justify-center gap-3">
+      <div className="flex-1 items-center flex flex-col justify-center gap-3">
         <p className="text-xs text-muted-foreground font-medium uppercase tracking-wider">
           {event.rescue_center.name}
         </p>
