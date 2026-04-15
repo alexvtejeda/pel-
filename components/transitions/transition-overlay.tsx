@@ -102,9 +102,18 @@ export function TransitionOverlay() {
   const headerHeight = useHeaderHeight()
   const active = status !== 'idle' && type !== null
 
+  const isLandingTarget = targetHref === '/'
+
   return (
     <AnimatePresence>
-      {active && type === 'skeleton' && (
+      {active && type === 'skeleton' && isLandingTarget && (
+        <LandingZigzagOverlay
+          key="landing"
+          headerHeight={headerHeight}
+          reduced={reduced}
+        />
+      )}
+      {active && type === 'skeleton' && !isLandingTarget && (
         <div
           key="skeleton"
           data-transition-overlay
@@ -242,5 +251,118 @@ function AboutWipe({
         </motion.div>
       )}
     </>
+  )
+}
+
+function LandingZigzagOverlay({
+  headerHeight,
+  reduced,
+}: {
+  headerHeight: number
+  reduced: boolean
+}) {
+  return (
+    <div
+      data-transition-overlay
+      data-testid="transition-overlay-landing"
+      className="fixed inset-x-0 bottom-0 overflow-hidden pointer-events-none z-100"
+      style={{ top: `${headerHeight}px` }}
+    >
+      {/* Desktop: 50/50 horizontal split — bg-background on LEFT, bg-muted on RIGHT */}
+      {/* Left panel slides in from the right edge, right panel slides in from the left edge — they cross */}
+      <motion.div
+        className="hidden md:flex absolute top-0 bottom-0 left-0 w-1/2 bg-background items-center justify-center"
+        initial={{ x: '100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        <div className="w-full max-w-md px-10 flex flex-col items-start gap-5">
+          {/* Badge */}
+          <div className="h-6 w-40 rounded-full bg-muted animate-pulse" />
+          {/* h1 lines */}
+          <div className="w-full space-y-3">
+            <div className="h-9 w-11/12 rounded-xl bg-muted animate-pulse" />
+            <div className="h-9 w-4/5 rounded-xl bg-muted animate-pulse" />
+          </div>
+          {/* Subtitle lines */}
+          <div className="w-full space-y-2">
+            <div className="h-3.5 w-full rounded bg-muted animate-pulse" />
+            <div className="h-3.5 w-5/6 rounded bg-muted animate-pulse" />
+          </div>
+          {/* CTAs */}
+          <div className="flex gap-3 mt-2">
+            <div className="h-10 w-32 rounded-xl bg-muted animate-pulse" />
+            <div className="h-10 w-36 rounded-xl bg-pop-550/30 animate-pulse" />
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="hidden md:flex absolute top-0 bottom-0 right-0 w-1/2 bg-muted items-center justify-center"
+        initial={{ x: '-100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        <div className="w-full max-w-md px-10 flex flex-col gap-4">
+          {/* Marquee pill row */}
+          <div className="flex gap-6 justify-center opacity-60">
+            {[60, 72, 56, 68, 60].map((w, i) => (
+              <div
+                key={i}
+                className="h-6 rounded bg-background animate-pulse"
+                style={{ width: `${w}px` }}
+              />
+            ))}
+          </div>
+          {/* Testimonial card */}
+          <div className="h-64 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
+        </div>
+      </motion.div>
+
+      {/* Mobile: stacked — bg-background on top with text skel, bg-muted below with card skel */}
+      <motion.div
+        className="md:hidden absolute top-0 left-0 right-0 h-1/2 bg-background flex items-center justify-center"
+        initial={{ x: '100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        <div className="w-full px-8 flex flex-col items-start gap-4">
+          <div className="h-6 w-40 rounded-full bg-muted animate-pulse" />
+          <div className="h-8 w-11/12 rounded-xl bg-muted animate-pulse" />
+          <div className="h-8 w-4/5 rounded-xl bg-muted animate-pulse" />
+          <div className="flex gap-2 mt-2">
+            <div className="h-10 w-28 rounded-xl bg-muted animate-pulse" />
+            <div className="h-10 w-32 rounded-xl bg-pop-550/30 animate-pulse" />
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="md:hidden absolute bottom-0 left-0 right-0 h-1/2 bg-muted flex items-center justify-center"
+        initial={{ x: '-100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        <div className="w-full px-8">
+          <div className="h-48 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
+        </div>
+      </motion.div>
+    </div>
   )
 }
