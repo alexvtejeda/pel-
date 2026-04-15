@@ -68,7 +68,7 @@ export function RouteTransitionProvider({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const pathname = usePathname()
+  const pathname = usePathname() ?? ''
   const [state, setState] = useState<RouteTransitionState>({
     status: 'idle',
     type: null,
