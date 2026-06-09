@@ -47,6 +47,11 @@ export function ReportIssueButton() {
     setType('')
   }
 
+  const handleClose = () => {
+    reset()
+    setOpen(false)
+  }
+
   const handleSubmit = async () => {
     if (!canSubmit) return
     setSubmitting(true)
@@ -64,7 +69,7 @@ export function ReportIssueButton() {
       toast.success(t('admin.report_issue.success', { number: data.number }), {
         action: {
           label: t('admin.report_issue.view_on_github'),
-          onClick: () => window.open(data.url, '_blank', 'noopener'),
+          onClick: () => window.open(data.url, '_blank', 'noopener,noreferrer'),
         },
       })
       reset()
@@ -95,7 +100,7 @@ export function ReportIssueButton() {
         <FontAwesomeIcon icon={faBug} className="text-xl" />
       </button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => (v ? setOpen(true) : handleClose())}>
         <DialogContent className="rounded-2xl">
           <DialogHeader>
             <DialogTitle>{t('admin.report_issue.title')}</DialogTitle>
@@ -173,7 +178,7 @@ export function ReportIssueButton() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setOpen(false)}>
+            <Button variant="outline" className="rounded-xl" onClick={handleClose}>
               {t('admin.report_issue.cancel')}
             </Button>
             <Button

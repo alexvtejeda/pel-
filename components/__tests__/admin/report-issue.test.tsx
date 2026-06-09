@@ -71,7 +71,12 @@ describe('ReportIssueButton', () => {
     fireEvent.change(screen.getByTestId('report-issue-repo'), { target: { value: 'backend' } })
     fireEvent.click(screen.getByTestId('report-issue-submit'))
 
-    await waitFor(() => expect(toast.error).toHaveBeenCalled())
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringContaining('verificación'),
+        expect.objectContaining({ action: expect.objectContaining({ label: expect.any(String) }) })
+      )
+    )
     expect(screen.getByTestId('report-issue-submit')).toBeInTheDocument()
   })
 
