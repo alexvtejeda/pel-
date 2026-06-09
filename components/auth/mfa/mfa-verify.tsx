@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faKey, faMobileScreen, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { startAuthentication } from '@simplewebauthn/browser'
 import { MfaCodeInput } from './mfa-code-input'
 import * as mfaApi from '@/lib/api/mfa'
 import { AuthUser, MfaChallengeResponse, MfaMethod } from '@/lib/types/user'
@@ -30,10 +31,10 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
     ? loginEmail.slice(0, 2) + '***@' + loginEmail.split('@')[1]
     : '***'
 
-  const handleVerify = async (codeOrAssertion: string | unknown) => {
+  const handleVerify = async (codeOrAssertion: string | unknown, session?: string) => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await mfaApi.mfaVerify(activeMethod, codeOrAssertion)
+    const { data, error: err } = await mfaApi.mfaVerify(activeMethod, codeOrAssertion as never, session)
     setLoading(false)
 
     if (err) {
@@ -70,23 +71,17 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
     setLoading(true)
     setError(null)
 
-    const { data: options, error: beginErr } = await mfaApi.webauthnAssertBegin()
-    if (beginErr || !options) {
+    const { data: begin, error: beginErr } = await mfaApi.webauthnAssertBegin()
+    if (beginErr || !begin) {
       setError(beginErr || 'Error')
       setLoading(false)
       return
     }
 
     try {
-      const assertion = await navigator.credentials.get({
-        publicKey: options as PublicKeyCredentialRequestOptions,
-      })
-      if (!assertion) {
-        setError('No se pudo verificar')
-        setLoading(false)
-        return
-      }
-      await handleVerify(assertion)
+      // startAuthentication marshals base64url ↔ ArrayBuffer and returns JSON-safe assertion.
+      const assertion = await startAuthentication({ optionsJSON: begin.options.publicKey })
+      await handleVerify(assertion, begin.session)
     } catch {
       setError('Verificación cancelada')
       setLoading(false)

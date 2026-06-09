@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faKey } from '@fortawesome/free-solid-svg-icons'
+import { startRegistration } from '@simplewebauthn/browser'
 import * as mfaApi from '@/lib/api/mfa'
 
 interface MfaPasskeySetupProps {
@@ -20,24 +21,18 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
     setLoading(true)
     setError(null)
 
-    const { data: options, error: beginError } = await mfaApi.webauthnRegisterBegin()
-    if (beginError || !options) {
+    const { data: begin, error: beginError } = await mfaApi.webauthnRegisterBegin()
+    if (beginError || !begin) {
       setError(beginError || 'Error')
       setLoading(false)
       return
     }
 
     try {
-      const credential = await navigator.credentials.create({
-        publicKey: options as PublicKeyCredentialCreationOptions,
-      })
-      if (!credential) {
-        setError('No se pudo crear la credencial')
-        setLoading(false)
-        return
-      }
+      // startRegistration marshals base64url ↔ ArrayBuffer and returns JSON-safe attestation.
+      const attestation = await startRegistration({ optionsJSON: begin.options.publicKey })
 
-      const { data, error: finishError } = await mfaApi.webauthnRegisterFinish(credential)
+      const { data, error: finishError } = await mfaApi.webauthnRegisterFinish(attestation, begin.session)
       if (finishError) {
         setError(finishError)
         setLoading(false)

@@ -54,6 +54,8 @@ bun run lint
 
 `lib/api/mfa.ts` covers TOTP, WebAuthn passkeys, email OTP, and recovery codes. Enrollment UI lives at `/auth/mfa/enrollment` (wrapped in `<Suspense>` because it reads `useSearchParams`).
 
+WebAuthn (passkey) ceremonies use **`@simplewebauthn/browser`** (`startRegistration`/`startAuthentication`) for all base64url↔ArrayBuffer marshalling — never call `navigator.credentials.create/get` directly. The backend `register/begin` and `assert/begin` responses wrap the options as `{ options: { publicKey }, session }`, so pass `begin.options.publicKey` as `optionsJSON`. On finish/verify, the credential fields must be merged at the **top level** alongside the `session` string (e.g. `webauthnRegisterFinish(attestation, session, name)`, `mfaVerify('webauthn', assertion, session)`), matching go-webauthn's `ParseCredentialCreationResponseBody`/`ParseCredentialRequestResponseBody`.
+
 ### REST API Client
 
 All API calls go through `lib/api/`. Three distinct fetch patterns exist:
