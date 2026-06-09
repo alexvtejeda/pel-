@@ -61,15 +61,16 @@ describe('webauthnRegisterBegin', () => {
 })
 
 describe('webauthnRegisterFinish', () => {
-  it('sends attestation and name', async () => {
+  it('merges the attestation fields at top level with session and name', async () => {
     const data = { recovery_codes: ['code1'] }
     mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(data) } as Response)
 
-    const result = await webauthnRegisterFinish({ attestation: 'data' }, 'My Key')
+    const attestation = { id: 'cred', rawId: 'raw', response: { foo: 'bar' }, type: 'public-key' }
+    const result = await webauthnRegisterFinish(attestation as never, 'session-str', 'My Key')
     expect(result).toEqual({ data, error: null })
     expect(mockApiClient).toHaveBeenCalledWith('/api/v1/auth/mfa/webauthn/register/finish', {
       method: 'POST',
-      body: JSON.stringify({ attestation: { attestation: 'data' }, name: 'My Key' }),
+      body: JSON.stringify({ ...attestation, session: 'session-str', name: 'My Key' }),
     })
   })
 })
@@ -112,14 +113,15 @@ describe('mfaVerify', () => {
     }))
   })
 
-  it('sends WebAuthn assertion', async () => {
+  it('merges the WebAuthn assertion fields at top level with method and session', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true, json: () => Promise.resolve({ user: {} }),
     }))
 
-    await mfaVerify('webauthn', { assertion: 'data' })
+    const assertion = { id: 'cred', rawId: 'raw', response: { foo: 'bar' }, type: 'public-key' }
+    await mfaVerify('webauthn', assertion as never, 'session-str')
     const body = JSON.parse((fetch as ReturnType<typeof vi.fn>).mock.calls[0][1].body)
-    expect(body).toEqual({ method: 'webauthn', assertion: { assertion: 'data' } })
+    expect(body).toEqual({ method: 'webauthn', session: 'session-str', ...assertion })
   })
 
   it('returns error on invalid code', async () => {
@@ -161,12 +163,49 @@ describe('webauthnAssertBegin', () => {
 // --- Management (uses apiClient) ---
 
 describe('getMethods', () => {
-  it('returns MFA methods', async () => {
-    const methods = { totp: true, webauthn: [], email: false }
-    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(methods) } as Response)
+  it('flattens the backend grouped methods object into a typed array', async () => {
+    // Backend returns `methods` grouped by kind; the group key is the type.
+    const raw = {
+      mfa_enabled: true,
+      methods: {
+        webauthn: [{ id: 'cred-1', name: 'Passkey', created_at: '2026-06-01T00:00:00Z' }],
+        totp: { created_at: '2026-05-01T00:00:00Z' },
+        email: {},
+      },
+      recovery_codes_remaining: 8,
+    }
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) } as Response)
 
     const result = await getMethods()
-    expect(result).toEqual({ data: methods, error: null })
+    expect(result).toEqual({
+      data: {
+        mfa_enabled: true,
+        methods: [
+          { type: 'webauthn', id: 'cred-1', name: 'Passkey', created_at: '2026-06-01T00:00:00Z' },
+          { type: 'totp', created_at: '2026-05-01T00:00:00Z' },
+          { type: 'email', created_at: '' },
+        ],
+        recovery_codes_remaining: 8,
+      },
+      error: null,
+    })
+  })
+
+  it('returns an empty methods array when none are enrolled (backend sends [])', async () => {
+    const raw = { mfa_enabled: false, methods: [], recovery_codes_remaining: 0 }
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(raw) } as Response)
+
+    const result = await getMethods()
+    expect(result.data?.methods).toEqual([])
+  })
+
+  it('returns error on failure', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, json: () => Promise.resolve({ error: 'Unauthorized' }),
+    } as Response)
+
+    const result = await getMethods()
+    expect(result).toEqual({ data: null, error: 'Unauthorized' })
   })
 })
 

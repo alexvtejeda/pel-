@@ -9,6 +9,7 @@ import { AdminFormTab } from './admin-form-tab'
 import { AdminSettingsTab } from './admin-settings-tab'
 import { AdminMobileNav } from './admin-mobile-nav'
 import { ChatTab } from '../rescue-center/chat-tab'
+import { ReportIssueButton } from './report-issue-button'
 
 type Tab = 'rescue-centers' | 'form-template' | 'chat' | 'settings'
 
@@ -38,6 +39,7 @@ export function AdminDashboardShell() {
           {activeTab === 'settings' && <AdminSettingsTab />}
         </main>
         <AdminMobileNav activeTab={activeTab} onTabChange={setActiveTab} />
+        <ReportIssueButton />
       </SidebarInset>
     </SidebarProvider>
   )

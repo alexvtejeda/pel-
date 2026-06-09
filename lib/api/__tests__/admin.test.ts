@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { listAllRescueCenters, approveRescueCenter, rejectRescueCenter, deleteRescueCenter, getFormTemplate, updateFormTemplate } from '../admin'
+import { listAllRescueCenters, approveRescueCenter, rejectRescueCenter, deleteRescueCenter, getFormTemplate, updateFormTemplate, createIssue } from '../admin'
 
 vi.mock('../client', () => ({
   apiClient: vi.fn(),
@@ -107,5 +107,45 @@ describe('updateFormTemplate', () => {
       method: 'PUT',
       body: JSON.stringify({ name: 'Updated' }),
     })
+  })
+})
+
+describe('createIssue', () => {
+  it('returns the created issue and status 201 on success', async () => {
+    const issue = { number: 7, url: 'https://github.com/org/pelu/issues/7' }
+    mockApiClient.mockResolvedValue({ ok: true, status: 201, json: () => Promise.resolve(issue) } as Response)
+
+    const result = await createIssue({ repo: 'frontend', title: 'X', body: 'Y', labels: ['bug', 'frontend'] })
+
+    expect(result).toEqual({ data: issue, error: null, status: 201 })
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/admin/issues', {
+      method: 'POST',
+      body: JSON.stringify({ repo: 'frontend', title: 'X', body: 'Y', labels: ['bug', 'frontend'] }),
+    })
+  })
+
+  it('surfaces status 403 when the session is not MFA-verified', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, status: 403, json: () => Promise.resolve({ error: 'mfa required' }),
+    } as Response)
+
+    const result = await createIssue({ repo: 'backend', title: 'X', body: '', labels: ['backend'] })
+    expect(result).toEqual({ data: null, error: 'mfa required', status: 403 })
+  })
+
+  it('surfaces the server error and status on 400', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, status: 400, json: () => Promise.resolve({ error: 'missing title' }),
+    } as Response)
+
+    const result = await createIssue({ repo: 'backend', title: '', body: '', labels: ['backend'] })
+    expect(result).toEqual({ data: null, error: 'missing title', status: 400 })
+  })
+
+  it('returns status 0 on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+
+    const result = await createIssue({ repo: 'frontend', title: 'X', body: '', labels: ['frontend'] })
+    expect(result).toEqual({ data: null, error: null, status: 0 })
   })
 })

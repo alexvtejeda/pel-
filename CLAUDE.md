@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Pelú is a pet adoption and transport coordination platform built as an Electron desktop application. The tech stack is:
 - **Frontend**: Next.js 16 (App Router) + React 19 + TailwindCSS
 - **Desktop**: Electron 34 (wraps Next.js with static export)
-- **Backend**: Custom REST API at `NEXT_PUBLIC_API_URL` (default: `http://localhost:8080`) — **Firebase has been removed**
+- **Backend**: Custom REST API at `NEXT_PUBLIC_API_URL` (code fallback `http://localhost:8080`, but `.env.local` runs `http://localhost:2701`). Firebase (`^11.2.0`) is still in `package.json` but **unused** — legacy dep, not imported anywhere.
 - **Package Manager**: Bun
 - **Languages**: Spanish (primary/default), English (secondary)
 
@@ -33,7 +33,7 @@ bun run lint
 
 **Important**: Assume the dev server (`bun run dev`) is already running. Do not start it yourself.
 
-**Testing**: Vitest + React Testing Library configured but no tests written yet. Run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file. Use `renderWithProviders()` from `components/__tests__/test-utils.tsx` instead of raw `render()` — it wraps components with i18n provider and mocks `next/navigation` + `next/image`. Config: `vitest.config.ts` (jsdom environment, `@` path alias). `@testing-library/jest-dom` matchers (e.g. `toBeInTheDocument()`) are available globally via setup file.
+**Testing**: Vitest + React Testing Library. ~32 test files exist under `components/__tests__/` and `lib/**/__tests__/`. There is no `test` npm script — run `npx vitest run` for all tests, or `npx vitest run path/to/file.test.ts` for a specific file. Use `renderWithProviders()` from `components/__tests__/test-utils.tsx` instead of raw `render()` — it wraps components with i18n provider and mocks `next/navigation` + `next/image`. Config: `vitest.config.ts` (jsdom environment, `@` path alias). `@testing-library/jest-dom` matchers (e.g. `toBeInTheDocument()`) are available globally via setup file.
 
 ## Architecture & Data Flow
 
@@ -49,6 +49,12 @@ bun run lint
 6. `apiClient()` (`lib/api/client.ts`) sends `credentials: 'include'` on every request; auto-retries via `POST /api/v1/auth/refresh` on 401; fires `pelu:session-cleared` event on hard auth failure
 7. Google OAuth: `googleRedirect()` redirects to `GET /api/v1/auth/google`; backend redirects back to `/auth/google/callback`
 8. Use `useAuth()` hook to access auth state in any component
+
+### Multi-Factor Auth (MFA)
+
+`lib/api/mfa.ts` covers TOTP, WebAuthn passkeys, email OTP, and recovery codes. Enrollment UI lives at `/auth/mfa/enrollment` (wrapped in `<Suspense>` because it reads `useSearchParams`).
+
+WebAuthn (passkey) ceremonies use **`@simplewebauthn/browser`** (`startRegistration`/`startAuthentication`) for all base64url↔ArrayBuffer marshalling — never call `navigator.credentials.create/get` directly. The backend `register/begin` and `assert/begin` responses wrap the options as `{ options: { publicKey }, session }`, so pass `begin.options.publicKey` as `optionsJSON`. On finish/verify, the credential fields must be merged at the **top level** alongside the `session` string (e.g. `webauthnRegisterFinish(attestation, session, name)`, `mfaVerify('webauthn', assertion, session)`), matching go-webauthn's `ParseCredentialCreationResponseBody`/`ParseCredentialRequestResponseBody`.
 
 ### REST API Client
 
@@ -70,7 +76,11 @@ API functions return `{ data, error }` for consistent error handling. Never thro
 
 ### Provider Stack (Root Layout)
 
-`app/layout.tsx` nests providers in this order: `I18nProvider` → `AuthProvider` → `WebSocketProvider` → children + `<Toaster />` (Sonner).
+`app/layout.tsx` nests providers in this order: `I18nProvider` → `AuthProvider` → `WebSocketProvider` → `RouteTransitionProvider` → children. Also mounted inside the stack: `<TransitionOverlay />`, `<RCApprovalListener />`, and `<Toaster />` (Sonner).
+
+### Route Transitions
+
+Public routes use animated transitions: `RouteTransitionProvider` (`components/transitions/route-transition-context.tsx`) + `TransitionOverlay` are mounted in the root layout. For internal navigation between public routes, use `TransitionLink` instead of `next/link` so the overlay animation fires.
 
 ### Protected Routes & Guards
 
@@ -83,7 +93,7 @@ Use `ProtectedRoute` wrapper (`components/auth/protected-route.tsx`):
 
 Automatically redirects unauthenticated users to `/auth/login` and checks role requirements. Each dashboard route uses a `layout.tsx` that wraps children in `<ProtectedRoute>` with `requireRole`.
 
-Additional guards: `RescueCenterGuard` (RC dashboard), `BusinessGuard` (business dashboard), `AdminGuard` (admin dashboard). No Next.js middleware — all auth is client-side via guard components.
+Additional guards: `RescueCenterGuard` (RC dashboard), `BusinessGuard` (business dashboard), `AdminGuard` (admin dashboard). Note `AdminGuard` lives in `components/dashboard/admin/`, not `components/auth/` like the other guards. No Next.js middleware — all auth is client-side via guard components.
 
 ### Toast Notifications
 
@@ -129,7 +139,9 @@ Configured in `app/globals.css` via `@theme {}` block with full shade ranges (50
 Fonts: Inter, Source Sans 3, Manrope (in that order)
 
 ### Icons
-**Font Awesome only** — never use lucide-react or inline SVGs.
+**Font Awesome only** — never use lucide-react or inline SVGs in app/feature code.
+
+Exception: shadcn/ui primitives in `components/ui/` import `lucide-react` internally (the library ships with it). Leave those as-is — the Font Awesome rule applies to everything you write outside `components/ui/`.
 
 ```tsx
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -169,7 +181,7 @@ When adding new UI text:
 
 Required in `.env.local`:
 ```
-NEXT_PUBLIC_API_URL   # REST API base URL, e.g. http://localhost:8080
+NEXT_PUBLIC_API_URL   # REST API base URL, e.g. http://localhost:2701
 ```
 
 ## Notable Libraries
@@ -206,17 +218,17 @@ All three dashboards (RC, Business, Admin) share the same layout structure: shad
 
 ## Route Structure
 
-- `/` — landing page (hero, testimonial carousel, logo marquee, how it works)
-- `/pets` — public pet discovery grid
+- `/` — landing page (hero, testimonial carousel, logo marquee, how it works) — in the `app/(public)/` route group
+- `/pets` — public pet discovery grid — in `app/(public)/`
+- `/aliados` — public providers listing — in `app/(public)/`
+- `/eventos` — public events listing — in `app/(public)/`
 - `/about` — about page
 - `/p/[slug]` — short URL pet detail page
 - `/adopt/[pet-id]` — adoption form fill page (member)
-- `/auth/*` — login, register, role-selection, Google callback
+- `/auth/*` — login, register, role-selection, Google callback, `/auth/mfa/enrollment`, `/auth/onboarding/[role]`
 - `/dashboard/rescue-center` — rescue center dashboard (tabs: pets, interested, forms, settings, agenda, metrics)
 - `/dashboard/business` — business dashboard (tabs: requests, chat, agenda, settings)
 - `/dashboard/admin` — admin dashboard
-- `/aliados` — public providers listing
-- `/eventos` — public events listing
 - `/chat` — messaging (member role)
 - `/transporte` — transport tracking (fully implemented: live driver location via WebSocket `location_update`/`driver_location`, React Leaflet map, trip status + stop completion events)
 

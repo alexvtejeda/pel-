@@ -122,3 +122,37 @@ export async function rejectBusiness(id: string, reason: string): Promise<{ data
     return { data: null, error: 'Error de conexión' }
   }
 }
+
+// --- GitHub Issues ---
+
+export interface CreateIssuePayload {
+  repo: 'backend' | 'frontend'
+  title: string
+  body: string
+  labels: string[]
+}
+
+export interface CreatedIssue {
+  number: number
+  url: string
+}
+
+// Returns status = HTTP status (0 on network error) so the caller can branch on 403.
+export async function createIssue(
+  payload: CreateIssuePayload
+): Promise<{ data: CreatedIssue | null; error: string | null; status: number }> {
+  try {
+    const res = await apiClient('/api/v1/admin/issues', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+    if (res.status === 201) {
+      const json = await res.json()
+      return { data: json, error: null, status: 201 }
+    }
+    const json = await res.json().catch(() => ({}))
+    return { data: null, error: json.error || null, status: res.status }
+  } catch {
+    return { data: null, error: null, status: 0 }
+  }
+}
