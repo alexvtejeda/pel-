@@ -15,6 +15,7 @@ export interface RouteTransitionState {
   status: TransitionStatus
   type: TransitionType | null
   logoRect: LogoRect | null
+  targetHref: string | null
 }
 
 export const PUBLIC_GRID_ROUTES = ['/', '/pets', '/aliados', '/eventos'] as const

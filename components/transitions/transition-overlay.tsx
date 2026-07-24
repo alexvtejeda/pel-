@@ -47,15 +47,73 @@ function useHeaderHeight() {
   return height
 }
 
+function Pill({ width }: { width: number }) {
+  return (
+    <div
+      className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+      style={{ width: `${width}px` }}
+    />
+  )
+}
+
+function FilterPillPlaceholder({ targetHref }: { targetHref: string | null }) {
+  if (targetHref === '/aliados') {
+    // 6 plain pills, no separators (matches provider-grid.tsx)
+    return (
+      <>
+        <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 overflow-x-auto">
+          {[56, 88, 76, 88, 76, 88].map((w, i) => (
+            <Pill key={i} width={w} />
+          ))}
+        </div>
+        <div className="sm:hidden px-2 py-3 shrink-0">
+          <Pill width={96} />
+        </div>
+      </>
+    )
+  }
+
+  // Default: /pets layout (6 + sep + 2 + sep + 2)
+  return (
+    <>
+      <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
+        {[72, 72, 72, 80, 84, 88].map((w, i) => (
+          <Pill key={`f1-${i}`} width={w} />
+        ))}
+        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+        {[96, 96].map((w, i) => (
+          <Pill key={`f2-${i}`} width={w} />
+        ))}
+        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
+        {[92, 92].map((w, i) => (
+          <Pill key={`f3-${i}`} width={w} />
+        ))}
+      </div>
+      <div className="sm:hidden px-2 py-3 shrink-0">
+        <Pill width={96} />
+      </div>
+    </>
+  )
+}
+
 export function TransitionOverlay() {
-  const { status, type, logoRect } = useRouteTransition()
+  const { status, type, logoRect, targetHref } = useRouteTransition()
   const reduced = useReducedMotion()
   const headerHeight = useHeaderHeight()
   const active = status !== 'idle' && type !== null
 
+  const isLandingTarget = targetHref === '/'
+
   return (
     <AnimatePresence>
-      {active && type === 'skeleton' && (
+      {active && type === 'skeleton' && isLandingTarget && (
+        <LandingZigzagOverlay
+          key="landing"
+          headerHeight={headerHeight}
+          reduced={reduced}
+        />
+      )}
+      {active && type === 'skeleton' && !isLandingTarget && (
         <div
           key="skeleton"
           data-transition-overlay
@@ -84,36 +142,7 @@ export function TransitionOverlay() {
             }}
           >
             <div className="container mx-auto flex-1 flex flex-col sm:px-4">
-              {/* Filter pill placeholders — desktop */}
-              <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
-                {[72, 72, 72, 80, 84, 88].map((w, i) => (
-                  <div
-                    key={`f1-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-                {[96, 96].map((w, i) => (
-                  <div
-                    key={`f2-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-                <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-                {[92, 92].map((w, i) => (
-                  <div
-                    key={`f3-${i}`}
-                    className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
-                    style={{ width: `${w}px` }}
-                  />
-                ))}
-              </div>
-              {/* Filter pill placeholder — mobile */}
-              <div className="sm:hidden px-2 py-3 shrink-0">
-                <div className="h-8 w-24 rounded-xl bg-background shadow-xl animate-pulse" />
-              </div>
+              <FilterPillPlaceholder targetHref={targetHref} />
               <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {Array.from({ length: 8 }).map((_, i) => (
@@ -222,5 +251,115 @@ function AboutWipe({
         </motion.div>
       )}
     </>
+  )
+}
+
+function LandingZigzagOverlay({
+  headerHeight,
+  reduced,
+}: {
+  headerHeight: number
+  reduced: boolean
+}) {
+  return (
+    <div
+      data-transition-overlay
+      data-testid="transition-overlay-landing"
+      className="fixed inset-x-0 bottom-0 overflow-hidden pointer-events-none z-100"
+      style={{ top: `${headerHeight}px` }}
+    >
+      {/* Column split: bg-background on TOP with text skeletons, bg-muted on BOTTOM with card skeletons. */}
+      {/* Top slides in from the right, bottom from the left — zigzag horizontal entry, vertical split. */}
+      <motion.div
+        className="absolute top-0 left-0 right-0 h-1/2 bg-background flex items-center justify-center"
+        initial={{ x: '100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        <div className="container mx-auto max-w-6xl px-4 md:px-8 flex flex-col md:flex-row items-center gap-12 md:gap-8">
+          {/* Left (copy) — real hero layout flips to row at md */}
+          <div className="flex-1 flex flex-col items-start gap-5 w-full">
+            <div className="h-7 w-44 rounded-full bg-muted animate-pulse" />
+            <div className="w-full space-y-3">
+              <div className="h-10 md:h-12 w-11/12 rounded-xl bg-muted animate-pulse" />
+              <div className="h-10 md:h-12 w-4/5 rounded-xl bg-muted animate-pulse" />
+            </div>
+            <div className="w-full max-w-md space-y-2">
+              <div className="h-3.5 w-full rounded bg-muted animate-pulse" />
+              <div className="h-3.5 w-5/6 rounded bg-muted animate-pulse" />
+            </div>
+            <div className="flex gap-3 mt-2">
+              <div className="h-10 w-32 rounded-xl bg-muted animate-pulse" />
+              <div className="h-10 w-36 rounded-xl bg-pop-550/30 animate-pulse" />
+            </div>
+          </div>
+          {/* Right (testimonial card) — hidden until md because it moves to bottom panel below md */}
+          <div className="hidden md:flex flex-1 w-full max-w-150">
+            <div className="w-full bg-muted rounded-2xl p-8 flex flex-col gap-4">
+              <div className="flex gap-6 justify-center opacity-60">
+                {[60, 72, 56, 68, 60].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-6 rounded bg-background animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
+              <div className="h-56 w-full rounded-2xl bg-background border border-border shadow-xl animate-pulse" />
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        className="absolute bottom-0 left-0 right-0 h-1/2 bg-muted flex items-center justify-center"
+        initial={{ x: '-100%', opacity: 1 }}
+        animate={{ x: '0%', opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{
+          x: { duration: reduced ? 0.05 : 0.5, ease: [0.22, 1, 0.36, 1] },
+          opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
+        }}
+      >
+        {/* Mobile: card skel lives here. Desktop: reserved for "How it works" cards row. */}
+        <div className="container mx-auto max-w-6xl px-4 md:px-8">
+          <div className="md:hidden">
+            <div className="w-full bg-background rounded-2xl p-6 flex flex-col gap-4">
+              <div className="flex gap-4 justify-center opacity-60">
+                {[48, 60, 44, 56].map((w, i) => (
+                  <div
+                    key={i}
+                    className="h-5 rounded bg-muted animate-pulse"
+                    style={{ width: `${w}px` }}
+                  />
+                ))}
+              </div>
+              <div className="h-44 w-full rounded-2xl bg-muted animate-pulse" />
+            </div>
+          </div>
+          <div className="hidden md:block text-center space-y-6">
+            <div className="h-7 w-64 rounded-xl bg-background mx-auto animate-pulse" />
+            <div className="h-3.5 w-80 rounded bg-background mx-auto animate-pulse" />
+            <div className="grid grid-cols-3 gap-6 mt-8">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="bg-card border border-border rounded-2xl p-7 flex flex-col items-center gap-3 animate-pulse"
+                >
+                  <div className="w-12 h-12 rounded-xl bg-pop-550/20" />
+                  <div className="h-4 w-24 rounded bg-muted" />
+                  <div className="h-3 w-32 rounded bg-muted" />
+                  <div className="h-3 w-28 rounded bg-muted" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </div>
   )
 }
