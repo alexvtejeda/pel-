@@ -48,5 +48,13 @@
     "approved": "¡Tu centro de rescate ha sido aprobado!",
     "approved_action": "Ir al dashboard",
     "rejected": "Tu solicitud ha sido rechazada."
+  },
+  "avatar": {
+    "change": "Cambiar foto de perfil",
+    "remove": "Quitar foto",
+    "updated": "Foto de perfil actualizada",
+    "removed": "Foto de perfil eliminada",
+    "error": "Error al actualizar la foto",
+    "size_error": "La imagen no debe superar los 5 MB"
   }
 }

@@ -48,5 +48,13 @@
     "approved": "Your rescue center has been approved!",
     "approved_action": "Go to dashboard",
     "rejected": "Your application has been rejected."
+  },
+  "avatar": {
+    "change": "Change profile photo",
+    "remove": "Remove photo",
+    "updated": "Profile photo updated",
+    "removed": "Profile photo removed",
+    "error": "Error updating photo",
+    "size_error": "Image must be under 5 MB"
   }
 }

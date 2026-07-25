@@ -44,6 +44,37 @@ export async function listUserPets(): Promise<{ data: UserPet[] | null; error: s
   }
 }
 
+export async function updateUserPet(
+  id: string,
+  fields: Partial<Omit<UserPet, 'id' | 'user_id' | 'created_at' | 'photos'>>
+): Promise<{ data: UserPet | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/user-pets/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(fields),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al actualizar mascota' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function deleteUserPet(id: string): Promise<{ data: null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/user-pets/${id}`, { method: 'DELETE' })
+    // 204 No Content on success — nothing to parse
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      return { data: null, error: json.error || 'Error al eliminar mascota' }
+    }
+    return { data: null, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
 // Uses raw fetch because multipart/form-data must not have Content-Type set manually
 export async function uploadUserPetPhotos(
   petId: string,

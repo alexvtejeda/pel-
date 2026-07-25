@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { createUserPets, listUserPets, uploadUserPetPhotos } from '../user-pets'
+import { createUserPets, listUserPets, uploadUserPetPhotos, updateUserPet, deleteUserPet } from '../user-pets'
 
 const BASE_URL = 'http://localhost:8080'
 
@@ -52,6 +52,57 @@ describe('listUserPets', () => {
     const result = await listUserPets()
     expect(result).toEqual({ data: pets, error: null })
     expect(mockApiClient).toHaveBeenCalledWith('/api/v1/user-pets')
+  })
+})
+
+describe('updateUserPet', () => {
+  it('sends a PATCH with the given fields and returns the updated pet', async () => {
+    const pet = { id: 'up1', name: 'Max', age: 12 }
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(pet) } as Response)
+
+    const result = await updateUserPet('up1', { name: 'Max', age: 12 })
+    expect(result).toEqual({ data: pet, error: null })
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/user-pets/up1', {
+      method: 'PATCH',
+      body: JSON.stringify({ name: 'Max', age: 12 }),
+    })
+  })
+
+  it('returns error on failure', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, json: () => Promise.resolve({ error: 'Validation error' }),
+    } as Response)
+    const result = await updateUserPet('up1', { name: '' })
+    expect(result).toEqual({ data: null, error: 'Validation error' })
+  })
+
+  it('returns connection error on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+    const result = await updateUserPet('up1', {})
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
+  })
+})
+
+describe('deleteUserPet', () => {
+  it('treats 204 as success without parsing a body', async () => {
+    mockApiClient.mockResolvedValue({ ok: true, status: 204 } as Response)
+    const result = await deleteUserPet('up1')
+    expect(result).toEqual({ data: null, error: null })
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/user-pets/up1', { method: 'DELETE' })
+  })
+
+  it('returns error on failure', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, json: () => Promise.resolve({ error: 'Not found' }),
+    } as unknown as Response)
+    const result = await deleteUserPet('up1')
+    expect(result).toEqual({ data: null, error: 'Not found' })
+  })
+
+  it('returns connection error on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+    const result = await deleteUserPet('up1')
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
   })
 })
 

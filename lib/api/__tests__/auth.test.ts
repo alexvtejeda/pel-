@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { login, register, logout, setRole, googleRedirect } from '../auth'
+import { login, register, logout, setRole, googleRedirect, uploadAvatar, deleteAvatar } from '../auth'
 
 const BASE_URL = 'http://localhost:8080'
 
@@ -115,5 +115,65 @@ describe('googleRedirect', () => {
     const originalHref = window.location.href
     // googleRedirect() would navigate — just verify it's callable
     expect(typeof googleRedirect).toBe('function')
+  })
+})
+
+describe('uploadAvatar', () => {
+  it('uploads via raw fetch multipart with credentials and no Content-Type', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true, json: () => Promise.resolve({ avatar_url: 'http://x/avatars/1' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const file = new File(['x'], 'a.png', { type: 'image/png' })
+    const result = await uploadAvatar(file)
+
+    expect(result).toEqual({ data: { avatar_url: 'http://x/avatars/1' }, error: null })
+    const [url, opts] = fetchMock.mock.calls[0]
+    expect(url).toBe(`${BASE_URL}/api/v1/auth/avatar`)
+    expect(opts.method).toBe('POST')
+    expect(opts.credentials).toBe('include')
+    expect(opts.body).toBeInstanceOf(FormData)
+    expect((opts.body as FormData).get('avatar')).toBeInstanceOf(File)
+    // Must NOT set Content-Type — the browser adds the multipart boundary
+    const headers = (opts.headers ?? {}) as Record<string, string>
+    expect(headers['Content-Type']).toBeUndefined()
+  })
+
+  it('returns error on failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false, json: () => Promise.resolve({ error: 'File too large' }),
+    }))
+    const result = await uploadAvatar(new File(['x'], 'a.png'))
+    expect(result).toEqual({ data: null, error: 'File too large' })
+  })
+
+  it('returns connection error on network failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network')))
+    const result = await uploadAvatar(new File(['x'], 'a.png'))
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
+  })
+})
+
+describe('deleteAvatar', () => {
+  it('treats 204 as success without parsing a body', async () => {
+    mockApiClient.mockResolvedValue({ ok: true, status: 204 } as Response)
+    const result = await deleteAvatar()
+    expect(result).toEqual({ data: null, error: null })
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/auth/avatar', { method: 'DELETE' })
+  })
+
+  it('returns error on failure', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false, json: () => Promise.resolve({ error: 'nope' }),
+    } as unknown as Response)
+    const result = await deleteAvatar()
+    expect(result).toEqual({ data: null, error: 'nope' })
+  })
+
+  it('returns connection error on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+    const result = await deleteAvatar()
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
   })
 })

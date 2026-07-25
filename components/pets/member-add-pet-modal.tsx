@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { AnimatePresence, motion, Reorder } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faXmark,
   faCloudArrowUp,
   faPlus,
-  faPaw,
   faDog,
   faCat,
   faMars,
@@ -17,90 +16,24 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
-import Carousel from '@/components/Carousel'
-import { createUserPets, uploadUserPetPhotos } from '@/lib/api/user-pets'
+import { createUserPets, updateUserPet, uploadUserPetPhotos, UserPet } from '@/lib/api/user-pets'
+import { UserPetCard } from '@/components/pets/user-pet-card'
 
 interface PendingPhoto {
   url: string
   file: File
 }
 
-function PreviewCarousel({ urls }: { urls: string[] }) {
-  const [width, setWidth] = useState(0)
-
-  const items = urls.map((url, i) => ({
-    id: i,
-    image: url,
-    title: '',
-    description: '',
-    icon: null as unknown as React.ReactNode,
-  }))
-
-  return (
-    <div ref={(el) => { if (el && width === 0) setWidth(el.offsetWidth) }} className="w-full h-full">
-      {width > 0 && (
-        <Carousel
-          items={items}
-          baseWidth={width}
-          autoplay={urls.length > 1}
-          autoplayDelay={3000}
-          pauseOnHover
-          loop={urls.length > 1}
-          containerPadding={0}
-          dotsOverlay
-          className="relative overflow-hidden w-full h-full"
-        />
-      )}
-    </div>
-  )
-}
-
-function PreviewCard({
-  name, age, ageUnit, gender, species, photos, vaccinated, castrated, size,
-}: {
-  name: string; age: string; ageUnit: 'months' | 'years'; gender: 'male' | 'female'; species: 'dog' | 'cat'
-  photos: PendingPhoto[]; vaccinated: boolean; castrated: boolean; size: string
-}) {
-  const { t } = useTranslation('pets')
-  const urls = photos.map(p => p.url)
-  return (
-    <div className="rounded-2xl overflow-hidden shadow-xs border bg-card">
-      <div className="relative aspect-square bg-muted/30">
-        {urls.length > 0 ? (
-          <PreviewCarousel urls={urls} />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />
-          </div>
-        )}
-      </div>
-      <div className="p-3">
-        <div className="flex items-center gap-1.5">
-          <span className="font-medium text-sm truncate">{name.trim() || t('details.name')}</span>
-        </div>
-        <span className="text-xs text-muted-foreground flex items-center gap-1">
-          {age && <span>{age} {ageUnit === 'years' ? t('dashboard.ageUnit.years') : t('dashboard.ageUnit.months')}</span>}
-          {age && <span>·</span>}
-          <FontAwesomeIcon icon={gender === 'male' ? faMars : faVenus} className="text-xs" />
-          <span>·</span>
-          <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
-        </span>
-        <div className="flex items-center gap-2 mt-1">
-          <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-          <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-          <span className="text-xs text-muted-foreground">{size === 'small' ? t('size.small') : size === 'medium' ? t('size.medium') : t('size.large')}</span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 interface MemberAddPetModalProps {
   open: boolean
   onClose: () => void
+  /** When provided, the modal switches to edit mode and saves via PATCH. */
+  pet?: UserPet
+  /** Called after a successful create or update (e.g. to refresh a list). */
+  onSaved?: () => void
 }
 
-export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
+export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetModalProps) {
   const { t } = useTranslation('pets')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -118,9 +51,27 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
   const [error, setError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
+  const isEdit = !!pet
+  const existingPhotoUrls = pet?.photos?.map((p) => p.url) ?? []
+
   const MAX_PHOTOS = 5
   const parsedAge = parseInt(age, 10)
   const canSave = name.trim() !== '' && !isNaN(parsedAge) && parsedAge >= 0 && !saving
+
+  // Prefill from `pet` when opening in edit mode. The stored age is already in
+  // months, so we pin the unit toggle to "months" for a correct round-trip.
+  useEffect(() => {
+    if (!open || !pet) return
+    setName(pet.name)
+    setDescription(pet.description ?? '')
+    setAge(String(pet.age))
+    setAgeUnit('months')
+    setGender(pet.gender)
+    setSpecies(pet.species)
+    setVaccinated(pet.vaccinated ?? false)
+    setCastrated(pet.castrated ?? false)
+    setSize(pet.size ?? 'medium')
+  }, [open, pet])
 
   const addFiles = (files: FileList | File[]) => {
     const candidates = Array.from(files)
@@ -168,6 +119,40 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
 
     const ageInMonths = ageUnit === 'years' ? parsedAge * 12 : parsedAge
 
+    // Edit mode → PATCH.
+    if (pet) {
+      const { data, error: updateError } = await updateUserPet(pet.id, {
+        name: name.trim(),
+        age: ageInMonths,
+        species,
+        gender,
+        description: description.trim() || undefined,
+        size,
+        vaccinated,
+        castrated,
+      })
+
+      if (updateError || !data) {
+        setError(updateError || t('member.error_update'))
+        setSaving(false)
+        return
+      }
+
+      if (photos.length > 0) {
+        const { error: uploadError } = await uploadUserPetPhotos(pet.id, photos.map(p => p.file))
+        if (uploadError) {
+          setError(uploadError)
+          setSaving(false)
+          return
+        }
+      }
+
+      onSaved?.()
+      reset()
+      onClose()
+      return
+    }
+
     const { data, error: createError } = await createUserPets([{
       name: name.trim(),
       age: ageInMonths,
@@ -199,6 +184,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
       }
     }
 
+    onSaved?.()
     reset()
     onClose()
   }
@@ -226,8 +212,8 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
             <div className="flex items-start justify-between p-6 pb-0">
               <div className="flex items-center gap-3">
                 <div>
-                  <h2 className="text-base font-semibold">{t('member.publish_title')}</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">{t('member.publish_subtitle')}</p>
+                  <h2 className="text-base font-semibold">{isEdit ? t('member.edit_title') : t('member.publish_title')}</h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">{isEdit ? t('member.edit_subtitle') : t('member.publish_subtitle')}</p>
                 </div>
                 {/* Mobile toggle */}
                 <button
@@ -399,6 +385,19 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                 </label>
               </div>
 
+              {/* Existing photos (edit mode) — read-only; removal is out of scope */}
+              {isEdit && existingPhotoUrls.length > 0 && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.existing_photos')}</label>
+                  <div className="flex gap-2 flex-wrap">
+                    {existingPhotoUrls.map((url, i) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img key={i} src={url} alt="" className="w-14 h-14 rounded-xl object-cover" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Drag-and-drop photo zone */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Fotos</label>
@@ -479,7 +478,7 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
                   {t('member.cancel')}
                 </Button>
                 <Button onClick={handleSubmit} disabled={!canSave} className="rounded-xl">
-                  {saving ? t('member.publishing') : t('member.publish_button')}
+                  {saving ? t('member.publishing') : isEdit ? t('member.save_changes') : t('member.publish_button')}
                 </Button>
               </div>
             </div>
@@ -487,13 +486,13 @@ export function MemberAddPetModal({ open, onClose }: MemberAddPetModalProps) {
             {/* Right panel: live preview (always visible on desktop, toggle on mobile) */}
             <div className={`w-64 shrink-0 ${mobilePreview ? 'block md:block' : 'hidden md:block'}`}>
               <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('dashboard.preview')}</p>
-              <PreviewCard
+              <UserPetCard
                 name={name}
                 age={age}
                 ageUnit={ageUnit}
                 gender={gender}
                 species={species}
-                photos={photos}
+                photoUrls={[...existingPhotoUrls, ...photos.map(p => p.url)]}
                 vaccinated={vaccinated}
                 castrated={castrated}
                 size={size}
