@@ -20,6 +20,30 @@ export interface Submission {
   form_name?: string
 }
 
+// Lighter shape returned by GET /forms/{id}/submissions (no answers, form_name, or photo)
+export interface SubmissionListItem {
+  id: string
+  pet_name: string
+  member_email: string
+  status: 'pending' | 'approved' | 'rejected'
+  submitted_at: string
+}
+
+export async function listFormSubmissions(
+  formId: string,
+  status?: 'pending' | 'approved' | 'rejected'
+): Promise<{ data: SubmissionListItem[] | null; error: string | null }> {
+  try {
+    const qs = status ? `?status=${status}` : ''
+    const res = await apiClient(`/api/v1/forms/${formId}/submissions${qs}`)
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar solicitudes' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
 export async function submitAdoptionForm(
   petId: string,
   input: { form_id: string; answers: Record<string, string | string[]> }
