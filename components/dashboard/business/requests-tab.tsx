@@ -11,7 +11,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import { formatDistanceToNow } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Trip, listTrips, acceptTrip, cancelTrip, updateTripStatus } from '@/lib/api/transport'
+import { Trip, listTrips, acceptTrip, cancelTrip, declineTrip, updateTripStatus } from '@/lib/api/transport'
+import { toast } from 'sonner'
 
 // Extended statuses the backend may return for driver role
 type ExtendedStatus = 'requested' | 'accepted' | 'picking_up' | 'in_transit' | 'completed' | 'cancelled'
@@ -165,8 +166,11 @@ function DetailView({ trip, onBack, onTripUpdated }: DetailViewProps) {
 
   const handleReject = async () => {
     setActing(true)
-    const { data } = await cancelTrip(trip.id)
-    if (data) onTripUpdated(data)
+    const { data } = trip.business_id ? await declineTrip(trip.id) : await cancelTrip(trip.id)
+    if (data) {
+      onTripUpdated(data)
+      toast.success(t('requests.reject_success'))
+    }
     setActing(false)
   }
 
