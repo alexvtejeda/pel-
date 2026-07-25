@@ -80,6 +80,7 @@ export function DashboardShell() {
             <FormsTab
               onDirtyChange={setFormsDirty}
               onSaveRef={formsSaveRef}
+              onNavigateToInterested={() => handleTabChange('interested')}
             />
           )}
           {activeTab === 'agenda' && (

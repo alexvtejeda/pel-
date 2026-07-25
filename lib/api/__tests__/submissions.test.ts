@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { submitAdoptionForm, uploadSubmissionFile, listSubmissions, getSubmission, reviewSubmission } from '../submissions'
+import { submitAdoptionForm, uploadSubmissionFile, listSubmissions, getSubmission, reviewSubmission, listFormSubmissions } from '../submissions'
 
 const BASE_URL = 'http://localhost:8080'
 
@@ -100,6 +100,40 @@ describe('listSubmissions', () => {
 
     await listSubmissions()
     expect(mockApiClient).toHaveBeenCalledWith('/api/v1/submissions')
+  })
+})
+
+describe('listFormSubmissions', () => {
+  it('requests the per-form path without a query when no status is given', async () => {
+    const items = [
+      { id: 's1', pet_name: 'Firulais', member_email: 'juan@mail.com', status: 'pending', submitted_at: '2026-07-24T10:00:00Z' },
+    ]
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(items) } as Response)
+
+    const result = await listFormSubmissions('form-1')
+    expect(result).toEqual({ data: items, error: null })
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/forms/form-1/submissions')
+  })
+
+  it('appends ?status= when a status filter is provided', async () => {
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve([]) } as Response)
+
+    await listFormSubmissions('form-1', 'approved')
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/forms/form-1/submissions?status=approved')
+  })
+
+  it('returns error on failure', async () => {
+    mockApiClient.mockResolvedValue({ ok: false, json: () => Promise.resolve({ error: 'Forbidden' }) } as Response)
+
+    const result = await listFormSubmissions('form-1')
+    expect(result).toEqual({ data: null, error: 'Forbidden' })
+  })
+
+  it('returns connection error on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+
+    const result = await listFormSubmissions('form-1')
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
   })
 })
 
