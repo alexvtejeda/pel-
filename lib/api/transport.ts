@@ -22,6 +22,7 @@ export interface Trip {
   updated_at: string
   pet_description?: string
   target_driver_id?: string | null
+  business_id?: string | null
   conversation_id?: string | null
   requester_name?: string
   pet_name?: string
@@ -37,10 +38,43 @@ export interface DriverLocation {
   eta_minutes: number | null
 }
 
+export interface Point {
+  lat: number
+  lng: number
+}
+
+export interface MarketplaceQuote {
+  distance_km: number
+  duration_minutes: number
+  estimated_price: number
+  routing_degraded: boolean
+}
+
+export interface TripQuote {
+  business_id: string
+  distance_km: number
+  duration_minutes: number
+  estimated_price: number
+  routing_degraded: boolean
+  routing_source: string
+  currency: string
+}
+
+export interface MarketplaceBusiness {
+  business_id: string
+  name: string
+  phone: string
+  cover_photo_url?: string
+  operating_hours?: string
+  distance_from_member_km: number
+  quote?: MarketplaceQuote
+}
+
 interface RequestTripPayload {
   pet_id: string
   pet_description?: string
   target_driver_id?: string
+  business_id?: string
   pickup_address?: string
   pickup_lat?: number
   pickup_lng?: number
@@ -126,6 +160,57 @@ export async function completeStop(tripId: string, stopId: string): Promise<{ da
     const res = await apiClient(`/api/v1/transport/${tripId}/stops/${stopId}/complete`, { method: 'PATCH' })
     if (!res.ok) { const json = await res.json(); return { data: null, error: json.error || 'Error al completar parada' } }
     return { data: null, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+// --- Marketplace (quote / businesses / decline) ---
+
+export async function quoteTrip(input: { business_id: string; from: Point; to: Point }): Promise<{ data: TripQuote | null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/transport/quote', { method: 'POST', body: JSON.stringify(input) })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al calcular la cotización' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function listTransportBusinesses(params: {
+  lat: number
+  lng: number
+  from?: Point
+  to?: Point
+  cursor?: string
+}): Promise<{ data: { items: MarketplaceBusiness[]; next_cursor: string } | null; error: string | null }> {
+  try {
+    const q = new URLSearchParams()
+    q.set('lat', String(params.lat))
+    q.set('lng', String(params.lng))
+    if (params.from && params.to) {
+      q.set('from_lat', String(params.from.lat))
+      q.set('from_lng', String(params.from.lng))
+      q.set('to_lat', String(params.to.lat))
+      q.set('to_lng', String(params.to.lng))
+    }
+    if (params.cursor) q.set('cursor', params.cursor)
+    const res = await apiClient(`/api/v1/transport/businesses?${q.toString()}`)
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar transportistas' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function declineTrip(id: string): Promise<{ data: Trip | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/transport/${id}/decline`, { method: 'PATCH' })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al rechazar viaje' }
+    return { data: json, error: null }
   } catch {
     return { data: null, error: 'Error de conexión' }
   }
