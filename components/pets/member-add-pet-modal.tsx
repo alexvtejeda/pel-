@@ -119,8 +119,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
 
     const ageInMonths = ageUnit === 'years' ? parsedAge * 12 : parsedAge
 
-    // Edit mode → PATCH. Note: vaccinated/castrated are create-only (the backend
-    // PATCH contract omits them), so they are not sent here.
+    // Edit mode → PATCH.
     if (pet) {
       const { data, error: updateError } = await updateUserPet(pet.id, {
         name: name.trim(),
@@ -129,6 +128,8 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
         gender,
         description: description.trim() || undefined,
         size,
+        vaccinated,
+        castrated,
       })
 
       if (updateError || !data) {
@@ -360,33 +361,28 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                 />
               </div>
 
-              {/* Vaccinated / Castrated — create-only (backend PATCH omits them) */}
+              {/* Vaccinated / Castrated */}
               <div className="grid grid-cols-2 gap-3">
-                <label className={`flex items-center gap-2 ${isEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={vaccinated}
-                    disabled={isEdit}
                     onChange={(e) => setVaccinated(e.target.checked)}
-                    className="w-4 h-4 rounded accent-pop-550 disabled:cursor-not-allowed"
+                    className="w-4 h-4 rounded accent-pop-550"
                   />
                   <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
                   <span className="text-sm text-foreground">{t('grid.vaccinated')}</span>
                 </label>
-                <label className={`flex items-center gap-2 ${isEdit ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}>
+                <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={castrated}
-                    disabled={isEdit}
                     onChange={(e) => setCastrated(e.target.checked)}
-                    className="w-4 h-4 rounded accent-pop-550 disabled:cursor-not-allowed"
+                    className="w-4 h-4 rounded accent-pop-550"
                   />
                   <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
                   <span className="text-sm text-foreground">{t('grid.castrated')}</span>
                 </label>
-                {isEdit && (
-                  <p className="col-span-2 text-xs text-muted-foreground/70">{t('member.vaccinated_create_only')}</p>
-                )}
               </div>
 
               {/* Existing photos (edit mode) — read-only; removal is out of scope */}

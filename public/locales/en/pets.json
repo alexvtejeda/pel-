@@ -91,7 +91,6 @@
     "edit_subtitle": "Update your pet's details",
     "save_changes": "Save changes",
     "existing_photos": "Current photos",
-    "vaccinated_create_only": "Vaccinated and neutered can only be set when creating the pet.",
     "delete": "Delete",
     "delete_title": "Delete pet?",
     "delete_body": "This action can't be undone. {{name}} will be removed from your pets.",

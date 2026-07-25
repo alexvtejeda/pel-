@@ -91,7 +91,6 @@
     "edit_subtitle": "Actualiza los datos de tu mascota",
     "save_changes": "Guardar cambios",
     "existing_photos": "Fotos actuales",
-    "vaccinated_create_only": "Vacunación y castración solo se pueden definir al crear la mascota.",
     "delete": "Eliminar",
     "delete_title": "¿Eliminar mascota?",
     "delete_body": "Esta acción no se puede deshacer. Se eliminará a {{name}} de tus mascotas.",

@@ -41,6 +41,11 @@ describe('MemberAddPetModal — edit mode', () => {
     })
     expect(screen.getByDisplayValue('24')).toBeInTheDocument()
 
+    // Vaccinated/castrated are editable in edit mode (no longer greyed out)
+    const checkboxes = screen.getAllByRole('checkbox')
+    expect(checkboxes.length).toBeGreaterThanOrEqual(2)
+    checkboxes.forEach((cb) => expect(cb).not.toBeDisabled())
+
     // Save through the edit-mode CTA
     fireEvent.click(screen.getByText('Guardar cambios'))
 
@@ -53,6 +58,8 @@ describe('MemberAddPetModal — edit mode', () => {
           species: 'dog',
           gender: 'male',
           size: 'medium',
+          vaccinated: true,
+          castrated: false,
         })
       )
     })
