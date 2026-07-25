@@ -31,7 +31,29 @@
     "select_pet": "Select pet",
     "request_transport": "Request transport",
     "address_not_found": "Address not found",
-    "error_creating": "Error creating trip"
+    "error_creating": "Error creating trip",
+    "choose_transporter": "Choose transporter",
+    "change_transporter": "Change transporter",
+    "request_with_price": "Request · RD$ {{price}}",
+    "quoting": "Calculating price..."
+  },
+  "marketplace": {
+    "picker_title": "Choose transporter",
+    "empty": "No transporters in your area yet",
+    "load_more": "Load more",
+    "distance_km": "{{km}} km",
+    "duration_min": "~{{min}} min",
+    "price": "RD$ {{price}}",
+    "approx": "approx."
+  },
+  "directory": {
+    "title": "Transporters",
+    "subtitle": "Pet-taxis near you",
+    "view_link": "View transporters",
+    "geo_prompt": "Enable your location to see nearby transporters",
+    "geo_retry": "Retry",
+    "empty": "No transporters in your area yet",
+    "load_more": "Load more"
   },
   "actions": {
     "cancel_trip": "Cancel trip",

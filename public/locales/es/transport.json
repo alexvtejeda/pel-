@@ -31,7 +31,29 @@
     "select_pet": "Seleccionar mascota",
     "request_transport": "Solicitar transporte",
     "address_not_found": "No se encontró la dirección",
-    "error_creating": "Error al crear el viaje"
+    "error_creating": "Error al crear el viaje",
+    "choose_transporter": "Elegir transportista",
+    "change_transporter": "Cambiar transportista",
+    "request_with_price": "Solicitar · RD$ {{price}}",
+    "quoting": "Calculando precio..."
+  },
+  "marketplace": {
+    "picker_title": "Elegir transportista",
+    "empty": "No hay transportistas en tu zona por ahora",
+    "load_more": "Cargar más",
+    "distance_km": "{{km}} km",
+    "duration_min": "~{{min}} min",
+    "price": "RD$ {{price}}",
+    "approx": "aproximado"
+  },
+  "directory": {
+    "title": "Transportistas",
+    "subtitle": "Pet-taxis cerca de ti",
+    "view_link": "Ver transportistas",
+    "geo_prompt": "Activa tu ubicación para ver transportistas cercanos",
+    "geo_retry": "Reintentar",
+    "empty": "No hay transportistas en tu zona por ahora",
+    "load_more": "Cargar más"
   },
   "actions": {
     "cancel_trip": "Cancelar viaje",

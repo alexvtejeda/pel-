@@ -18,6 +18,7 @@
     "filter_all": "All",
     "accept": "Accept",
     "reject": "Reject",
+    "reject_success": "Request declined",
     "pickup": "Pickup",
     "dropoff": "Dropoff",
     "requester": "Requester",

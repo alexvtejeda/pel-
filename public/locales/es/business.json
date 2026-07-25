@@ -18,6 +18,7 @@
     "filter_all": "Todas",
     "accept": "Aceptar",
     "reject": "Rechazar",
+    "reject_success": "Solicitud rechazada",
     "pickup": "Recogida",
     "dropoff": "Entrega",
     "requester": "Solicitante",
