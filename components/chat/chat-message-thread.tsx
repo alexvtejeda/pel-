@@ -15,7 +15,6 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { ProviderPicker } from '@/components/transport/provider-picker'
 
 interface ChatMessageThreadProps {
   conversation: Conversation
@@ -56,7 +55,6 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
-  const [pickerOpen, setPickerOpen] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [input, setInput] = useState('')
@@ -326,19 +324,16 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => setPickerOpen(true)}>
+                <DropdownMenuItem
+                  onClick={() =>
+                    router.push(`/transporte?pet_id=${conversation.pet_id}&conversation_id=${conversation.id}`)
+                  }
+                >
                   <FontAwesomeIcon icon={faTruckFast} className="text-base" />
                   {t('chat.request_transport', { ns: 'transport' })}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <ProviderPicker
-              open={pickerOpen}
-              onOpenChange={setPickerOpen}
-              onSelect={(userId) => {
-                router.push(`/transporte?pet_id=${conversation.pet_id}&conversation_id=${conversation.id}&provider_id=${userId}`)
-              }}
-            />
           </>
         )}
         <input
