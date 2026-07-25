@@ -6,9 +6,11 @@ import Image from 'next/image'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
+import { uploadAvatar, deleteAvatar } from '@/lib/api/auth'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey } from '@fortawesome/free-solid-svg-icons'
+import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
@@ -32,7 +34,7 @@ const ROLE_LABELS: Record<string, { es: string; en: string }> = {
 }
 
 export function PetsHeader() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateSession } = useAuth()
   const { unreadChatCount } = useWebSocket()
   const { t, i18n } = useTranslation('pets')
   const router = useRouter()
@@ -41,6 +43,8 @@ export function PetsHeader() {
   const [addPetOpen, setAddPetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [navigating, setNavigating] = useState(false)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   const logoRef = useRef<HTMLAnchorElement>(null)
   usePublicHeaderLogoRect(logoRef)
   const { navigate: navigateTransition, status: transitionStatus } = useRouteTransition()
@@ -97,6 +101,38 @@ export function PetsHeader() {
     setSheetOpen(false)
     await logout()
     router.push('/pets')
+  }
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !user) return
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t('avatar.size_error', { ns: 'common' }))
+      return
+    }
+    setAvatarUploading(true)
+    const { data, error } = await uploadAvatar(file)
+    setAvatarUploading(false)
+    if (error || !data) {
+      toast.error(error || t('avatar.error', { ns: 'common' }))
+      return
+    }
+    updateSession({ ...user, avatar_url: data.avatar_url })
+    toast.success(t('avatar.updated', { ns: 'common' }))
+  }
+
+  const handleAvatarRemove = async () => {
+    if (!user) return
+    setAvatarUploading(true)
+    const { error } = await deleteAvatar()
+    setAvatarUploading(false)
+    if (error) {
+      toast.error(error || t('avatar.error', { ns: 'common' }))
+      return
+    }
+    updateSession({ ...user, avatar_url: null })
+    toast.success(t('avatar.removed', { ns: 'common' }))
   }
 
   return (
@@ -182,12 +218,30 @@ export function PetsHeader() {
 
           {/* Profile section */}
           <div className="flex flex-col items-center gap-3 pt-8 pb-6">
-            <Avatar className="h-16 w-16">
-              {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.display_name || user.email} />}
-              <AvatarFallback className="bg-muted text-muted-foreground text-xl font-medium">
-                {avatarInitial}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar className="h-16 w-16">
+                {user?.avatar_url && <AvatarImage src={user.avatar_url} alt={user.display_name || user.email} />}
+                <AvatarFallback className="bg-muted text-muted-foreground text-xl font-medium">
+                  {avatarInitial}
+                </AvatarFallback>
+              </Avatar>
+              <input
+                ref={avatarInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="hidden"
+                onChange={handleAvatarChange}
+              />
+              <button
+                type="button"
+                onClick={() => avatarInputRef.current?.click()}
+                disabled={avatarUploading}
+                aria-label={t('avatar.change', { ns: 'common' })}
+                className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-pop-550 text-white flex items-center justify-center shadow-sm hover:bg-pop-500 transition-colors disabled:opacity-60"
+              >
+                <FontAwesomeIcon icon={avatarUploading ? faSpinner : faCamera} className={`text-xs ${avatarUploading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
             <div className="text-center">
               <p className="text-lg font-semibold">
                 {user?.display_name || user?.email}
@@ -199,6 +253,18 @@ export function PetsHeader() {
                 <span className="inline-block mt-2 px-3 py-1 text-xs font-medium rounded-full bg-muted text-muted-foreground">
                   {roleLabel}
                 </span>
+              )}
+              {user?.avatar_url && (
+                <div>
+                  <button
+                    type="button"
+                    onClick={handleAvatarRemove}
+                    disabled={avatarUploading}
+                    className="mt-2 text-xs font-medium text-destructive hover:underline disabled:opacity-60"
+                  >
+                    {t('avatar.remove', { ns: 'common' })}
+                  </button>
+                </div>
               )}
             </div>
           </div>
@@ -232,6 +298,16 @@ export function PetsHeader() {
               >
                 <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
                 {t('admin.title')}
+              </Link>
+            )}
+            {user?.role === 'member' && (
+              <Link
+                href="/mis-mascotas"
+                onClick={() => setSheetOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              >
+                <FontAwesomeIcon icon={faPaw} className="text-lg text-muted-foreground" />
+                {t('member.my_pets')}
               </Link>
             )}
             {user?.role === 'member' && (

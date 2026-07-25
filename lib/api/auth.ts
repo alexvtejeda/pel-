@@ -44,3 +44,37 @@ export async function setRole(role: UserRole): Promise<{ data: { user: { role: U
 export function googleRedirect(): void {
   window.location.href = `${BASE_URL}/api/v1/auth/google`
 }
+
+// Uses raw fetch because multipart/form-data must not have Content-Type set manually
+export async function uploadAvatar(
+  file: File
+): Promise<{ data: { avatar_url: string } | null; error: string | null }> {
+  try {
+    const form = new FormData()
+    form.append('avatar', file)
+    const res = await fetch(`${BASE_URL}/api/v1/auth/avatar`, {
+      method: 'POST',
+      credentials: 'include',
+      body: form,
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al subir la foto' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function deleteAvatar(): Promise<{ data: null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/auth/avatar', { method: 'DELETE' })
+    // 204 No Content on success — nothing to parse
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      return { data: null, error: json.error || 'Error al eliminar la foto' }
+    }
+    return { data: null, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
