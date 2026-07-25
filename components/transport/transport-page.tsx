@@ -18,10 +18,9 @@ interface TransportPageProps {
   initialPetId?: string
   conversationId?: string
   tripId?: string
-  providerId?: string
 }
 
-export function TransportPage({ initialPetId, conversationId, tripId, providerId }: TransportPageProps) {
+export function TransportPage({ initialPetId, conversationId, tripId }: TransportPageProps) {
   const { t } = useTranslation('transport')
   const { subscribe, connected } = useWebSocket()
   const [pageState, setPageState] = useState<PageState>('loading')
@@ -146,7 +145,6 @@ export function TransportPage({ initialPetId, conversationId, tripId, providerId
         <TransportCreationForm
           initialPetId={initialPetId}
           conversationId={conversationId}
-          providerId={providerId}
           onTripCreated={(newTrip) => {
             setTrip(newTrip)
             setPageState('requested')

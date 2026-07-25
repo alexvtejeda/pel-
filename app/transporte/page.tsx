@@ -9,8 +9,7 @@ function TransportContent() {
   const petId = searchParams?.get('pet_id') ?? undefined
   const conversationId = searchParams?.get('conversation_id') ?? undefined
   const tripId = searchParams?.get('trip_id') ?? undefined
-  const providerId = searchParams?.get('provider_id') ?? undefined
-  return <TransportPage initialPetId={petId} conversationId={conversationId} tripId={tripId} providerId={providerId} />
+  return <TransportPage initialPetId={petId} conversationId={conversationId} tripId={tripId} />
 }
 
 export default function Page() {

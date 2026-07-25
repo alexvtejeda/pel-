@@ -2,14 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import Link from 'next/link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons'
+import { faPaperPlane, faTruckFast, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { requestTrip, Trip } from '@/lib/api/transport'
+import { requestTrip, quoteTrip, Trip, Point, TripQuote, MarketplaceBusiness } from '@/lib/api/transport'
 import { listUserPets } from '@/lib/api/user-pets'
 import { listPets } from '@/lib/api/pets'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
-import { ProviderPicker } from '@/components/transport/provider-picker'
+import { TransportBusinessPicker } from '@/components/transport/transport-business-picker'
 
 interface PetOption {
   id: string
@@ -19,11 +20,10 @@ interface PetOption {
 interface TransportCreationFormProps {
   initialPetId?: string
   conversationId?: string
-  providerId?: string
   onTripCreated: (trip: Trip) => void
 }
 
-async function geocodeAddress(address: string): Promise<{ lat: number; lng: number } | null> {
+async function geocodeAddress(address: string): Promise<Point | null> {
   try {
     const res = await fetch(
       `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
@@ -37,19 +37,24 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   }
 }
 
-export function TransportCreationForm({ initialPetId, conversationId, providerId, onTripCreated }: TransportCreationFormProps) {
+export function TransportCreationForm({ initialPetId, conversationId, onTripCreated }: TransportCreationFormProps) {
   const { t } = useTranslation('transport')
   const { user } = useAuth()
   const [pets, setPets] = useState<PetOption[]>([])
   const [selectedPetId, setSelectedPetId] = useState(initialPetId ?? '')
   const [pickupAddress, setPickupAddress] = useState('')
   const [dropoffAddress, setDropoffAddress] = useState('')
+  const [pickupCoords, setPickupCoords] = useState<Point | null>(null)
+  const [dropoffCoords, setDropoffCoords] = useState<Point | null>(null)
   const [pickupError, setPickupError] = useState('')
   const [dropoffError, setDropoffError] = useState('')
   const [submitError, setSubmitError] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
+  const [business, setBusiness] = useState<MarketplaceBusiness | null>(null)
+  const [finalQuote, setFinalQuote] = useState<TripQuote | null>(null)
+  const [quoting, setQuoting] = useState(false)
   const [submitting, setSubmitting] = useState(false)
-  const [selectedProviderId, setSelectedProviderId] = useState(providerId ?? '')
-  const [pickerOpen, setPickerOpen] = useState(!providerId)
 
   // Load pets based on role
   useEffect(() => {
@@ -80,35 +85,51 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
     }
   }, [initialPetId, pets])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const clearSelection = () => {
+    setBusiness(null)
+    setFinalQuote(null)
+  }
+
+  const addressesReady = !!pickupAddress && !!dropoffAddress && !!selectedPetId
+
+  // Step 1: geocode both addresses, then open the businesses picker.
+  const handleChooseTransporter = async () => {
     setPickupError('')
     setDropoffError('')
     setSubmitError('')
+    setGeocoding(true)
+    const [pickup, dropoff] = await Promise.all([geocodeAddress(pickupAddress), geocodeAddress(dropoffAddress)])
+    setGeocoding(false)
+    if (!pickup) { setPickupError(t('form.address_not_found')); return }
+    if (!dropoff) { setDropoffError(t('form.address_not_found')); return }
+    setPickupCoords(pickup)
+    setDropoffCoords(dropoff)
+    setPickerOpen(true)
+  }
+
+  // Step 2: business chosen — fetch an authoritative quote for the submit button.
+  const handleBusinessSelected = async (b: MarketplaceBusiness) => {
+    setBusiness(b)
+    setPickerOpen(false)
+    setFinalQuote(null)
+    if (!pickupCoords || !dropoffCoords) return
+    setQuoting(true)
+    const { data } = await quoteTrip({ business_id: b.business_id, from: pickupCoords, to: dropoffCoords })
+    setQuoting(false)
+    if (data) setFinalQuote(data)
+  }
+
+  // Step 3: submit with business_id (backend derives the driver + persists the quote).
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!business || !pickupCoords || !dropoffCoords) return
+    setSubmitError('')
     setSubmitting(true)
-
-    // Geocode both addresses
-    const [pickupCoords, dropoffCoords] = await Promise.all([
-      geocodeAddress(pickupAddress),
-      geocodeAddress(dropoffAddress),
-    ])
-
-    if (!pickupCoords) {
-      setPickupError(t('form.address_not_found'))
-      setSubmitting(false)
-      return
-    }
-    if (!dropoffCoords) {
-      setDropoffError(t('form.address_not_found'))
-      setSubmitting(false)
-      return
-    }
-
     const selectedPet = pets.find(p => p.id === selectedPetId)
     const { data, error } = await requestTrip({
       pet_id: selectedPetId,
       pet_description: selectedPet?.name ?? '',
-      target_driver_id: selectedProviderId,
+      business_id: business.business_id,
       pickup_address: pickupAddress,
       pickup_lat: pickupCoords.lat,
       pickup_lng: pickupCoords.lng,
@@ -118,30 +139,34 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
       ],
       ...(conversationId ? { conversation_id: conversationId } : {}),
     })
-
     if (error || !data) {
       setSubmitError(error || t('form.error_creating'))
       setSubmitting(false)
       return
     }
-
     onTripCreated(data)
   }
 
+  const submitLabel = quoting
+    ? t('form.quoting')
+    : finalQuote
+      ? t('form.request_with_price', { price: Math.round(finalQuote.estimated_price) }) +
+        (finalQuote.routing_degraded ? ` (${t('marketplace.approx')})` : '')
+      : t('form.request_transport')
+
   return (
     <div className="absolute bottom-4 left-4 right-4 z-20 mx-auto max-w-lg sm:max-w-xl md:max-w-2xl">
-      <ProviderPicker
-        open={pickerOpen}
-        onOpenChange={(open) => {
-          // Only allow closing if a provider is already selected
-          if (!open && selectedProviderId) setPickerOpen(false)
-          else if (open) setPickerOpen(true)
-        }}
-        onSelect={(userId) => {
-          setSelectedProviderId(userId)
-          setPickerOpen(false)
-        }}
-      />
+      {pickupCoords && dropoffCoords && (
+        <TransportBusinessPicker
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          lat={pickupCoords.lat}
+          lng={pickupCoords.lng}
+          from={pickupCoords}
+          to={dropoffCoords}
+          onSelect={handleBusinessSelected}
+        />
+      )}
       <form onSubmit={handleSubmit} className="bg-primary/95 backdrop-blur-xl rounded-2xl border border-pop-750 p-4 space-y-3">
         {/* Pickup */}
         <div>
@@ -149,7 +174,7 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
             type="text"
             placeholder={t('form.pickup_address')}
             value={pickupAddress}
-            onChange={e => setPickupAddress(e.target.value)}
+            onChange={e => { setPickupAddress(e.target.value); clearSelection() }}
             className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pop-500"
             required
           />
@@ -162,7 +187,7 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
             type="text"
             placeholder={t('form.dropoff_address')}
             value={dropoffAddress}
-            onChange={e => setDropoffAddress(e.target.value)}
+            onChange={e => { setDropoffAddress(e.target.value); clearSelection() }}
             className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pop-500"
             required
           />
@@ -182,18 +207,45 @@ export function TransportCreationForm({ initialPetId, conversationId, providerId
           ))}
         </select>
 
+        {/* Choose transporter / chosen business */}
+        {business ? (
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="w-full flex items-center justify-between bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground"
+          >
+            <span className="truncate">{business.name}</span>
+            <span className="text-muted-foreground shrink-0 ml-2">{t('form.change_transporter')}</span>
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={handleChooseTransporter}
+            disabled={!addressesReady || geocoding}
+            className="w-full bg-background border border-border text-foreground py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            <FontAwesomeIcon icon={geocoding ? faSpinner : faTruckFast} className={`text-sm ${geocoding ? 'animate-spin' : ''}`} />
+            {t('form.choose_transporter')}
+          </button>
+        )}
+
         {/* Submit error */}
         {submitError && <p className="text-red-500 text-xs">{submitError}</p>}
 
-        {/* Submit button */}
+        {/* Submit */}
         <button
           type="submit"
-          disabled={submitting || !selectedPetId || !pickupAddress || !dropoffAddress}
+          disabled={!business || submitting || quoting}
           className="w-full bg-pop-500 text-background py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />
-          {t('form.request_transport')}
+          <FontAwesomeIcon icon={submitting || quoting ? faSpinner : faPaperPlane} className={`text-sm ${submitting || quoting ? 'animate-spin' : ''}`} />
+          {submitLabel}
         </button>
+
+        {/* Directory link */}
+        <Link href="/transporte/negocios" className="block text-center text-xs text-background/70 hover:text-background">
+          {t('directory.view_link')}
+        </Link>
       </form>
     </div>
   )
