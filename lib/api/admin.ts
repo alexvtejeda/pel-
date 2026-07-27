@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import { RescueCenter } from './rescue-centers'
 import { Form, FormField } from './forms'
 import { Business } from './businesses'
+import { ServiceProvider, ServiceProviderStatus } from './service-providers'
 
 // --- Rescue Centers ---
 
@@ -154,5 +155,68 @@ export async function createIssue(
     return { data: null, error: json.error || null, status: res.status }
   } catch {
     return { data: null, error: null, status: 0 }
+  }
+}
+
+// --- Service Providers ---
+// Note: the review endpoint takes { action, reason } — NOT { status } like businesses.
+// These wrappers hide that difference from callers.
+
+export async function listServiceProviders(
+  status: ServiceProviderStatus | 'all' = 'all'
+): Promise<{ data: ServiceProvider[] | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/service-providers?status=${status}`)
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al cargar solicitudes de servicios' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function getServiceProviderIdDocument(
+  id: string
+): Promise<{ data: { url: string } | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/service-providers/${id}/id-document`)
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al obtener el documento' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function approveServiceProvider(
+  id: string
+): Promise<{ data: ServiceProvider | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/service-providers/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'approve' }),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al aprobar proveedor' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
+export async function rejectServiceProvider(
+  id: string,
+  reason: string
+): Promise<{ data: ServiceProvider | null; error: string | null }> {
+  try {
+    const res = await apiClient(`/api/v1/admin/service-providers/${id}/review`, {
+      method: 'PATCH',
+      body: JSON.stringify({ action: 'reject', reason }),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al rechazar proveedor' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
   }
 }

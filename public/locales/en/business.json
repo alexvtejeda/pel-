@@ -66,7 +66,10 @@
     "type_business": "Business",
     "filter_all": "All",
     "filter_rescue_centers": "Rescue Centers",
-    "filter_businesses": "Businesses"
+    "filter_businesses": "Businesses",
+    "filter_service_providers": "Service Providers",
+    "type_service_provider": "Service Provider",
+    "view_id_document": "View ID document"
   },
   "aliados": {
     "title": "Partners",
@@ -91,6 +94,55 @@
       "grooming": "Grooming",
       "sitting": "Pet sitting",
       "training": "Training"
+    }
+  },
+  "service_providers": {
+    "title": "Offer my services",
+    "nav_entry": "Offer my services",
+    "intro": "Register as a provider and appear in Pelú's partner directory. An administrator will review your application.",
+    "description_label": "Describe your services",
+    "description_placeholder": "I care for and walk dogs in the Naco area...",
+    "experience_label": "Your experience",
+    "experience_placeholder": "3 years caring for family and neighbors' pets",
+    "address_label": "Address where you offer the service",
+    "address_placeholder": "Calle Erik Leonard Ekman, Santo Domingo",
+    "address_not_found": "We couldn't find that address. Check it and try again.",
+    "services_label": "Services you offer",
+    "pet_types_label": "Pet types you care for",
+    "id_document_label": "ID document",
+    "id_document_hint": "A photo of your ID (PNG, JPEG or WebP, max 5 MB). Only the reviewing administrator sees it.",
+    "id_document_selected": "Selected file: {{name}}",
+    "terms_label": "I accept Pelú's provider terms and conditions",
+    "submit_register": "Submit application",
+    "submit_edit": "Save changes",
+    "submit_reapply": "Resubmit application",
+    "submitting": "Submitting...",
+    "submitted": "Application sent. We'll let you know once it's reviewed.",
+    "saved": "Profile updated",
+    "save_error": "We couldn't save your application",
+    "load_error": "We couldn't load your provider profile",
+    "pending_title": "Application under review",
+    "pending_body": "An administrator is reviewing your application. We'll notify you when there's a decision.",
+    "active_title": "Your provider profile",
+    "active_body": "Your profile is active and visible in the partner directory.",
+    "rejected_title": "Application rejected",
+    "rejected_reason": "Reason:",
+    "rejected_body": "Fix the issues noted and resubmit your application with your ID document.",
+    "services": {
+      "transport": "Transport",
+      "grooming": "Grooming",
+      "pet_sitting": "Pet sitting",
+      "dog_walking": "Dog walking",
+      "pet_boarding": "Boarding",
+      "training": "Training"
+    },
+    "pet_types": {
+      "dog": "Dog",
+      "cat": "Cat",
+      "bird": "Bird",
+      "rabbit": "Rabbit",
+      "reptile": "Reptile",
+      "other": "Other"
     }
   }
 }
