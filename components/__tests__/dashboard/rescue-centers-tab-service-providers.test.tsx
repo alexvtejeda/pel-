@@ -108,4 +108,39 @@ describe('RescueCentersTab — service providers', () => {
       expect(adminApi.rejectServiceProvider).toHaveBeenCalledWith('sp1', 'Documento ilegible')
     )
   })
+
+  it('keeps the applicant heading after approval, though the review response omits it', async () => {
+    // The real /review response omits applicant_name/applicant_email (omitempty on a nil *string).
+    const { applicant_name: _n, applicant_email: _e, ...reviewResponse } = SP
+    vi.mocked(adminApi.approveServiceProvider).mockResolvedValue({
+      data: { ...reviewResponse, status: 'active' }, error: null,
+    })
+    renderWithProviders(<RescueCentersTab />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Aprobar' }))
+
+    await waitFor(() => expect(adminApi.approveServiceProvider).toHaveBeenCalledWith('sp1'))
+    // Must still show the name, not the bare user_id.
+    expect(await screen.findByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'u1' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the applicant heading after rejection', async () => {
+    const { applicant_name: _n, applicant_email: _e, ...reviewResponse } = SP
+    vi.mocked(adminApi.rejectServiceProvider).mockResolvedValue({
+      data: { ...reviewResponse, status: 'rejected', rejection_reason: 'Documento ilegible' }, error: null,
+    })
+    renderWithProviders(<RescueCentersTab />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Rechazar' }))
+    fireEvent.change(screen.getByPlaceholderText('Razón del rechazo...'), {
+      target: { value: 'Documento ilegible' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }))
+
+    await waitFor(() =>
+      expect(adminApi.rejectServiceProvider).toHaveBeenCalledWith('sp1', 'Documento ilegible')
+    )
+    expect(await screen.findByRole('heading', { name: 'Ana Pérez' })).toBeInTheDocument()
+  })
 })

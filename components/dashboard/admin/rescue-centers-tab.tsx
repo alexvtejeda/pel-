@@ -97,7 +97,9 @@ export function RescueCentersTab() {
     if (item._type === 'service_provider') {
       const { data, error: err } = await adminApi.approveServiceProvider(item.id)
       if (err || !data) return
-      setServiceProviders(prev => prev.map(sp => sp.id === item.id ? data : sp))
+      // Merge, don't replace: applicant_name/applicant_email only exist on admin-list rows and
+      // are omitted from the review response, so replacing would blank the row heading.
+      setServiceProviders(prev => prev.map(sp => sp.id === item.id ? { ...sp, ...data } : sp))
     } else if (item._type === 'business') {
       const { data, error: err } = await adminApi.approveBusiness(item.id)
       if (err || !data) return
@@ -114,7 +116,8 @@ export function RescueCentersTab() {
     if (item._type === 'service_provider') {
       const { data, error: err } = await adminApi.rejectServiceProvider(item.id, rejectReason.trim())
       if (err || !data) return
-      setServiceProviders(prev => prev.map(sp => sp.id === item.id ? data : sp))
+      // Merge, don't replace — see handleApprove: the review response omits the applicant fields.
+      setServiceProviders(prev => prev.map(sp => sp.id === item.id ? { ...sp, ...data } : sp))
     } else if (item._type === 'business') {
       const { data, error: err } = await adminApi.rejectBusiness(item.id, rejectReason.trim())
       if (err || !data) return
