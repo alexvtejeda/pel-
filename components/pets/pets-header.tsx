@@ -10,7 +10,7 @@ import { uploadAvatar, deleteAvatar } from '@/lib/api/auth'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner, faHandHoldingHeart } from '@fortawesome/free-solid-svg-icons'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
@@ -308,6 +308,16 @@ export function PetsHeader() {
               >
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-muted-foreground" />
                 {t('member.my_pets')}
+              </Link>
+            )}
+            {user?.role === 'member' && (
+              <Link
+                href="/servicios"
+                onClick={() => setSheetOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              >
+                <FontAwesomeIcon icon={faHandHoldingHeart} className="text-lg text-muted-foreground" />
+                {t('service_providers.nav_entry', { ns: 'business' })}
               </Link>
             )}
             {user?.role === 'member' && (
