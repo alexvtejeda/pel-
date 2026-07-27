@@ -66,7 +66,10 @@
     "type_business": "Empresa",
     "filter_all": "Todos",
     "filter_rescue_centers": "Centros de Rescate",
-    "filter_businesses": "Empresas"
+    "filter_businesses": "Empresas",
+    "filter_service_providers": "Proveedores de Servicios",
+    "type_service_provider": "Proveedor de Servicios",
+    "view_id_document": "Ver documento de identidad"
   },
   "aliados": {
     "title": "Aliados",
@@ -91,6 +94,55 @@
       "grooming": "Baño y corte",
       "sitting": "Cuidado",
       "training": "Entrenamiento"
+    }
+  },
+  "service_providers": {
+    "title": "Ofrecer mis servicios",
+    "nav_entry": "Ofrecer mis servicios",
+    "intro": "Regístrate como proveedor y aparece en el directorio de aliados de Pelú. Un administrador revisará tu solicitud.",
+    "description_label": "Describe tus servicios",
+    "description_placeholder": "Cuido y paseo perros en la zona de Naco...",
+    "experience_label": "Tu experiencia",
+    "experience_placeholder": "3 años cuidando mascotas de familiares y vecinos",
+    "address_label": "Dirección donde ofreces el servicio",
+    "address_placeholder": "Calle Erik Leonard Ekman, Santo Domingo",
+    "address_not_found": "No encontramos esa dirección. Revísala e inténtalo de nuevo.",
+    "services_label": "Servicios que ofreces",
+    "pet_types_label": "Tipos de mascotas que atiendes",
+    "id_document_label": "Documento de identidad",
+    "id_document_hint": "Imagen de tu cédula (PNG, JPEG o WebP, máximo 5 MB). Solo la ve el administrador que revisa tu solicitud.",
+    "id_document_selected": "Archivo seleccionado: {{name}}",
+    "terms_label": "Acepto los términos y condiciones de proveedores de Pelú",
+    "submit_register": "Enviar solicitud",
+    "submit_edit": "Guardar cambios",
+    "submit_reapply": "Reenviar solicitud",
+    "submitting": "Enviando...",
+    "submitted": "Solicitud enviada. Te avisaremos cuando sea revisada.",
+    "saved": "Perfil actualizado",
+    "save_error": "No pudimos guardar tu solicitud",
+    "load_error": "No pudimos cargar tu perfil de servicios",
+    "pending_title": "Solicitud en revisión",
+    "pending_body": "Un administrador está revisando tu solicitud. Te notificaremos cuando haya una decisión.",
+    "active_title": "Tu perfil de proveedor",
+    "active_body": "Tu perfil está activo y visible en el directorio de aliados.",
+    "rejected_title": "Solicitud rechazada",
+    "rejected_reason": "Motivo:",
+    "rejected_body": "Corrige lo indicado y vuelve a enviar tu solicitud con tu documento de identidad.",
+    "services": {
+      "transport": "Transporte",
+      "grooming": "Peluquería",
+      "pet_sitting": "Cuidado de mascotas",
+      "dog_walking": "Paseo de perros",
+      "pet_boarding": "Hospedaje",
+      "training": "Entrenamiento"
+    },
+    "pet_types": {
+      "dog": "Perro",
+      "cat": "Gato",
+      "bird": "Ave",
+      "rabbit": "Conejo",
+      "reptile": "Reptil",
+      "other": "Otro"
     }
   }
 }
