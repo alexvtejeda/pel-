@@ -1,0 +1,22 @@
+# Build artifacts — regenerated inside the image
+node_modules
+out
+.next
+dist
+
+# Local env: NEXT_PUBLIC_API_URL is inlined at build time and comes from the
+# compose build ARG, never from a machine-local file.
+.env
+.env.local
+.env.*.local
+
+# Repo / tooling noise
+.git
+.gitignore
+tasks
+coverage
+.playwright-mcp
+*.log
+
+# Desktop packaging — not needed for the static web build
+electron
