@@ -150,4 +150,12 @@ describe('reapplyServiceProvider', () => {
     })
     expect(result).toEqual({ data: null, error: 'not rejected' })
   })
+
+  it('returns a connection error on network failure', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network')))
+    const result = await reapplyServiceProvider({
+      ...PROFILE, id_document: new File(['d'], 'c.jpg'),
+    })
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
+  })
 })
