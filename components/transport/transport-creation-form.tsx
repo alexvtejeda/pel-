@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faTruckFast, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { requestTrip, quoteTrip, Trip, Point, TripQuote, MarketplaceBusiness } from '@/lib/api/transport'
+import { geocodeAddress } from '@/lib/geocode'
 import { listUserPets } from '@/lib/api/user-pets'
 import { listPets } from '@/lib/api/pets'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
@@ -21,20 +22,6 @@ interface TransportCreationFormProps {
   initialPetId?: string
   conversationId?: string
   onTripCreated: (trip: Trip) => void
-}
-
-async function geocodeAddress(address: string): Promise<Point | null> {
-  try {
-    const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`,
-      { headers: { 'User-Agent': 'Pelu-App/1.0' } }
-    )
-    const data = await res.json()
-    if (data.length === 0) return null
-    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
-  } catch {
-    return null
-  }
 }
 
 export function TransportCreationForm({ initialPetId, conversationId, onTripCreated }: TransportCreationFormProps) {
