@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--cdp-endpoint=http://localhost:9222",
+        "--output-dir=/home/noob_master/pelu/frontend/.playwright-mcp"
+      ]
+    }
+  }
+}
