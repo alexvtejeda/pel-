@@ -18,6 +18,7 @@ import {
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl, ensureUrl } from '@/lib/utils'
+import { formatAge } from '@/lib/utils/format-age'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
@@ -126,10 +127,10 @@ export function PetDetail({ pet }: PetDetailProps) {
           </span>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
             <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
-            {pet.age >= 12
-              ? t('detail.years', { count: Math.floor(pet.age / 12) })
-              : `${pet.age} ${t('dashboard.ageUnit.months').toLowerCase()}`
-            }
+            {(() => {
+              const { count, unit } = formatAge(pet.age)
+              return t(`detail.${unit}`, { count })
+            })()}
           </span>
         </div>
 

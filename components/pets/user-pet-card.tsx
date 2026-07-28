@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faDog, faCat, faMars, faVenus, faSyringe, faScissors } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
 import Carousel from '@/components/Carousel'
+import { formatAge } from '@/lib/utils/format-age'
 
 function CardCarousel({ urls }: { urls: string[] }) {
   const [width, setWidth] = useState(0)
@@ -58,7 +59,14 @@ export function UserPetCard({
   name, age, ageUnit = 'months', gender, species, photoUrls, vaccinated, castrated, size, actions,
 }: UserPetCardProps) {
   const { t } = useTranslation('pets')
-  const ageText = age === '' || age === null || age === undefined ? '' : String(age)
+  // The live preview inside MemberAddPetModal passes the raw typed string plus the
+  // unit the user picked, so parse defensively and only convert months→years.
+  const parsed = age === '' || age === null || age === undefined ? Number.NaN : Number(age)
+  const displayAge = !Number.isFinite(parsed)
+    ? null
+    : ageUnit === 'years'
+      ? { count: Math.floor(parsed), unit: 'years' as const }
+      : formatAge(parsed)
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-xs border bg-card">
@@ -79,10 +87,10 @@ export function UserPetCard({
           <span className="font-medium text-sm truncate">{name.trim() || t('details.name')}</span>
         </div>
         <span className="text-xs text-muted-foreground flex items-center gap-1">
-          {ageText && <span>{ageText} {ageUnit === 'years' ? t('dashboard.ageUnit.years') : t('dashboard.ageUnit.months')}</span>}
-          {ageText && <span>·</span>}
+          {displayAge && <span>{t(`detail.${displayAge.unit}`, { count: displayAge.count })}</span>}
+          {displayAge && <span aria-hidden="true">·</span>}
           <FontAwesomeIcon icon={gender === 'male' ? faMars : faVenus} className="text-xs" />
-          <span>·</span>
+          <span aria-hidden="true">·</span>
           <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
         </span>
         <div className="flex items-center gap-2 mt-1">

@@ -4,15 +4,29 @@ import { renderWithProviders } from '../test-utils'
 import { UserPetCard } from '@/components/pets/user-pet-card'
 
 describe('UserPetCard', () => {
-  it('renders name, age unit and size', () => {
+  it('renders name, age and size', () => {
     renderWithProviders(
       <UserPetCard name="Luna" age={6} gender="female" species="cat" photoUrls={[]} size="small" />
     )
     expect(screen.getByText('Luna')).toBeInTheDocument()
-    // age "6" with the months unit label
-    expect(screen.getByText(/Meses/)).toBeInTheDocument()
+    // 6 months stays in months
+    expect(screen.getByText('6 meses')).toBeInTheDocument()
     // size "small" → localized "Pequeño"
     expect(screen.getByText('Pequeño')).toBeInTheDocument()
+  })
+
+  it('renders an age of 72 months as 6 years', () => {
+    renderWithProviders(
+      <UserPetCard name="Kira" age={72} gender="female" species="dog" photoUrls={[]} />
+    )
+    expect(screen.getByText('6 años')).toBeInTheDocument()
+  })
+
+  it('respects a user-chosen years unit without re-converting', () => {
+    renderWithProviders(
+      <UserPetCard name="Rex" age={6} ageUnit="years" gender="male" species="dog" photoUrls={[]} />
+    )
+    expect(screen.getByText('6 años')).toBeInTheDocument()
   })
 
   it('fires edit and delete callbacks passed via actions', () => {
