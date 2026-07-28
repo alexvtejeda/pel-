@@ -393,3 +393,12 @@
       transform-origin: left;
     }
 }
+
+/* The landing marquee is decorative; it must not scroll when the user has
+   asked for reduced motion. Uses the CSS animation, not JS, so it stops on the
+   compositor thread. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}

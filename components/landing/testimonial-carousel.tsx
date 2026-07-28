@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons'
+import { useReducedMotion } from '@/lib/about/use-reduced-motion'
 
 export interface Testimonial {
   id: number
@@ -102,6 +103,7 @@ export function TestimonialCarousel({
 }: TestimonialCarouselProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [measuredWidth, setMeasuredWidth] = useState(0)
+  const reducedMotion = useReducedMotion()
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -152,6 +154,7 @@ export function TestimonialCarousel({
   }, [pauseOnHover])
 
   useEffect(() => {
+    if (reducedMotion) return
     if (!autoplay || itemsForRender.length <= 1) return
     if (pauseOnHover && isHovered) return
 
@@ -160,7 +163,7 @@ export function TestimonialCarousel({
     }, autoplayDelay)
 
     return () => clearInterval(timer)
-  }, [autoplay, autoplayDelay, isHovered, pauseOnHover, itemsForRender.length])
+  }, [autoplay, autoplayDelay, isHovered, pauseOnHover, itemsForRender.length, reducedMotion])
 
   const prevItemsLength = useRef(items.length)
   useEffect(() => {

@@ -1,5 +1,7 @@
 'use client'
 
+import { useTranslation } from 'react-i18next'
+
 interface LogoMarqueeProps {
   logos: { src: string; alt: string }[]
   logoHeight?: number
@@ -8,8 +10,10 @@ interface LogoMarqueeProps {
 }
 
 export function LogoMarquee({ logos, logoHeight = 24, gap = 48, className }: LogoMarqueeProps) {
+  const { t } = useTranslation('landing')
+
   return (
-    <div className="overflow-hidden" role="region" aria-label="Partner logos">
+    <div className="overflow-hidden" role="region" aria-label={t('partners.region_label')}>
       <div
         className="flex w-max animate-marquee"
         style={{ gap: `${gap}px` }}
