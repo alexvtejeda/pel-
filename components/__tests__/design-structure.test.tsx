@@ -115,6 +115,14 @@ describe('PetGrid', () => {
     expect(activePill!.textContent).toBeTruthy()
   })
 
+  // The pressed state is announced from the same condition that picks the fill.
+  // Asserting both together is what stops them silently drifting apart.
+  it('7b — the active pill announces aria-pressed, inactive pills do not', () => {
+    const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
+    expect(container.querySelector('.bg-pop-solid')).toHaveAttribute('aria-pressed', 'true')
+    expect(container.querySelector('button.bg-background')).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('8 — inactive filter pills have bg-background class', () => {
     const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
     const inactivePills = container.querySelectorAll('button.bg-background')

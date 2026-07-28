@@ -42,6 +42,9 @@ function fillRegisterForm() {
   fireEvent.change(screen.getByLabelText('Dirección donde ofreces el servicio'), { target: { value: 'Calle 1' } })
   fireEvent.click(screen.getByRole('button', { name: 'Paseo de perros' }))
   fireEvent.click(screen.getByRole('button', { name: 'Perro' }))
+  // Selecting a chip must also flip what it announces, not just how it looks.
+  expect(screen.getByRole('button', { name: 'Paseo de perros' })).toHaveAttribute('aria-pressed', 'true')
+  expect(screen.getByRole('button', { name: 'Perro' })).toHaveAttribute('aria-pressed', 'true')
   const file = new File(['data'], 'cedula.jpg', { type: 'image/jpeg' })
   fireEvent.change(screen.getByLabelText('Documento de identidad'), { target: { files: [file] } })
   fireEvent.click(screen.getByLabelText('Acepto los términos y condiciones de proveedores de Pelú'))
