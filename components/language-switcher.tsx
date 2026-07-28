@@ -33,8 +33,13 @@ export function LanguageSwitcher({ className }: { className?: string }) {
           key={language.code}
           type="button"
           onClick={() => choose(language.code)}
-          aria-label={t(language.labelKey)}
           aria-current={current === language.code ? 'true' : undefined}
+          // Deliberately no aria-label: it would replace the visible "ES"/"EN"
+          // as the accessible name and break WCAG 2.5.3 (Label in Name) for
+          // voice control — "click EN" would match nothing. The group's own
+          // aria-label supplies the context, and title carries the full name as
+          // the accessible description plus a pointer tooltip.
+          title={t(language.labelKey)}
           className={cn(
             'focus-ring rounded-xl px-2 py-1 text-xs font-medium transition-colors',
             current === language.code
