@@ -161,6 +161,17 @@
   input[type="number"] {
     -moz-appearance: textfield;
   }
+
+  /*
+    Tailwind CSS v4 no longer forces `cursor: pointer` on buttons and defers to
+    the browser default (`cursor: default`). Links keep their native pointer, so
+    without this every button in the app silently lost its hover affordance
+    while anchors kept theirs. Restores v3 behaviour.
+  */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
 }
 
 @layer base {
