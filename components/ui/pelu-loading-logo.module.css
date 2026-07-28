@@ -1,6 +1,10 @@
 /*
   Ported from pelu/decks/tesis/index.html (:96-109). Scoped to this module on
   purpose — [data-assemble] is a deck convention and must not leak globally.
+
+  --fromO, --toRot and --dur come from the deck's keyframe contract and are kept
+  as extension points even though no piece currently overrides them; their
+  fallbacks are what every piece renders with today.
 */
 
 @keyframes peluAssemble {
@@ -46,8 +50,13 @@
   }
 }
 
-/* The logo's slate fills sit too close to the forced-dark MFA background.
-   Lift them there only. */
+/* The logo's slate fills sit too close to a dark background, so lift them when
+   one is in play. This reaches every .dark container in the app, not just MFA:
+   the forced-dark auth shell (components/auth/auth-layout.tsx, i.e. login and
+   register), role selection, all three onboarding wizards, MFA enrollment, and
+   any future global dark mode — the selector is a plain descendant match, so
+   whatever ends up under a .dark ancestor is covered. The 1.9 multiplier was
+   picked by eye against those backgrounds, not derived from a contrast target. */
 :global(.dark) .svg {
   filter: brightness(1.9);
 }

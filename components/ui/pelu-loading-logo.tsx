@@ -57,6 +57,10 @@ const PIECES: { name: string; fill: string; style: PieceStyle; d: string }[] = [
   {
     name: 'right-pad',
     fill: 'oklch(37.2% 0.044 257.287)',
+    // Last piece in the stagger: this '.36s' plus --dur (0.7s) is where the
+    // breathe animation's 1.06s delay in pelu-loading-logo.module.css comes
+    // from. Retune the stagger and that delay has to move with it, or the
+    // pulse starts before the paw has finished landing.
     style: { '--d': '.36s', '--fromX': '26px', '--fromY': '-96px', '--fromRot': '-22deg' },
     d: 'M214.09,70.11c-9.86,8.33-32.6,3.23-36-6.82-2.04-6.04,1.06-11.56,4.02-16.77,9.6-16.88,23.01-31.1,39.29-41.7,4.59-2.99,9.87-6.75,15.35-3.66,8.78,4.96-5.78,54.69-22.67,68.96Z',
   },
@@ -91,6 +95,13 @@ export function PeluLoadingLogo({ size = 112, label, className }: PeluLoadingLog
           <path key={piece.name} className={styles.piece} style={piece.style} fill={piece.fill} d={piece.d} />
         ))}
       </svg>
+      {/*
+        aria-hidden is load-bearing, not an oversight. The <svg> above already
+        carries the accessible name via role="img" + aria-label, and this <p> is
+        that same string rendered visibly. Exposing both would make the
+        role="status" region announce the label twice. Removing this attribute
+        is a regression, not a cleanup.
+      */}
       <p className="text-sm text-muted-foreground" aria-hidden="true">
         {text}
       </p>

@@ -23,4 +23,25 @@ describe('PeluLoadingLogo', () => {
     renderWithProviders(<PeluLoadingLogo label="Cargando mascotas" />)
     expect(screen.getByText('Cargando mascotas')).toBeInTheDocument()
   })
+
+  // The splinter is a 4x3px shard of the right wing. It only reads as part of
+  // the wing because it flies with the exact same delta and delay; any drift
+  // between the two turns it into a speck floating on its own mid-assembly.
+  it('flies the splinter with the right wing on the identical delta and delay', () => {
+    const { container } = renderWithProviders(<PeluLoadingLogo />)
+    const paths = container.querySelectorAll('path')
+    const rightWing = paths[2].getAttribute('style')
+    const splinter = paths[3].getAttribute('style')
+
+    expect(rightWing).toBe('--d: .12s; --fromX: 130px; --fromY: -30px; --fromRot: 16deg;')
+    expect(splinter).toBe(rightWing)
+  })
+
+  it('applies the size prop as the rendered height', () => {
+    const { container } = renderWithProviders(<PeluLoadingLogo size={64} />)
+    const svg = container.querySelector('svg')
+
+    expect(svg?.style.height).toBe('64px')
+    expect(svg?.style.width).toBe('auto')
+  })
 })
