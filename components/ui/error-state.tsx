@@ -27,7 +27,11 @@ export function ErrorState({ message, onRetry, className }: ErrorStateProps) {
       className={cn('flex flex-col items-center justify-center gap-3 py-16 text-center', className)}
     >
       <FontAwesomeIcon icon={faTriangleExclamation} className="text-4xl text-destructive/50" />
-      <p className="text-sm text-muted-foreground max-w-xs">{message ?? t('error_state.title')}</p>
+      {/* `||`, not `??`: callers pass API error strings straight through, and an
+          empty one must still fall back to the default title rather than render
+          a blank paragraph — a silent blank is the exact failure this surface exists
+          to prevent. */}
+      <p className="text-sm text-muted-foreground max-w-xs">{message || t('error_state.title')}</p>
       {onRetry && (
         <button
           type="button"
