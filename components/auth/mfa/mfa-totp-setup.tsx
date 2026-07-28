@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCopy, faCheck } from '@fortawesome/free-solid-svg-icons'
 import * as mfaApi from '@/lib/api/mfa'
 import { MfaCodeInput } from './mfa-code-input'
+import { useMfaError } from './use-mfa-error'
 
 interface MfaTotpSetupProps {
   onSuccess: (recoveryCodes?: string[]) => void
@@ -15,6 +16,7 @@ interface MfaTotpSetupProps {
 
 export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
   const { t } = useTranslation('auth')
+  const resolveError = useMfaError()
   const [step, setStep] = useState<'loading' | 'scan' | 'confirm'>('loading')
   const [secret, setSecret] = useState('')
   const [qrUri, setQrUri] = useState('')
@@ -25,7 +27,7 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
   useEffect(() => {
     mfaApi.totpSetup().then(({ data, error: err }) => {
       if (err || !data) {
-        setError(err || 'Error')
+        setError(resolveError(err) || t('mfa.errors.generic'))
         return
       }
       setSecret(data.secret)
@@ -46,7 +48,7 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
     const { data, error: err } = await mfaApi.totpConfirm(code)
     setVerifying(false)
     if (err) {
-      setError(err)
+      setError(resolveError(err))
       return
     }
     onSuccess(data?.recovery_codes)

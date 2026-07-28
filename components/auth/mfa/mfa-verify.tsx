@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faKey, faMobileScreen, faEnvelope } from '@fortawesome/free-solid-svg-icons'
 import { startAuthentication } from '@simplewebauthn/browser'
 import { MfaCodeInput } from './mfa-code-input'
+import { useMfaError, isMfaErrorKey } from './use-mfa-error'
 import * as mfaApi from '@/lib/api/mfa'
 import { AuthUser, MfaChallengeResponse, MfaMethod } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -20,6 +21,7 @@ interface MfaVerifyProps {
 
 export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCancel }: MfaVerifyProps) {
   const { t } = useTranslation('auth')
+  const resolveError = useMfaError()
   const { updateSession } = useAuth()
   const [activeMethod, setActiveMethod] = useState<MfaMethod>(challenge.preferred_method)
   const [showMethodPicker, setShowMethodPicker] = useState(false)
@@ -38,11 +40,14 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
     setLoading(false)
 
     if (err) {
-      if (err.includes('expired') || err.includes('expiró')) {
+      // Only backend messages carry expiry wording. Our own fallback keys must not
+      // trip this heuristic — 'mfa.errors.code_invalid_expired' is the generic
+      // "invalid or expired" fallback and must not force a full re-login.
+      if (!isMfaErrorKey(err) && (err.includes('expired') || err.includes('expiró'))) {
         onExpired()
         return
       }
-      setError(err)
+      setError(resolveError(err))
       return
     }
 
@@ -60,7 +65,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
     if (method === 'email') {
       const { error: sendErr } = await mfaApi.mfaEmailSend()
       if (sendErr) {
-        setError(sendErr)
+        setError(resolveError(sendErr))
         return
       }
       setEmailSent(true)
@@ -73,7 +78,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
 
     const { data: begin, error: beginErr } = await mfaApi.webauthnAssertBegin()
     if (beginErr || !begin) {
-      setError(beginErr || 'Error')
+      setError(resolveError(beginErr) || t('mfa.errors.generic'))
       setLoading(false)
       return
     }
@@ -83,7 +88,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
       const assertion = await startAuthentication({ optionsJSON: begin.options.publicKey })
       await handleVerify(assertion, begin.session)
     } catch {
-      setError('Verificación cancelada')
+      setError(t('mfa.errors.cancelled'))
       setLoading(false)
     }
   }

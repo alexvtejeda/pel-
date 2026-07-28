@@ -14,12 +14,16 @@ type WebauthnAssertBeginData = { options: { publicKey: PublicKeyCredentialReques
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
+// Fallbacks are translation KEYS, not display text — components resolve them
+// with t(). A backend-supplied json.error is already localized and passes
+// through untouched.
+
 // --- Enrollment (authenticated via apiClient) ---
 
 export async function totpSetup(): Promise<{ data: { secret: string; qr_uri: string } | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/mfa/totp/setup', { method: 'POST' })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al configurar TOTP' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.totp_setup' }
   return { data: json, error: null }
 }
 
@@ -29,14 +33,14 @@ export async function totpConfirm(code: string): Promise<{ data: { recovery_code
     body: JSON.stringify({ code }),
   })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Código inválido' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.invalid_code' }
   return { data: json, error: null }
 }
 
 export async function webauthnRegisterBegin(): Promise<{ data: WebauthnRegisterBeginData | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/mfa/webauthn/register/begin', { method: 'POST' })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al iniciar registro de passkey' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.passkey_begin' }
   return { data: json, error: null }
 }
 
@@ -48,21 +52,21 @@ export async function webauthnRegisterFinish(attestation: RegistrationResponseJS
     body: JSON.stringify({ ...attestation, session, name }),
   })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al registrar passkey' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.passkey_finish' }
   return { data: json, error: null }
 }
 
 export async function emailEnable(): Promise<{ data: { recovery_codes?: string[] } | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/mfa/email/enable', { method: 'POST' })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al habilitar email OTP' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.email_enable' }
   return { data: json, error: null }
 }
 
 export async function regenerateRecoveryCodes(): Promise<{ data: { recovery_codes: string[] } | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/mfa/recovery/generate', { method: 'POST' })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al regenerar códigos' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.regenerate' }
   return { data: json, error: null }
 }
 
@@ -81,7 +85,7 @@ export async function mfaVerify(method: string, codeOrAssertion: string | Authen
     body: JSON.stringify(body),
   })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Código inválido o expirado' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.code_invalid_expired' }
   return { data: json, error: null }
 }
 
@@ -92,7 +96,7 @@ export async function mfaEmailSend(): Promise<{ data: unknown | null; error: str
     credentials: 'include',
   })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al enviar código' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.send_code' }
   return { data: json, error: null }
 }
 
@@ -103,7 +107,7 @@ export async function webauthnAssertBegin(): Promise<{ data: WebauthnAssertBegin
     credentials: 'include',
   })
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al iniciar verificación' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.verify_begin' }
   return { data: json, error: null }
 }
 
@@ -113,7 +117,7 @@ export async function mfaChallenge(): Promise<{ data: MfaChallengeResponse | nul
     credentials: 'include',
   })
   const json = await res.json().catch(() => ({}))
-  if (!res.ok) return { data: null, error: json.error || 'Sesión MFA expirada' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.session_expired' }
   return { data: json, error: null }
 }
 
@@ -141,7 +145,7 @@ function flattenMethods(methods: unknown): MfaMethodInfo[] {
 export async function getMethods(): Promise<{ data: MfaMethodsResponse | null; error: string | null }> {
   const res = await apiClient('/api/v1/auth/mfa/methods')
   const json = await res.json()
-  if (!res.ok) return { data: null, error: json.error || 'Error al cargar métodos MFA' }
+  if (!res.ok) return { data: null, error: json.error || 'mfa.errors.load_methods' }
   return { data: { ...json, methods: flattenMethods(json.methods) }, error: null }
 }
 
@@ -152,7 +156,7 @@ export async function deleteTotp(password: string): Promise<{ data: unknown | nu
   })
   if (res.status === 204) return { data: {}, error: null }
   const json = await res.json()
-  return { data: null, error: json.error || 'Error al eliminar TOTP' }
+  return { data: null, error: json.error || 'mfa.errors.delete_totp' }
 }
 
 export async function deleteWebauthn(id: string, password: string): Promise<{ data: unknown | null; error: string | null }> {
@@ -162,7 +166,7 @@ export async function deleteWebauthn(id: string, password: string): Promise<{ da
   })
   if (res.status === 204) return { data: {}, error: null }
   const json = await res.json()
-  return { data: null, error: json.error || 'Error al eliminar passkey' }
+  return { data: null, error: json.error || 'mfa.errors.delete_passkey' }
 }
 
 export async function deleteEmail(password: string): Promise<{ data: unknown | null; error: string | null }> {
@@ -172,5 +176,5 @@ export async function deleteEmail(password: string): Promise<{ data: unknown | n
   })
   if (res.status === 204) return { data: {}, error: null }
   const json = await res.json()
-  return { data: null, error: json.error || 'Error al eliminar email OTP' }
+  return { data: null, error: json.error || 'mfa.errors.delete_email' }
 }

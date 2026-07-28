@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faKey, faMobileScreen, faEnvelope, faTrash, faPlus, faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons'
 import * as mfaApi from '@/lib/api/mfa'
+import { useMfaError } from '@/components/auth/mfa/use-mfa-error'
 import { MfaMethodInfo } from '@/lib/types/user'
 import { MfaPasswordConfirm } from '@/components/auth/mfa/mfa-password-confirm'
 import { MfaRecoveryModal } from '@/components/auth/mfa/mfa-recovery-modal'
@@ -45,6 +46,7 @@ export function SettingsTab() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const { t } = useTranslation('auth')
+  const resolveError = useMfaError()
 
   // Profile fields
   const [displayName, setDisplayName] = useState(user?.display_name ?? user?.email ?? '')
@@ -200,7 +202,7 @@ export function SettingsTab() {
     else return
 
     if (result?.error) {
-      setMfaDeleteError(result.error)
+      setMfaDeleteError(resolveError(result.error))
       return
     }
     setMfaMethods((prev) => prev.filter((m) => m !== deleteTarget))

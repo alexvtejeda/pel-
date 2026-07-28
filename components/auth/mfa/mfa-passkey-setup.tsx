@@ -7,6 +7,7 @@ import { faKey } from '@fortawesome/free-solid-svg-icons'
 import { startRegistration } from '@simplewebauthn/browser'
 import * as mfaApi from '@/lib/api/mfa'
 import { Spinner } from '@/components/ui/spinner'
+import { useMfaError } from './use-mfa-error'
 
 interface MfaPasskeySetupProps {
   onSuccess: (recoveryCodes?: string[]) => void
@@ -15,6 +16,7 @@ interface MfaPasskeySetupProps {
 
 export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
   const { t } = useTranslation('auth')
+  const resolveError = useMfaError()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -24,7 +26,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
     const { data: begin, error: beginError } = await mfaApi.webauthnRegisterBegin()
     if (beginError || !begin) {
-      setError(beginError || t('mfa.errors.generic'))
+      setError(resolveError(beginError) || t('mfa.errors.generic'))
       setLoading(false)
       return
     }
@@ -35,7 +37,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
       const { data, error: finishError } = await mfaApi.webauthnRegisterFinish(attestation, begin.session)
       if (finishError) {
-        setError(finishError)
+        setError(resolveError(finishError))
         setLoading(false)
         return
       }
