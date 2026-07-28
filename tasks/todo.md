@@ -170,8 +170,10 @@ except one, which is recorded below.
 
 ### Verification
 
-- `npx vitest run` → **379/380**, the one failure being the pre-existing
-  `transition-overlay` violation above. 19 new tests added.
+- `npx vitest run` → **390/391**, the one failure being the pre-existing
+  `transition-overlay` violation above. 30 new tests added, including a
+  regression test for correction 2 that was proven to fail when the
+  `isMfaErrorKey` guard is removed.
 - `bun run build` → succeeds, all 25 routes prerendered.
 - Compiled CSS confirmed to carry `focus-ring`, `--color-pop-solid`,
   `--shadow-divider` (light + dark), the status tokens, and the
