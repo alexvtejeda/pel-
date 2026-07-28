@@ -3,6 +3,10 @@
   "welcome": "Welcome",
   "loading": "Loading...",
   "error": "Error",
+  "error_state": {
+    "title": "We couldn't load this",
+    "retry": "Try again"
+  },
   "success": "Success",
   "cancel": "Cancel",
   "confirm": "Confirm",
