@@ -125,7 +125,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
         </div>
 
         {formData.advisory && (
-          <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-sm text-amber-800">
+          <div className="mb-6 p-4 bg-warning-bg border border-warning/40 rounded-2xl text-sm text-warning-foreground">
             {t('adopt.advisory')}
           </div>
         )}

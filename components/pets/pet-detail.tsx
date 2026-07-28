@@ -141,10 +141,10 @@ export function PetDetail({ pet }: PetDetailProps) {
 
         {/* Condition alert */}
         {pet.conditions?.length > 0 && (
-          <div className="bg-amber-50 border border-amber-300 rounded-xl p-3 space-y-1">
-            <p className="text-sm font-medium text-amber-800">{t('detail.specialCondition')}</p>
+          <div className="bg-warning-bg border border-warning/40 rounded-xl p-3 space-y-1">
+            <p className="text-sm font-medium text-warning-foreground">{t('detail.specialCondition')}</p>
             {pet.condition_notes && (
-              <p className="text-sm text-amber-700">{pet.condition_notes}</p>
+              <p className="text-sm text-warning-foreground/80">{pet.condition_notes}</p>
             )}
           </div>
         )}

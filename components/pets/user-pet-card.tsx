@@ -94,8 +94,8 @@ export function UserPetCard({
           <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
         </span>
         <div className="flex items-center gap-2 mt-1">
-          <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-          <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-success' : 'text-muted-foreground/30'}`} />
+          <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-success' : 'text-muted-foreground/30'}`} />
           {size && (
             <span className="text-xs text-muted-foreground">
               {size === 'small' ? t('size.small') : size === 'medium' ? t('size.medium') : t('size.large')}

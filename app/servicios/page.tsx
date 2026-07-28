@@ -45,7 +45,7 @@ export default function ServiciosPage() {
         ) : provider.status === 'pending' ? (
           <div className="rounded-2xl border bg-card p-6 space-y-3">
             <div className="flex items-center gap-3">
-              <FontAwesomeIcon icon={faHourglassHalf} className="text-lg text-yellow-500" />
+              <FontAwesomeIcon icon={faHourglassHalf} className="text-lg text-warning" />
               <h2 className="font-semibold">{t('service_providers.pending_title')}</h2>
             </div>
             <p className="text-sm text-muted-foreground">{t('service_providers.pending_body')}</p>
@@ -54,7 +54,7 @@ export default function ServiciosPage() {
           <div className="space-y-6">
             <div className="rounded-2xl border bg-card p-6 space-y-3">
               <div className="flex items-center gap-3">
-                <FontAwesomeIcon icon={faCircleCheck} className="text-lg text-green-500" />
+                <FontAwesomeIcon icon={faCircleCheck} className="text-lg text-success" />
                 <h2 className="font-semibold">{t('service_providers.active_title')}</h2>
               </div>
               <p className="text-sm text-muted-foreground">{t('service_providers.active_body')}</p>

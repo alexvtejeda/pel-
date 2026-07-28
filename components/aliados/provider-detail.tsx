@@ -38,7 +38,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
             />
           </div>
         ) : (
-          <div className="w-full h-40 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+          <div className="w-full h-40 bg-linear-to-br from-primary/20 to-primary/5 flex items-center justify-center">
             <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary text-xl font-bold text-background">
               {initials}
             </div>
@@ -52,8 +52,8 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
         <div className="space-y-1">
           <h2 className="text-xl font-bold">{provider.name}</h2>
           <div className="flex items-center gap-1.5">
-            <FontAwesomeIcon icon={faShieldHalved} className="text-sm text-green-500" />
-            <span className="text-sm text-green-500">
+            <FontAwesomeIcon icon={faShieldHalved} className="text-sm text-success" />
+            <span className="text-sm text-success">
               {provider.type === 'business'
                 ? t('provider.business_verified')
                 : t('provider.member_verified')}

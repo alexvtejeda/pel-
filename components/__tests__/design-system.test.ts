@@ -328,3 +328,31 @@ describe('UI Primitive Radii', () => {
     expect(content).not.toContain('sm:rounded-lg')
   })
 })
+
+// ─── Semantic Status Colors (in-scope routes only) ───────────
+// The dashboards still carry raw palette colors and are out of scope for the
+// 2026-07-28 UI pass, so this rule is scoped to the audited files rather than
+// applied globally.
+
+describe('Semantic Status Colors', () => {
+  const IN_SCOPE = [
+    'pets/pet-grid.tsx',
+    'pets/pet-detail.tsx',
+    'pets/user-pet-card.tsx',
+    'adopt/adopt-pet-page.tsx',
+    'providers/provider-card.tsx',
+    'aliados/provider-detail.tsx',
+  ]
+
+  it('24 — audited components use success/warning tokens, not raw palette colors', () => {
+    const files = IN_SCOPE.map((f) => path.join(COMPONENTS_DIR, f))
+    const v = findViolations(files, /\b(bg|text|border)-(amber|green|yellow)-\d/)
+    expect(v, `raw palette colors found:\n${v.join('\n')}`).toHaveLength(0)
+  })
+
+  it('25 — audited components use Tailwind v4 gradient syntax', () => {
+    const files = IN_SCOPE.map((f) => path.join(COMPONENTS_DIR, f))
+    const v = findViolations(files, /\bbg-gradient-to-/)
+    expect(v, `v3 gradient syntax found:\n${v.join('\n')}`).toHaveLength(0)
+  })
+})

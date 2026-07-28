@@ -44,8 +44,8 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-sm truncate">{provider.name}</h3>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <FontAwesomeIcon icon={faShieldHalved} className="text-xs text-green-500" />
-            <span className="text-xs text-green-500">
+            <FontAwesomeIcon icon={faShieldHalved} className="text-xs text-success" />
+            <span className="text-xs text-success">
               {provider.type === 'business'
                 ? t('provider.business_verified')
                 : t('provider.member_verified')}

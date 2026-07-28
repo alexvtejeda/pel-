@@ -280,7 +280,7 @@ export function PetGrid({
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pet) }}
                 className={`relative group rounded-xl overflow-hidden aspect-square cursor-pointer transition-all ${
                   pet.conditions?.length > 0
-                    ? 'bg-amber-50 border-2 border-amber-400'
+                    ? 'bg-warning-bg border-2 border-warning/50'
                     : 'bg-secondary'
                 } ${
                   selectedId === pet.id
@@ -305,7 +305,7 @@ export function PetGrid({
                 {/* Condition badge */}
                 {pet.conditions?.length > 0 && (
                   <div className="absolute top-2 left-2 z-10">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-warning-bg text-warning-foreground">
                       {t('detail.specialCondition')}
                     </span>
                   </div>
