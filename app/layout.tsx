@@ -3,6 +3,7 @@ import "./globals.css"
 import { AuthProvider } from "@/lib/contexts/auth-context"
 import { WebSocketProvider } from "@/lib/contexts/websocket-context"
 import { I18nProvider } from "@/components/i18n-provider"
+import { LanguagePreferenceSync } from "@/components/language-preference-sync"
 import { Toaster } from "sonner"
 import { RCApprovalListener } from "@/components/auth/rc-approval-listener"
 import { RouteTransitionProvider } from "@/components/transitions/route-transition-context"
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className="antialiased">
         <I18nProvider>
           <AuthProvider>
+            <LanguagePreferenceSync />
             <WebSocketProvider>
               <RouteTransitionProvider>
                 {children}
