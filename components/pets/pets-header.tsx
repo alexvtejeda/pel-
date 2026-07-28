@@ -14,6 +14,7 @@ import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
+import { LanguageSwitcher } from '@/components/language-switcher'
 import {
   Sheet,
   SheetContent,
@@ -176,6 +177,7 @@ export function PetsHeader() {
         </nav>
 
         <div className="flex items-center gap-3">
+          <LanguageSwitcher className="hidden sm:inline-flex" />
           {!user && (
             <>
               <Link
@@ -369,6 +371,9 @@ export function PetsHeader() {
               <FontAwesomeIcon icon={faArrowRightFromBracket} className="text-lg" />
               {t('profile.logout')}
             </button>
+            <div className="mt-2 border-t border-border pt-3 px-4">
+              <LanguageSwitcher />
+            </div>
           </nav>
         </SheetContent>
       </Sheet>

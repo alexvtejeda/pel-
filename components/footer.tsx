@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { TransitionLink } from '@/components/transitions/transition-link'
 import { useTranslation } from 'react-i18next'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export function Footer() {
   const { t } = useTranslation('landing')
@@ -30,8 +31,9 @@ export function Footer() {
             </ul>
           </div>
         </div>
-        <div className="pt-8 border-t border-border text-center text-sm">
-          {t('footer.rights')}
+        <div className="pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+          <span>{t('footer.rights')}</span>
+          <LanguageSwitcher />
         </div>
       </div>
     </footer>
