@@ -144,7 +144,10 @@ export function PetDetail({ pet }: PetDetailProps) {
           <div className="bg-warning-bg border border-warning/40 rounded-xl p-3 space-y-1">
             <p className="text-sm font-medium text-warning-foreground">{t('detail.specialCondition')}</p>
             {pet.condition_notes && (
-              <p className="text-sm text-warning-foreground/80">{pet.condition_notes}</p>
+              {/* Full opacity, not /80: on the light warning-bg tint that measured
+                  3.78:1, under AA. The title above already reads as the heading via
+                  font-medium, so the notes lose nothing by staying legible. */}
+              <p className="text-sm text-warning-foreground">{pet.condition_notes}</p>
             )}
           </div>
         )}
