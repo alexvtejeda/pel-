@@ -151,6 +151,7 @@ export function ServiceProviderForm({ mode, provider, onSaved }: ServiceProvider
               key={s}
               type="button"
               onClick={() => setServices((prev) => toggleValue(prev, s))}
+              aria-pressed={services.includes(s)}
               className={`focus-ring px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
                 services.includes(s)
                   ? 'bg-primary text-primary-foreground border-primary'
@@ -171,6 +172,7 @@ export function ServiceProviderForm({ mode, provider, onSaved }: ServiceProvider
               key={p}
               type="button"
               onClick={() => setPetTypes((prev) => toggleValue(prev, p))}
+              aria-pressed={petTypes.includes(p)}
               className={`focus-ring px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
                 petTypes.includes(p)
                   ? 'bg-primary text-primary-foreground border-primary'

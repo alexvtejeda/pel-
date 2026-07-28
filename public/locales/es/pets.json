@@ -12,7 +12,8 @@
     "pass": "Pasar",
     "share": "Compartir enlace",
     "visitWebsite": "Visitar sitio web de {{name}}",
-    "visitInstagram": "Visitar Instagram de {{name}}"
+    "visitInstagram": "Visitar Instagram de {{name}}",
+    "more_actions": "Más acciones"
   },
   "details": {
     "name": "Nombre",
@@ -96,7 +97,10 @@
     "delete_body": "Esta acción no se puede deshacer. Se eliminará a {{name}} de tus mascotas.",
     "delete_confirm": "Eliminar",
     "deleted": "Mascota eliminada",
-    "delete_error": "Error al eliminar la mascota"
+    "delete_error": "Error al eliminar la mascota",
+    "close_modal": "Cerrar",
+    "remove_photo": "Quitar foto",
+    "add_photo": "Añadir foto"
   },
   "interested": {
     "search_placeholder": "Buscar por mascota...",
@@ -160,7 +164,10 @@
     "today": "Hoy",
     "yesterday": "Ayer",
     "my_conversations": "Mis conversaciones",
-    "send": "Enviar"
+    "send": "Enviar",
+    "back_to_list": "Volver a conversaciones",
+    "attach": "Adjuntar",
+    "message_label": "Mensaje"
   },
   "notifications": {
     "title": "Notificaciones",

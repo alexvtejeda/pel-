@@ -17,6 +17,7 @@
   "back": "Back",
   "next": "Next",
   "previous": "Previous",
+  "copy": "Copy",
   "time": {
     "just_now": "Just now",
     "minutes_ago": "{{count}} min ago",

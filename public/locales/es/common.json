@@ -17,6 +17,7 @@
   "back": "Volver",
   "next": "Siguiente",
   "previous": "Anterior",
+  "copy": "Copiar",
   "time": {
     "just_now": "Justo ahora",
     "minutes_ago": "Hace {{count}} min",

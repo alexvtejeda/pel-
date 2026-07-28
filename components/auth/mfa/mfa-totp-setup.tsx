@@ -76,7 +76,7 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
             <p className="text-xs text-muted-foreground">{t('mfa.enrollment.totp_manual')}</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 px-3 py-2 bg-muted rounded-xl text-xs font-mono break-all">{secret}</code>
-              <button onClick={handleCopySecret} className="focus-ring p-2 hover:bg-muted rounded-xl transition-colors">
+              <button onClick={handleCopySecret} aria-label={t('copy', { ns: 'common' })} className="focus-ring p-2 hover:bg-muted rounded-xl transition-colors">
                 <FontAwesomeIcon icon={copiedSecret ? faCheck : faCopy} className="text-base" />
               </button>
             </div>

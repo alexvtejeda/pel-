@@ -217,7 +217,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border shrink-0">
         {showBack && (
-          <button onClick={onBack} className="focus-ring text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={onBack} aria-label={t('chat.back_to_list')} className="focus-ring text-muted-foreground hover:text-foreground transition-colors">
             <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
           </button>
         )}
@@ -322,7 +322,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="shrink-0 w-9 h-9">
+                <Button variant="ghost" size="icon" aria-label={t('chat.attach')} className="shrink-0 w-9 h-9">
                   <FontAwesomeIcon icon={faPlus} className="text-sm" />
                 </Button>
               </DropdownMenuTrigger>
@@ -345,11 +345,13 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           placeholder={t('chat.placeholder')}
+          aria-label={t('chat.message_label')}
           className="flex-1 rounded-xl border border-input bg-transparent px-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pop-550"
         />
         <button
           onClick={handleSend}
           disabled={!input.trim()}
+          aria-label={t('chat.send')}
           className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40"
         >
           <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />

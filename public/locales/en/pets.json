@@ -12,7 +12,8 @@
     "pass": "Pass",
     "share": "Share link",
     "visitWebsite": "Visit {{name}}'s website",
-    "visitInstagram": "Visit {{name}}'s Instagram"
+    "visitInstagram": "Visit {{name}}'s Instagram",
+    "more_actions": "More actions"
   },
   "details": {
     "name": "Name",
@@ -96,7 +97,10 @@
     "delete_body": "This action can't be undone. {{name}} will be removed from your pets.",
     "delete_confirm": "Delete",
     "deleted": "Pet deleted",
-    "delete_error": "Error deleting pet"
+    "delete_error": "Error deleting pet",
+    "close_modal": "Close",
+    "remove_photo": "Remove photo",
+    "add_photo": "Add photo"
   },
   "interested": {
     "search_placeholder": "Search by pet...",
@@ -160,7 +164,10 @@
     "today": "Today",
     "yesterday": "Yesterday",
     "my_conversations": "My conversations",
-    "send": "Send"
+    "send": "Send",
+    "back_to_list": "Back to conversations",
+    "attach": "Attach",
+    "message_label": "Message"
   },
   "notifications": {
     "title": "Notifications",

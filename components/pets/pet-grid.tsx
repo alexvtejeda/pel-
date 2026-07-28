@@ -115,6 +115,7 @@ export function PetGrid({
           <button
             key={f.key}
             onClick={() => handleFilterClick(f)}
+            aria-pressed={activeFilter === f.key}
             className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
               activeFilter === f.key
                 ? 'bg-pop-solid text-white'
@@ -125,9 +126,10 @@ export function PetGrid({
             {t(`grid.${f.key}`)}
           </button>
         ))}
-        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
+        <span aria-hidden="true" className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
+          aria-pressed={vaccinatedFilter}
           className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             vaccinatedFilter
               ? 'bg-pop-solid text-white'
@@ -139,6 +141,7 @@ export function PetGrid({
         </button>
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
+          aria-pressed={castratedFilter}
           className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             castratedFilter
               ? 'bg-pop-solid text-white'
@@ -148,9 +151,10 @@ export function PetGrid({
           <FontAwesomeIcon icon={faScissors} className="text-xs" />
           {t('grid.castrated')}
         </button>
-        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
+        <span aria-hidden="true" className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
+          aria-pressed={sourceFilter === 'rc'}
           className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
@@ -158,6 +162,7 @@ export function PetGrid({
         </button>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
+          aria-pressed={sourceFilter === 'member'}
           className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faUser} className="text-xs" />
@@ -169,6 +174,7 @@ export function PetGrid({
       <div className="sm:hidden relative px-2 py-3 shrink-0">
         <button
           onClick={() => setShowMobileFilters(prev => !prev)}
+          aria-expanded={showMobileFilters}
           className={`focus-ring relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
             showMobileFilters || mobileFilterCount > 0
               ? 'bg-pop-solid text-white'
@@ -192,6 +198,7 @@ export function PetGrid({
               <div className="flex flex-wrap gap-1.5">
                 {FILTERS.filter(f => f.key !== 'all' && f.key !== 'nearby').map(f => (
                   <button key={f.key} onClick={() => { handleFilterClick(f); }}
+                    aria-pressed={activeFilter === f.key}
                     className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                       activeFilter === f.key ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
@@ -205,12 +212,14 @@ export function PetGrid({
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.health')}</p>
               <div className="flex flex-wrap gap-1.5">
                 <button onClick={() => onVaccinatedChange(!vaccinatedFilter)}
+                  aria-pressed={vaccinatedFilter}
                   className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     vaccinatedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faSyringe} className="text-xs" /> {t('grid.vaccinated')}
                 </button>
                 <button onClick={() => onCastratedChange(!castratedFilter)}
+                  aria-pressed={castratedFilter}
                   className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     castratedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
@@ -223,12 +232,14 @@ export function PetGrid({
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.source')}</p>
               <div className="flex flex-wrap gap-1.5">
                 <button onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
+                  aria-pressed={sourceFilter === 'rc'}
                   className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     sourceFilter === 'rc' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faHouseChimney} className="text-xs" /> {t('grid.centers')}
                 </button>
                 <button onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
+                  aria-pressed={sourceFilter === 'member'}
                   className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     sourceFilter === 'member' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
@@ -329,7 +340,7 @@ export function PetGrid({
                       {/* hover:bg-pop-solid, not pop-550: this circle carries a white
                           glyph, and pop-550 measures 2.27:1 against it — under the 3:1
                           WCAG 1.4.11 minimum for a functional control. */}
-                      <button className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-solid transition-colors">
+                      <button aria-label={t('card.more_actions')} className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-solid transition-colors">
                         <FontAwesomeIcon icon={faEllipsis} className="text-background text-sm" />
                       </button>
                     </DropdownMenuTrigger>

@@ -224,7 +224,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                   {mobilePreview ? t('dashboard.edit') : t('dashboard.preview')}
                 </button>
               </div>
-              <button type="button" className="group mt-0.5" onClick={handleClose}>
+              <button type="button" aria-label={t('member.close_modal')} className="group mt-0.5" onClick={handleClose}>
                 <FontAwesomeIcon
                   icon={faXmark}
                   className="w-4 h-4 text-muted-foreground group-hover:text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
@@ -447,6 +447,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                         />
                         <button
                           type="button"
+                          aria-label={t('member.remove_photo')}
                           className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
                           onClick={(e) => { e.stopPropagation(); removePhoto(photo.url) }}
                         >
@@ -457,6 +458,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                     {photos.length < MAX_PHOTOS && (
                       <button
                         type="button"
+                        aria-label={t('member.add_photo')}
                         className="w-14 h-14 rounded-xl border-2 border-dashed border-input flex items-center justify-center text-muted-foreground hover:border-pop-550/40 hover:text-pop-300 transition-colors"
                         onClick={() => inputRef.current?.click()}
                       >
