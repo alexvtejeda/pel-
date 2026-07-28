@@ -62,7 +62,7 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
 
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">
+      <button onClick={onBack} className="focus-ring text-sm text-muted-foreground hover:text-foreground">
         ← {t('mfa.settings.cancel')}
       </button>
 
@@ -76,14 +76,14 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
             <p className="text-xs text-muted-foreground">{t('mfa.enrollment.totp_manual')}</p>
             <div className="flex items-center gap-2">
               <code className="flex-1 px-3 py-2 bg-muted rounded-xl text-xs font-mono break-all">{secret}</code>
-              <button onClick={handleCopySecret} className="p-2 hover:bg-muted rounded-xl transition-colors">
+              <button onClick={handleCopySecret} className="focus-ring p-2 hover:bg-muted rounded-xl transition-colors">
                 <FontAwesomeIcon icon={copiedSecret ? faCheck : faCopy} className="text-base" />
               </button>
             </div>
           </div>
           <button
             onClick={() => setStep('confirm')}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
+            className="focus-ring w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors"
           >
             {t('mfa.enrollment.continue')}
           </button>

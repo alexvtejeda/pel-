@@ -97,7 +97,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
               <button
                 key={m.key}
                 onClick={() => handleSelectMethod(m.key)}
-                className="w-full p-4 bg-background/90 backdrop-blur-xl rounded-2xl border border-input hover:border-pop-450/50 transition-all text-left flex items-center gap-4 inset-shadow-[1px_1px_1px_var(--color-input)]"
+                className="focus-ring w-full p-4 bg-background/90 backdrop-blur-xl rounded-2xl border border-input hover:border-pop-450/50 transition-all text-left flex items-center gap-4 inset-shadow-[1px_1px_1px_var(--color-input)]"
               >
                 <FontAwesomeIcon icon={m.icon} className="text-xl text-pop-550" />
                 <div className="flex-1">
@@ -116,7 +116,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
           {onSkip && (
             <button
               onClick={onSkip}
-              className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="focus-ring w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {t('mfa.enrollment.skip')}
             </button>

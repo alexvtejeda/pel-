@@ -24,7 +24,7 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left rounded-xl border bg-card p-4 space-y-3 hover:bg-muted/50 transition-colors cursor-pointer"
+      className="focus-ring w-full text-left rounded-xl border bg-card p-4 space-y-3 hover:bg-muted/50 transition-colors cursor-pointer"
     >
       {/* Header: photo/initials + name + trust badge */}
       <div className="flex items-center gap-3">

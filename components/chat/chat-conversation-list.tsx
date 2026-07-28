@@ -118,7 +118,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
           <button
             key={convo.id}
             onClick={() => onSelectConversation(convo)}
-            className={`flex items-center gap-3 text-left transition-colors ${
+            className={`focus-ring flex items-center gap-3 text-left transition-colors ${
               compact ? 'px-3 py-2.5 rounded-xl' : 'p-3 rounded-2xl'
             } ${
               isActive

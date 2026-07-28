@@ -176,13 +176,13 @@ export function PetDetail({ pet }: PetDetailProps) {
             </div>
             <div className="flex items-center gap-4">
               {pet.rescue_center.website && (
-                <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faGlobe} className="text-sm" />
                   Website
                 </a>
               )}
               {pet.rescue_center.instagram && (
-                <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faInstagram} className="text-sm" />
                   Instagram
                 </a>
@@ -197,14 +197,14 @@ export function PetDetail({ pet }: PetDetailProps) {
         {user && user.role !== 'rescue_center' && user.role !== 'business' ? (
           <button
             onClick={handleAdopt}
-            className="w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-colors"
+            className="focus-ring w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98]"
           >
             {t('detail.adopt')}
           </button>
         ) : !user ? (
           <Link
             href="/auth/login"
-            className="block w-full py-2.5 text-center bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-colors"
+            className="focus-ring block w-full py-2.5 text-center bg-secondary text-secondary-foreground font-medium rounded-xl hover:bg-secondary/80 transition-colors"
           >
             {t('detail.login_prompt')}
           </Link>
@@ -212,7 +212,7 @@ export function PetDetail({ pet }: PetDetailProps) {
         {pet.short_slug && (
           <button
             onClick={handleShare}
-            className="w-full py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
+            className="focus-ring w-full py-2.5 border border-border rounded-xl text-sm font-medium hover:bg-muted transition-colors flex items-center justify-center gap-2"
           >
             <FontAwesomeIcon icon={copied ? faCheck : faShareFromSquare} className="text-sm" />
             {copied ? t('detail.link_copied', 'Enlace copiado') : t('detail.share', 'Compartir')}

@@ -18,15 +18,15 @@ export function Footer() {
           <div>
             <h4 className="text-primary-foreground font-semibold mb-3">{t('footer.about')}</h4>
             <ul className="space-y-2 text-sm">
-              <li><TransitionLink href="/about" className="hover:text-primary-foreground transition-colors">{t('footer.about')}</TransitionLink></li>
-              <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.contact')}</Link></li>
+              <li><TransitionLink href="/about" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.about')}</TransitionLink></li>
+              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.contact')}</Link></li>
             </ul>
           </div>
           <div>
             <h4 className="text-primary-foreground font-semibold mb-3">Legal</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.privacy')}</Link></li>
-              <li><Link href="#" className="hover:text-primary-foreground transition-colors">{t('footer.terms')}</Link></li>
+              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.privacy')}</Link></li>
+              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.terms')}</Link></li>
             </ul>
           </div>
         </div>

@@ -151,7 +151,7 @@ export function ServiceProviderForm({ mode, provider, onSaved }: ServiceProvider
               key={s}
               type="button"
               onClick={() => setServices((prev) => toggleValue(prev, s))}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+              className={`focus-ring px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
                 services.includes(s)
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'border-input text-muted-foreground hover:bg-muted'
@@ -171,7 +171,7 @@ export function ServiceProviderForm({ mode, provider, onSaved }: ServiceProvider
               key={p}
               type="button"
               onClick={() => setPetTypes((prev) => toggleValue(prev, p))}
-              className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
+              className={`focus-ring px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
                 petTypes.includes(p)
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'border-input text-muted-foreground hover:bg-muted'
@@ -222,7 +222,7 @@ export function ServiceProviderForm({ mode, provider, onSaved }: ServiceProvider
       <button
         type="submit"
         disabled={!canSubmit}
-        className="w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+        className="focus-ring w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-xl text-sm font-medium transition-[background-color,transform] hover:bg-primary/90 active:scale-[0.98] disabled:opacity-50"
       >
         {submitting ? (
           <>

@@ -138,7 +138,7 @@ export function PetsHeader() {
   return (
     <header className="sticky top-0 z-50 bg-background">
       <div className="container mx-auto flex items-center justify-between px-4 py-4">
-        <Link href="/" ref={logoRef} onClick={handleLogoClick} className="flex items-center gap-2">
+        <Link href="/" ref={logoRef} onClick={handleLogoClick} className="focus-ring flex items-center gap-2">
           <Image src="/assets/logo.svg" alt="Pelú" width={56} height={56} style={{ height: 'auto' }} priority />
           <span
             className="text-2xl font-bold overflow-hidden whitespace-nowrap transition-all duration-500 ease-in-out"
@@ -151,25 +151,25 @@ export function PetsHeader() {
         <nav className="hidden sm:flex items-center gap-20">
           <TransitionLink
             href="/pets"
-            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/pets' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
+            className={`focus-ring text-xl hover:text-pop-550 transition-colors duration-300 ${pathname ==='/pets' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.pets')}
           </TransitionLink>
           <TransitionLink
             href="/aliados"
-            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/aliados' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
+            className={`focus-ring text-xl hover:text-pop-550 transition-colors duration-300 ${pathname ==='/aliados' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('aliados.title', { ns: 'business' })}
           </TransitionLink>
           <TransitionLink
             href="/eventos"
-            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/eventos' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
+            className={`focus-ring text-xl hover:text-pop-550 transition-colors duration-300 ${pathname ==='/eventos' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.events')}
           </TransitionLink>
           <TransitionLink
             href="/about"
-            className={`text-xl hover:text-pop-550 transition-colors duration-300 ${pathname === '/about' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
+            className={`focus-ring text-xl hover:text-pop-550 transition-colors duration-300 ${pathname ==='/about' ? 'font-medium text-foreground' : 'font-light text-muted-foreground'}`}
           >
             {t('header.about')}
           </TransitionLink>
@@ -180,13 +180,13 @@ export function PetsHeader() {
             <>
               <Link
                 href="/auth/login"
-                className="px-4 py-2 text-sm font-medium text-foreground hover:text-pop-550 transition-colors"
+                className="focus-ring px-4 py-2 text-sm font-medium text-foreground hover:text-pop-550 transition-colors"
               >
                 {t('header.login')}
               </Link>
               <Link
                 href="/auth/register"
-                className="px-4 py-2 text-sm font-medium bg-pop-solid text-white rounded-xl hover:bg-pop-850 transition-colors"
+                className="focus-ring px-4 py-2 text-sm font-medium bg-pop-solid text-white rounded-xl hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98]"
               >
                 {t('header.register')}
               </Link>
@@ -195,7 +195,7 @@ export function PetsHeader() {
           {user && (
             <button
               onClick={() => setSheetOpen(true)}
-              className="p-1 text-muted-foreground hover:text-foreground transition-colors"
+              className="focus-ring p-1 text-muted-foreground hover:text-foreground transition-colors"
               aria-label={t('header.my_account')}
             >
               <Avatar className="h-8 w-8">
@@ -237,7 +237,7 @@ export function PetsHeader() {
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={avatarUploading}
                 aria-label={t('avatar.change', { ns: 'common' })}
-                className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-pop-solid text-white flex items-center justify-center shadow-sm hover:bg-pop-850 transition-colors disabled:opacity-60"
+                className="focus-ring absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-pop-solid text-white flex items-center justify-center shadow-sm hover:bg-pop-850 transition-colors disabled:opacity-60"
               >
                 <FontAwesomeIcon icon={avatarUploading ? faSpinner : faCamera} className={`text-xs ${avatarUploading ? 'animate-spin' : ''}`} />
               </button>
@@ -260,7 +260,7 @@ export function PetsHeader() {
                     type="button"
                     onClick={handleAvatarRemove}
                     disabled={avatarUploading}
-                    className="mt-2 text-xs font-medium text-destructive hover:underline disabled:opacity-60"
+                    className="focus-ring mt-2 text-xs font-medium text-destructive hover:underline disabled:opacity-60"
                   >
                     {t('avatar.remove', { ns: 'common' })}
                   </button>
@@ -277,7 +277,7 @@ export function PetsHeader() {
               <Link
                 href={dashboardHref}
                 onClick={() => setSheetOpen(false)}
-                className={`flex items-center gap-3 px-4 text-sm font-medium rounded-xl transition-colors ${
+                className={`focus-ring flex items-center gap-3 px-4 text-sm font-medium rounded-xl transition-colors ${
                   user?.role === 'rescue_center'
                     ? 'py-4 bg-pop-550/10 hover:bg-pop-550/20'
                     : 'py-3 hover:bg-muted'
@@ -294,7 +294,7 @@ export function PetsHeader() {
               <Link
                 href="/dashboard/admin"
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faTableColumns} className="text-lg text-muted-foreground" />
                 {t('admin.title')}
@@ -304,7 +304,7 @@ export function PetsHeader() {
               <Link
                 href="/mis-mascotas"
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-muted-foreground" />
                 {t('member.my_pets')}
@@ -314,7 +314,7 @@ export function PetsHeader() {
               <Link
                 href="/servicios"
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faHandHoldingHeart} className="text-lg text-muted-foreground" />
                 {t('service_providers.nav_entry', { ns: 'business' })}
@@ -323,7 +323,7 @@ export function PetsHeader() {
             {user?.role === 'member' && (
               <button
                 onClick={() => { setSheetOpen(false); setAddPetOpen(true) }}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors w-full text-left"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors w-full text-left"
               >
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-pop-550" />
                 {t('member.publish_pet')}
@@ -333,7 +333,7 @@ export function PetsHeader() {
               <Link
                 href="/chat"
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faComments} className="text-lg text-muted-foreground" />
                 {t('chat.my_conversations')}
@@ -348,7 +348,7 @@ export function PetsHeader() {
               <Link
                 href="/transporte"
                 onClick={() => setSheetOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faTruckFast} className="text-lg text-muted-foreground" />
                 {t('transport', { ns: 'common' })}
@@ -357,14 +357,14 @@ export function PetsHeader() {
             <Link
               href="/auth/mfa/enrollment"
               onClick={() => setSheetOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
+              className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
             >
               <FontAwesomeIcon icon={faKey} className="text-lg text-muted-foreground" />
               {t('header.setup_mfa')}
             </Link>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors w-full text-left"
+              className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium text-destructive hover:bg-destructive/10 rounded-xl transition-colors w-full text-left"
             >
               <FontAwesomeIcon icon={faArrowRightFromBracket} className="text-lg" />
               {t('profile.logout')}

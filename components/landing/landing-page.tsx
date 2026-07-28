@@ -54,14 +54,14 @@ export function LandingPage() {
             <div className="flex gap-3">
               <TransitionLink
                 href="/pets"
-                className="group inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm font-medium text-foreground hover:border-muted-foreground transition-colors"
+                className="focus-ring group inline-flex items-center gap-2 px-5 py-2.5 border border-border rounded-xl text-sm font-medium text-foreground transition-[border-color,transform] hover:border-muted-foreground active:scale-[0.98]"
               >
                 {t('new_hero.cta_pets')}
                 <FontAwesomeIcon icon={faArrowRight} className="text-xs -rotate-45 group-hover:rotate-0 transition-transform duration-200" />
               </TransitionLink>
               <Link
                 href="/auth/register"
-                className="group inline-flex items-center gap-2 px-5 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:bg-pop-850 transition-colors"
+                className="focus-ring group inline-flex items-center gap-2 px-5 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium transition-[background-color,transform] hover:bg-pop-850 active:scale-[0.98]"
               >
                 {t('new_hero.cta_register')}
                 <FontAwesomeIcon icon={faArrowRight} className="text-xs -rotate-45 group-hover:rotate-0 transition-transform duration-200" />

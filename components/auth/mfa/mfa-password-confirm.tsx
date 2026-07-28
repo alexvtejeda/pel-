@@ -42,7 +42,7 @@ export function MfaPasswordConfirm({ onConfirm, onCancel, error }: MfaPasswordCo
             <button
               type="submit"
               disabled={loading || !password}
-              className="flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
+              className="focus-ring flex-1 py-2 px-4 bg-destructive text-destructive-foreground rounded-xl text-sm font-medium hover:bg-destructive/90 transition-colors disabled:opacity-50"
             >
               {loading ? '...' : t('mfa.settings.confirm_button')}
             </button>
@@ -50,7 +50,7 @@ export function MfaPasswordConfirm({ onConfirm, onCancel, error }: MfaPasswordCo
               type="button"
               onClick={onCancel}
               disabled={loading}
-              className="flex-1 py-2 px-4 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
+              className="focus-ring flex-1 py-2 px-4 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
             >
               {t('mfa.settings.cancel')}
             </button>

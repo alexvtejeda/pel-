@@ -73,7 +73,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
         <div className="p-4 bg-muted rounded-2xl text-sm text-muted-foreground">
           {t('submission.pending', { ns: 'pets' })}: <span className="font-medium text-foreground">{t('forms.success_status')}</span>
         </div>
-        <a href="/pets" className="inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+        <a href="/pets" className="focus-ring inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
           {t('forms.back_to_pets')}
         </a>
       </div>
@@ -125,7 +125,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="w-full py-3 bg-pop-solid text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
+            className="focus-ring w-full py-3 bg-pop-solid text-white rounded-xl font-semibold transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting ? t('forms.submitting') : t('forms.submit_button')}
           </button>
@@ -218,7 +218,7 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
           {[1, 2, 3, 4, 5].map(n => (
             <button key={n} type="button"
               onClick={() => !preview && onChange(String(n))}
-              className={`w-9 h-9 rounded-xl border text-sm font-medium transition-colors ${strVal === String(n) ? 'bg-pop-solid border-pop-solid text-white' : 'border-input hover:border-pop-550/50'}`}>
+              className={`focus-ring w-9 h-9 rounded-xl border text-sm font-medium transition-colors ${strVal === String(n) ? 'bg-pop-solid border-pop-solid text-white' : 'border-input hover:border-pop-550/50'}`}>
               {n}
             </button>
           ))}

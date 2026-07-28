@@ -129,7 +129,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
             href={instagramUrl(provider.instagram)}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <FontAwesomeIcon icon={faInstagram} className="text-sm" />
             {provider.instagram}

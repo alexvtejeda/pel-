@@ -115,7 +115,7 @@ export function PetGrid({
           <button
             key={f.key}
             onClick={() => handleFilterClick(f)}
-            className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+            className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
               activeFilter === f.key
                 ? 'bg-pop-solid text-white'
                 : 'bg-background text-foreground hover:bg-secondary/80'
@@ -128,7 +128,7 @@ export function PetGrid({
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             vaccinatedFilter
               ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
@@ -139,7 +139,7 @@ export function PetGrid({
         </button>
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             castratedFilter
               ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
@@ -151,14 +151,14 @@ export function PetGrid({
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
           {t('grid.centers')}
         </button>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faUser} className="text-xs" />
           {t('grid.members')}
@@ -169,7 +169,7 @@ export function PetGrid({
       <div className="sm:hidden relative px-2 py-3 shrink-0">
         <button
           onClick={() => setShowMobileFilters(prev => !prev)}
-          className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
+          className={`focus-ring relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
             showMobileFilters || mobileFilterCount > 0
               ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
@@ -192,7 +192,7 @@ export function PetGrid({
               <div className="flex flex-wrap gap-1.5">
                 {FILTERS.filter(f => f.key !== 'all' && f.key !== 'nearby').map(f => (
                   <button key={f.key} onClick={() => { handleFilterClick(f); }}
-                    className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                    className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                       activeFilter === f.key ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                     }`}>
                     <FontAwesomeIcon icon={f.icon} className="text-xs" /> {t(`grid.${f.key}`)}
@@ -205,13 +205,13 @@ export function PetGrid({
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.health')}</p>
               <div className="flex flex-wrap gap-1.5">
                 <button onClick={() => onVaccinatedChange(!vaccinatedFilter)}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                  className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     vaccinatedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faSyringe} className="text-xs" /> {t('grid.vaccinated')}
                 </button>
                 <button onClick={() => onCastratedChange(!castratedFilter)}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                  className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     castratedFilter ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faScissors} className="text-xs" /> {t('grid.castrated')}
@@ -223,13 +223,13 @@ export function PetGrid({
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.source')}</p>
               <div className="flex flex-wrap gap-1.5">
                 <button onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                  className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     sourceFilter === 'rc' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faHouseChimney} className="text-xs" /> {t('grid.centers')}
                 </button>
                 <button onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
-                  className={`px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
+                  className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                     sourceFilter === 'member' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
                   }`}>
                   <FontAwesomeIcon icon={faUser} className="text-xs" /> {t('grid.members')}
@@ -278,7 +278,7 @@ export function PetGrid({
                 tabIndex={0}
                 onClick={() => onSelect(pet)}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pet) }}
-                className={`relative group rounded-xl overflow-hidden aspect-square cursor-pointer transition-all ${
+                className={`focus-ring relative group rounded-xl overflow-hidden aspect-square cursor-pointer transition-all ${
                   pet.conditions?.length > 0
                     ? 'bg-warning-bg border-2 border-warning/50'
                     : 'bg-secondary'
@@ -326,7 +326,7 @@ export function PetGrid({
                 >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-550 transition-colors">
+                      <button className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-550 transition-colors">
                         <FontAwesomeIcon icon={faEllipsis} className="text-background text-sm" />
                       </button>
                     </DropdownMenuTrigger>

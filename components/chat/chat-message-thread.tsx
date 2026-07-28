@@ -217,7 +217,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       {/* Header */}
       <div className="flex items-center gap-3 p-4 border-b border-border shrink-0">
         {showBack && (
-          <button onClick={onBack} className="text-muted-foreground hover:text-foreground transition-colors">
+          <button onClick={onBack} className="focus-ring text-muted-foreground hover:text-foreground transition-colors">
             <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
           </button>
         )}
@@ -350,7 +350,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="bg-pop-solid text-white rounded-xl p-2.5 hover:opacity-90 transition-opacity disabled:opacity-40"
+          className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:opacity-90 transition-[opacity,transform] active:scale-[0.98] disabled:opacity-40"
         >
           <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />
         </button>

@@ -26,7 +26,7 @@ export function PublicMobileNav() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center gap-0.5 text-xs transition-colors ${
+              className={`focus-ring flex flex-col items-center gap-0.5 text-xs transition-colors ${
                 active ? 'text-pop-550 font-medium' : 'text-muted-foreground'
               }`}
             >

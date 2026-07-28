@@ -115,7 +115,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
             <button
               key={method}
               onClick={() => handleSwitchMethod(method)}
-              className={`w-full p-3 rounded-xl border text-left flex items-center gap-3 transition-colors ${
+              className={`focus-ring w-full p-3 rounded-xl border text-left flex items-center gap-3 transition-colors ${
                 activeMethod === method ? 'border-pop-450 bg-pop-450/10' : 'border-input hover:bg-muted'
               }`}
             >
@@ -127,7 +127,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
 
         <button
           onClick={() => handleSwitchMethod('recovery')}
-          className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+          className="focus-ring w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           {t('mfa.verify.use_recovery')}
         </button>
@@ -163,7 +163,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="focus-ring w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {loading ? '...' : t('mfa.verify.verify_button')}
           </button>
@@ -176,7 +176,7 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
           <button
             onClick={handlePasskeyVerify}
             disabled={loading}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+            className="focus-ring w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
             {loading ? '...' : t('mfa.verify.passkey_button')}
           </button>
@@ -185,14 +185,14 @@ export function MfaVerify({ challenge, loginEmail, onSuccess, onExpired, onCance
 
       <button
         onClick={() => setShowMethodPicker(true)}
-        className="w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="focus-ring w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         {t('mfa.verify.other_method')} →
       </button>
 
       <button
         onClick={onCancel}
-        className="w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
+        className="focus-ring w-full text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         {t('mfa.verify.back_to_login')}
       </button>

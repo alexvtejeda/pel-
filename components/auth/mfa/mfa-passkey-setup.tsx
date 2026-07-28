@@ -48,7 +48,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="text-sm text-muted-foreground hover:text-foreground">
+      <button onClick={onBack} className="focus-ring text-sm text-muted-foreground hover:text-foreground">
         ← {t('mfa.settings.cancel')}
       </button>
 
@@ -66,7 +66,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
       <button
         onClick={handleRegister}
         disabled={loading}
-        className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+        className="focus-ring w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
         {loading ? '...' : t('mfa.enrollment.passkey_prompt')}
       </button>

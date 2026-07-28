@@ -101,7 +101,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
       <div className="max-w-2xl mx-auto px-4 py-8">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
+          className="focus-ring inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
         >
           <FontAwesomeIcon icon={faArrowLeft} className="text-sm" />
           {t('adopt.back_to', { name: pet.name })}
