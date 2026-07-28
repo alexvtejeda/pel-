@@ -282,7 +282,10 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap wrap-break-words">{msg.body}</p>
-                        <p className={`text-[10px] mt-1 ${isSent ? 'text-white/80 text-right' : 'text-muted-foreground'}`}>
+                        {/* /90, not /80: on bg-pop-solid the timestamp measured 4.17:1 at
+                            /80, under AA for 10px text. /90 measures 4.82:1 and still
+                            reads as secondary to the message body. */}
+                        <p className={`text-[10px] mt-1 ${isSent ? 'text-white/90 text-right' : 'text-muted-foreground'}`}>
                           {formatTime(msg.created_at)}
                           {isSent && (
                             <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
