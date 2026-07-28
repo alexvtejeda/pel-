@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
+import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 
 function MfaEnrollmentInner() {
   const router = useRouter()
@@ -44,7 +45,13 @@ function MfaEnrollmentInner() {
 
 export default function MfaEnrollmentPage() {
   return (
-    <Suspense fallback={null}>
+    <Suspense
+      fallback={
+        <div className="dark flex min-h-screen items-center justify-center bg-background">
+          <PeluLoadingLogo />
+        </div>
+      }
+    >
       <MfaEnrollmentInner />
     </Suspense>
   )
