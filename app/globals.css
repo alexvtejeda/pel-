@@ -212,6 +212,12 @@
     --warning: oklch(52% 0.12 75);
     --warning-foreground: oklch(30% 0.08 70);
     --warning-bg: oklch(96% 0.045 85);
+
+    /* Shadow color, not a surface color. Every surface token in this palette
+       (border/muted/secondary/accent, all L20%) is LIGHTER than the dark
+       background at L11%, so none of them can cast a shadow in dark mode —
+       a shadow has to darken what is under it in both themes. */
+    --shadow-divider: oklch(0% 0 0 / 0.06);
     --border: oklch(90% 0.008 264.695);
     --input: oklch(85% 0.010 264.695);
     --ring: oklch(12.9% 0.042 264.695);
@@ -249,6 +255,7 @@
     --warning: oklch(75% 0.13 80);
     --warning-foreground: oklch(93% 0.04 85);
     --warning-bg: oklch(27% 0.05 80);
+    --shadow-divider: oklch(0% 0 0 / 0.5);
     --border: oklch(20% 0.008 264.695);
     --input: oklch(20% 0.008 264.695);
     --ring: oklch(80% 0.020 264.695);

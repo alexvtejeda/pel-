@@ -33,7 +33,7 @@ export function ChatPage() {
       <div className="h-[calc(100vh-72px)] flex max-w-6xl mx-auto">
         {/* Left sidebar — conversation list */}
         <div
-          className={`w-80 shrink-0 bg-background border-r border-border shadow-[4px_0_12px_var(--color-border)] z-10 flex flex-col overflow-hidden ${
+          className={`w-80 shrink-0 bg-background border-r border-border shadow-[4px_0_12px_var(--shadow-divider)] z-10 flex flex-col overflow-hidden ${
             active ? 'hidden md:flex' : 'flex w-full md:w-80'
           }`}
         >
