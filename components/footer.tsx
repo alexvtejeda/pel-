@@ -9,7 +9,7 @@ export function Footer() {
   const { t } = useTranslation('landing')
 
   return (
-    <footer className="py-12 px-4 bg-primary text-muted-foreground">
+    <footer className="pt-12 pb-24 sm:pb-12 px-4 bg-primary text-muted-foreground">
       <div className="container mx-auto max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
           <div>
