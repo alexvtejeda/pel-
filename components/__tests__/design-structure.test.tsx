@@ -108,9 +108,9 @@ describe('PetGrid', () => {
     onCastratedChange: () => {},
   }
 
-  it('7 — active filter pill has bg-pop-550 class', () => {
+  it('7 — active filter pill has bg-pop-solid class', () => {
     const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
-    const activePill = container.querySelector('.bg-pop-550')
+    const activePill = container.querySelector('.bg-pop-solid')
     expect(activePill).not.toBeNull()
     expect(activePill!.textContent).toBeTruthy()
   })

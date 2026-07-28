@@ -117,7 +117,7 @@ export function PetGrid({
             onClick={() => handleFilterClick(f)}
             className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
               activeFilter === f.key
-                ? 'bg-pop-550 text-white'
+                ? 'bg-pop-solid text-white'
                 : 'bg-background text-foreground hover:bg-secondary/80'
             }`}
           >
@@ -130,7 +130,7 @@ export function PetGrid({
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
           className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             vaccinatedFilter
-              ? 'bg-pop-550 text-white'
+              ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
           }`}
         >
@@ -141,7 +141,7 @@ export function PetGrid({
           onClick={() => onCastratedChange(!castratedFilter)}
           className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
             castratedFilter
-              ? 'bg-pop-550 text-white'
+              ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
           }`}
         >
@@ -151,14 +151,14 @@ export function PetGrid({
         <span className="text-muted-foreground/30 mx-1 select-none">|</span>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-550 text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
           {t('grid.centers')}
         </button>
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
-          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-550 text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faUser} className="text-xs" />
           {t('grid.members')}
@@ -171,14 +171,14 @@ export function PetGrid({
           onClick={() => setShowMobileFilters(prev => !prev)}
           className={`relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
             showMobileFilters || mobileFilterCount > 0
-              ? 'bg-pop-550 text-white'
+              ? 'bg-pop-solid text-white'
               : 'bg-background text-foreground hover:bg-secondary/80'
           }`}
         >
           <FontAwesomeIcon icon={faFilter} className="text-xs" />
           {t('grid.filters')}
           {mobileFilterCount > 0 && (
-            <span className="ml-1 w-4 h-4 rounded-full bg-white text-pop-550 text-[10px] font-bold flex items-center justify-center">
+            <span className="ml-1 w-4 h-4 rounded-full bg-white text-pop-solid text-[10px] font-bold flex items-center justify-center">
               {mobileFilterCount}
             </span>
           )}

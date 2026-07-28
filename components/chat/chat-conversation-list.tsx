@@ -168,7 +168,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
             )}
 
             {isUnread && (
-              <span className="bg-pop-550 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">
+              <span className="bg-pop-solid text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center shrink-0">
                 {convo.unread_count}
               </span>
             )}

@@ -197,7 +197,7 @@ export function PetDetail({ pet }: PetDetailProps) {
         {user && user.role !== 'rescue_center' && user.role !== 'business' ? (
           <button
             onClick={handleAdopt}
-            className="w-full py-2.5 bg-pop-550 text-white font-semibold rounded-xl hover:bg-pop-500 transition-colors"
+            className="w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-colors"
           >
             {t('detail.adopt')}
           </button>

@@ -61,7 +61,7 @@ export function LandingPage() {
               </TransitionLink>
               <Link
                 href="/auth/register"
-                className="group inline-flex items-center gap-2 px-5 py-2.5 bg-pop-550 text-white rounded-xl text-sm font-medium hover:bg-pop-500 transition-colors"
+                className="group inline-flex items-center gap-2 px-5 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:bg-pop-850 transition-colors"
               >
                 {t('new_hero.cta_register')}
                 <FontAwesomeIcon icon={faArrowRight} className="text-xs -rotate-45 group-hover:rotate-0 transition-transform duration-200" />

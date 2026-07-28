@@ -277,12 +277,12 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                       <div
                         className={`max-w-[75%] px-3 py-2 ${
                           isSent
-                            ? 'bg-pop-550 text-background rounded-[16px_16px_4px_16px]'
+                            ? 'bg-pop-solid text-white rounded-[16px_16px_4px_16px]'
                             : 'bg-card border border-border rounded-[16px_16px_16px_4px]'
                         }`}
                       >
                         <p className="text-sm whitespace-pre-wrap wrap-break-words">{msg.body}</p>
-                        <p className={`text-[10px] mt-1 ${isSent ? 'text-background text-right' : 'text-muted-foreground'}`}>
+                        <p className={`text-[10px] mt-1 ${isSent ? 'text-white/80 text-right' : 'text-muted-foreground'}`}>
                           {formatTime(msg.created_at)}
                           {isSent && (
                             <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
@@ -347,7 +347,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="bg-pop-550 text-white rounded-xl p-2.5 hover:opacity-90 transition-opacity disabled:opacity-40"
+          className="bg-pop-solid text-white rounded-xl p-2.5 hover:opacity-90 transition-opacity disabled:opacity-40"
         >
           <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />
         </button>

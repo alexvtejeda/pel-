@@ -186,7 +186,7 @@ export function PetsHeader() {
               </Link>
               <Link
                 href="/auth/register"
-                className="px-4 py-2 text-sm font-medium bg-pop-550 text-white rounded-xl hover:bg-pop-500 transition-colors"
+                className="px-4 py-2 text-sm font-medium bg-pop-solid text-white rounded-xl hover:bg-pop-850 transition-colors"
               >
                 {t('header.register')}
               </Link>
@@ -237,7 +237,7 @@ export function PetsHeader() {
                 onClick={() => avatarInputRef.current?.click()}
                 disabled={avatarUploading}
                 aria-label={t('avatar.change', { ns: 'common' })}
-                className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-pop-550 text-white flex items-center justify-center shadow-sm hover:bg-pop-500 transition-colors disabled:opacity-60"
+                className="absolute -bottom-0.5 -right-0.5 h-6 w-6 rounded-full bg-pop-solid text-white flex items-center justify-center shadow-sm hover:bg-pop-850 transition-colors disabled:opacity-60"
               >
                 <FontAwesomeIcon icon={avatarUploading ? faSpinner : faCamera} className={`text-xs ${avatarUploading ? 'animate-spin' : ''}`} />
               </button>
@@ -338,7 +338,7 @@ export function PetsHeader() {
                 <FontAwesomeIcon icon={faComments} className="text-lg text-muted-foreground" />
                 {t('chat.my_conversations')}
                 {unreadChatCount > 0 && (
-                  <span className="ml-auto bg-pop-550 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                  <span className="ml-auto bg-pop-solid text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                     {unreadChatCount}
                   </span>
                 )}
