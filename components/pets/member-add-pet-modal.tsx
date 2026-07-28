@@ -400,7 +400,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
 
               {/* Drag-and-drop photo zone */}
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Fotos</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.photos_label')}</label>
                 <input
                   ref={inputRef}
                   type="file"
@@ -441,7 +441,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                       <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
                         <img
                           src={photo.url}
-                          alt="Foto de mascota"
+                          alt={t('member.photo_alt', { name: name.trim() || t('details.name') })}
                           draggable="false"
                           className="w-14 h-14 rounded-xl object-cover"
                         />

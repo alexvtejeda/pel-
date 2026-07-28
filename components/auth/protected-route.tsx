@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
@@ -20,6 +21,7 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { user, loading, mfaSetupRequired } = useAuth()
   const router = useRouter()
+  const { t } = useTranslation('common')
 
   useEffect(() => {
     if (loading) return
@@ -61,8 +63,8 @@ export function ProtectedRoute({
           window.location.href = '/auth/login'
         }}
         breadcrumbItems={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Seguridad', current: true },
+          { label: t('home'), href: '/' },
+          { label: t('security'), current: true },
         ]}
       />
     )

@@ -24,7 +24,7 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="text-primary-foreground font-semibold mb-3">Legal</h4>
+            <h4 className="text-primary-foreground font-semibold mb-3">{t('legal', { ns: 'common' })}</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.privacy')}</Link></li>
               <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.terms')}</Link></li>

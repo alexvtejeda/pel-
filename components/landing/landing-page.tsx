@@ -9,15 +9,6 @@ import { Footer } from '@/components/footer'
 import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
 
-const PARTNER_LOGOS = [
-  { src: '/assets/logos/partner-1.svg', alt: 'Partner 1' },
-  { src: '/assets/logos/partner-2.svg', alt: 'Partner 2' },
-  { src: '/assets/logos/partner-3.svg', alt: 'Partner 3' },
-  { src: '/assets/logos/partner-4.svg', alt: 'Partner 4' },
-  { src: '/assets/logos/partner-5.svg', alt: 'Partner 5' },
-  { src: '/assets/logos/partner-6.svg', alt: 'Partner 6'},
-]
-
 const HOW_STEPS = [
   { icon: faMagnifyingGlass, titleKey: 'how.search.title', descKey: 'how.search.description' },
   { icon: faPaw, titleKey: 'how.adopt.title', descKey: 'how.adopt.description' },
@@ -26,6 +17,11 @@ const HOW_STEPS = [
 
 export function LandingPage() {
   const { t } = useTranslation('landing')
+
+  const partnerLogos = [1, 2, 3, 4, 5, 6].map((n) => ({
+    src: `/assets/logos/partner-${n}.svg`,
+    alt: t('partners.logo_alt', { n }),
+  }))
 
   const testimonials: Testimonial[] = [1, 2, 3, 4, 5].map(i => ({
     id: i,
@@ -73,7 +69,7 @@ export function LandingPage() {
           <div className="flex-1 flex flex-col items-center w-full md:max-w-150 md:bg-muted md:rounded-2xl md:p-8 md:inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
             <div className="opacity-48 mb-4 md:-mx-8 md:w-[calc(100%+4rem)]">
               <LogoMarquee
-                logos={PARTNER_LOGOS}
+                logos={partnerLogos}
                 logoHeight={24}
                 gap={48}
                 className="grayscale brightness-75 dark:brightness-200 dark:invert"

@@ -22,12 +22,12 @@ interface ChatMessageThreadProps {
   showBack?: boolean
 }
 
-function formatTime(dateStr: string): string {
+function formatTime(dateStr: string, locale: string): string {
   const d = new Date(dateStr)
-  return d.toLocaleTimeString('es-DO', { hour: '2-digit', minute: '2-digit' })
+  return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }
 
-function getDateLabel(dateStr: string, todayLabel: string, yesterdayLabel: string): string {
+function getDateLabel(dateStr: string, locale: string, todayLabel: string, yesterdayLabel: string): string {
   const d = new Date(dateStr)
   const now = new Date()
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
@@ -36,7 +36,7 @@ function getDateLabel(dateStr: string, todayLabel: string, yesterdayLabel: strin
 
   if (diffDays === 0) return todayLabel
   if (diffDays === 1) return yesterdayLabel
-  return d.toLocaleDateString('es-DO', { day: 'numeric', month: 'long', year: 'numeric' })
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
 function isSameDay(a: string, b: string): boolean {
@@ -48,7 +48,8 @@ function isSameDay(a: string, b: string): boolean {
 }
 
 export default function ChatMessageThread({ conversation, onBack, showBack = true }: ChatMessageThreadProps) {
-  const { t } = useTranslation('pets')
+  const { t, i18n } = useTranslation('pets')
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { user } = useAuth()
   const { subscribe, sendMessage, sendTyping, sendReadReceipt } = useWebSocket()
   const router = useRouter()
@@ -260,7 +261,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                   {showDate && (
                     <div className="flex justify-center my-3">
                       <span className="text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
-                        {getDateLabel(msg.created_at, todayLabel, yesterdayLabel)}
+                        {getDateLabel(msg.created_at, locale, todayLabel, yesterdayLabel)}
                       </span>
                     </div>
                   )}
@@ -286,7 +287,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                             /80, under AA for 10px text. /90 measures 4.82:1 and still
                             reads as secondary to the message body. */}
                         <p className={`text-[10px] mt-1 ${isSent ? 'text-white/90 text-right' : 'text-muted-foreground'}`}>
-                          {formatTime(msg.created_at)}
+                          {formatTime(msg.created_at, locale)}
                           {isSent && (
                             <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
                           )}

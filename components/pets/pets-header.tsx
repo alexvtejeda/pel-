@@ -27,17 +27,10 @@ import { usePublicHeaderLogoRect } from '@/components/transitions/use-public-hea
 import { TransitionLink } from '@/components/transitions/transition-link'
 import { useRouteTransition } from '@/components/transitions/route-transition-context'
 
-const ROLE_LABELS: Record<string, { es: string; en: string }> = {
-  adopter: { es: 'Adoptante', en: 'Adopter' },
-  member: { es: 'Miembro', en: 'Member' },
-  rescue_center: { es: 'Centro de rescate', en: 'Rescue Center' },
-  business: { es: 'Negocio', en: 'Business' },
-}
-
 export function PetsHeader() {
   const { user, logout, updateSession } = useAuth()
   const { unreadChatCount } = useWebSocket()
-  const { t, i18n } = useTranslation('pets')
+  const { t } = useTranslation('pets')
   const router = useRouter()
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
@@ -95,8 +88,7 @@ export function PetsHeader() {
 
   const avatarInitial = (user?.display_name?.[0] || user?.email?.[0] || '?').toUpperCase()
 
-  const lang = (i18n.language?.startsWith('en') ? 'en' : 'es') as 'es' | 'en'
-  const roleLabel = user?.role ? ROLE_LABELS[user.role]?.[lang] ?? user.role : null
+  const roleLabel = user?.role ? t(`roles.${user.role}`, { defaultValue: user.role }) : null
 
   const handleLogout = async () => {
     setSheetOpen(false)

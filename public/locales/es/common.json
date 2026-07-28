@@ -18,11 +18,18 @@
   "next": "Siguiente",
   "previous": "Anterior",
   "copy": "Copiar",
+  "home": "Inicio",
+  "security": "Seguridad",
+  "legal": "Legal",
+  "website": "Sitio web",
+  "instagram": "Instagram",
   "time": {
     "just_now": "Justo ahora",
+    "now": "Ahora",
     "minutes_ago": "Hace {{count}} min",
     "hours_ago": "Hace {{count}} h",
-    "days_ago": "Hace {{count}} d"
+    "days_ago": "Hace {{count}} d",
+    "yesterday": "Ayer"
   },
   "transport": "Transporte",
   "language": {

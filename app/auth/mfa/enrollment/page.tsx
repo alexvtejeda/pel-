@@ -2,6 +2,7 @@
 
 import { Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
@@ -11,11 +12,12 @@ function MfaEnrollmentInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { user } = useAuth()
+  const { t } = useTranslation(['common', 'auth'])
   const forced = searchParams?.get('mfa') === '1'
 
   const breadcrumbItems = [
-    { label: 'Inicio', href: '/' },
-    { label: 'MFA', current: true },
+    { label: t('home', { ns: 'common' }), href: '/' },
+    { label: t('mfa.settings.title', { ns: 'auth' }), current: true },
   ]
 
   const handleComplete = () => {

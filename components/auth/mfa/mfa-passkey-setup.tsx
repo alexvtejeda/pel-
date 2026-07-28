@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faKey } from '@fortawesome/free-solid-svg-icons'
 import { startRegistration } from '@simplewebauthn/browser'
 import * as mfaApi from '@/lib/api/mfa'
+import { Spinner } from '@/components/ui/spinner'
 
 interface MfaPasskeySetupProps {
   onSuccess: (recoveryCodes?: string[]) => void
@@ -23,7 +24,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
     const { data: begin, error: beginError } = await mfaApi.webauthnRegisterBegin()
     if (beginError || !begin) {
-      setError(beginError || 'Error')
+      setError(beginError || t('mfa.errors.generic'))
       setLoading(false)
       return
     }
@@ -41,7 +42,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
       onSuccess(data?.recovery_codes)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Error al registrar passkey')
+      setError(err instanceof Error ? err.message : t('mfa.errors.passkey_register'))
       setLoading(false)
     }
   }
@@ -68,7 +69,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
         disabled={loading}
         className="focus-ring w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
       >
-        {loading ? '...' : t('mfa.enrollment.passkey_prompt')}
+        {loading ? <Spinner className="text-sm" /> : t('mfa.enrollment.passkey_prompt')}
       </button>
     </div>
   )

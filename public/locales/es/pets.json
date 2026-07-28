@@ -47,7 +47,6 @@
     "nearby": "Cercanos",
     "empty": "No hay mascotas disponibles",
     "error": "Error al cargar mascotas",
-    "loading": "Cargando mascotas...",
     "vaccinated": "Vacunado",
     "castrated": "Castrado",
     "centers": "Centros",
@@ -100,7 +99,15 @@
     "delete_error": "Error al eliminar la mascota",
     "close_modal": "Cerrar",
     "remove_photo": "Quitar foto",
-    "add_photo": "Añadir foto"
+    "add_photo": "Añadir foto",
+    "photos_label": "Fotos",
+    "photo_alt": "Foto de {{name}}"
+  },
+  "roles": {
+    "adopter": "Adoptante",
+    "member": "Miembro",
+    "rescue_center": "Centro de rescate",
+    "business": "Negocio"
   },
   "interested": {
     "search_placeholder": "Buscar por mascota...",
@@ -167,7 +174,8 @@
     "send": "Enviar",
     "back_to_list": "Volver a conversaciones",
     "attach": "Adjuntar",
-    "message_label": "Mensaje"
+    "message_label": "Mensaje",
+    "no_messages": "Sin mensajes"
   },
   "notifications": {
     "title": "Notificaciones",

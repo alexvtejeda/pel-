@@ -15,23 +15,9 @@ interface ChatConversationListProps {
   darkBg?: boolean
 }
 
-function timeAgo(dateStr: string): string {
-  const now = new Date()
-  const date = new Date(dateStr)
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
-  const diffHrs = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-
-  if (diffMin < 1) return 'Ahora'
-  if (diffMin < 60) return `Hace ${diffMin}m`
-  if (diffHrs < 24) return `Hace ${diffHrs}h`
-  if (diffDays === 1) return 'Ayer'
-  return date.toLocaleDateString('es-DO', { day: 'numeric', month: 'short' })
-}
-
 export default function ChatConversationList({ onSelectConversation, activeConversationId, compact = false, darkBg = false }: ChatConversationListProps) {
-  const { t } = useTranslation('pets')
+  const { t, i18n } = useTranslation('pets')
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { subscribe } = useWebSocket()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
@@ -67,6 +53,20 @@ export default function ChatConversationList({ onSelectConversation, activeConve
     })
     return unsub
   }, [subscribe])
+
+  const timeAgo = (dateStr: string): string => {
+    const date = new Date(dateStr)
+    const diffMs = Date.now() - date.getTime()
+    const diffMin = Math.floor(diffMs / 60000)
+    const diffHrs = Math.floor(diffMs / 3600000)
+    const diffDays = Math.floor(diffMs / 86400000)
+
+    if (diffMin < 1) return t('time.now', { ns: 'common' })
+    if (diffMin < 60) return t('time.minutes_ago', { ns: 'common', count: diffMin })
+    if (diffHrs < 24) return t('time.hours_ago', { ns: 'common', count: diffHrs })
+    if (diffDays === 1) return t('time.yesterday', { ns: 'common' })
+    return date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })
+  }
 
   // Color tokens based on background
   const colors = darkBg ? {
@@ -138,7 +138,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
                     {convo.last_message_body}
                   </p>
                 ) : (
-                  <p className={`text-xs italic truncate ${colors.secondary}`}>Sin mensajes</p>
+                  <p className={`text-xs italic truncate ${colors.secondary}`}>{t('chat.no_messages')}</p>
                 )}
               </div>
             ) : (

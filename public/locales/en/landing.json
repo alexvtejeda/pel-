@@ -15,7 +15,8 @@
     "rights": "© 2026 Pelú. All rights reserved."
   },
   "partners": {
-    "region_label": "Partner logos"
+    "region_label": "Partner logos",
+    "logo_alt": "Partner {{n}}"
   },
   "new_hero": {
     "badge": "An ecosystem for your pets",

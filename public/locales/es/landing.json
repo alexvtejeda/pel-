@@ -15,7 +15,8 @@
     "rights": "© 2026 Pelú. Todos los derechos reservados."
   },
   "partners": {
-    "region_label": "Logos de aliados"
+    "region_label": "Logos de aliados",
+    "logo_alt": "Aliado {{n}}"
   },
   "new_hero": {
     "badge": "Un ecosistema para tus mascotas",

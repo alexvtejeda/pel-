@@ -178,13 +178,13 @@ export function PetDetail({ pet }: PetDetailProps) {
               {pet.rescue_center.website && (
                 <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faGlobe} className="text-sm" />
-                  Website
+                  {t('website', { ns: 'common' })}
                 </a>
               )}
               {pet.rescue_center.instagram && (
                 <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faInstagram} className="text-sm" />
-                  Instagram
+                  {t('instagram', { ns: 'common' })}
                 </a>
               )}
             </div>

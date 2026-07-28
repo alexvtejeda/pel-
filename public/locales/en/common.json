@@ -18,11 +18,18 @@
   "next": "Next",
   "previous": "Previous",
   "copy": "Copy",
+  "home": "Home",
+  "security": "Security",
+  "legal": "Legal",
+  "website": "Website",
+  "instagram": "Instagram",
   "time": {
     "just_now": "Just now",
+    "now": "Now",
     "minutes_ago": "{{count}} min ago",
     "hours_ago": "{{count}} h ago",
-    "days_ago": "{{count}} d ago"
+    "days_ago": "{{count}} d ago",
+    "yesterday": "Yesterday"
   },
   "transport": "Transport",
   "language": {
