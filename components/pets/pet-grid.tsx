@@ -326,7 +326,10 @@ export function PetGrid({
                 >
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <button className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-550 transition-colors">
+                      {/* hover:bg-pop-solid, not pop-550: this circle carries a white
+                          glyph, and pop-550 measures 2.27:1 against it — under the 3:1
+                          WCAG 1.4.11 minimum for a functional control. */}
+                      <button className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-solid transition-colors">
                         <FontAwesomeIcon icon={faEllipsis} className="text-background text-sm" />
                       </button>
                     </DropdownMenuTrigger>

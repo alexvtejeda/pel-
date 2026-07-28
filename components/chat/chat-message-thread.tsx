@@ -350,7 +350,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         <button
           onClick={handleSend}
           disabled={!input.trim()}
-          className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:opacity-90 transition-[opacity,transform] active:scale-[0.98] disabled:opacity-40"
+          className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40"
         >
           <FontAwesomeIcon icon={faPaperPlane} className="text-sm" />
         </button>

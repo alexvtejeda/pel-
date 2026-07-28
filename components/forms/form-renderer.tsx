@@ -73,7 +73,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
         <div className="p-4 bg-muted rounded-2xl text-sm text-muted-foreground">
           {t('submission.pending', { ns: 'pets' })}: <span className="font-medium text-foreground">{t('forms.success_status')}</span>
         </div>
-        <a href="/pets" className="focus-ring inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:opacity-90 transition-opacity">
+        <a href="/pets" className="focus-ring inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:bg-pop-850 transition-colors">
           {t('forms.back_to_pets')}
         </a>
       </div>
@@ -125,7 +125,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="focus-ring w-full py-3 bg-pop-solid text-white rounded-xl font-semibold transition-[opacity,transform] hover:opacity-90 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
+            className="focus-ring w-full py-3 bg-pop-solid text-white rounded-xl font-semibold transition-[background-color,transform] hover:bg-pop-850 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
           >
             {submitting ? t('forms.submitting') : t('forms.submit_button')}
           </button>
