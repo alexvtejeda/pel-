@@ -301,3 +301,30 @@ describe('Consistency Rules', () => {
     expect(violations, `non-standard error colors:\n${violations.join('\n')}`).toHaveLength(0)
   })
 })
+
+// ─── UI Primitive Radii ──────────────────────────────────────
+// components/ui/ is exempt from the generic radius rules above (shadcn ships
+// rounded-md/lg defaults), so these three primitives are pinned explicitly —
+// they are the root cause of most radius drift in feature code.
+
+describe('UI Primitive Radii', () => {
+  const readUi = (file: string) =>
+    fs.readFileSync(path.join(COMPONENTS_DIR, 'ui', file), 'utf-8')
+
+  it('21 — Button base variant uses rounded-xl, not rounded-md', () => {
+    const content = readUi('button.tsx')
+    expect(content).toContain('rounded-xl')
+    expect(content).not.toMatch(/\brounded-md\b/)
+  })
+
+  it('22 — Card uses rounded-2xl', () => {
+    const content = readUi('card.tsx')
+    expect(content).toMatch(/"rounded-2xl border bg-card/)
+  })
+
+  it('23 — AlertDialogContent uses sm:rounded-2xl', () => {
+    const content = readUi('alert-dialog.tsx')
+    expect(content).toContain('sm:rounded-2xl')
+    expect(content).not.toContain('sm:rounded-lg')
+  })
+})

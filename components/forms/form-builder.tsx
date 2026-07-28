@@ -462,7 +462,7 @@ export function FormBuilder({ fields, onChange, formName, onNameChange, headerSl
               )}
             </div>
           ))}
-          <Button variant="outline" size="sm" className="rounded-xl" onClick={() => addOption(field.id)}>
+          <Button variant="outline" size="sm" onClick={() => addOption(field.id)}>
             <FontAwesomeIcon icon={faPlus} className="text-sm mr-1" /> {t('forms.add_option')}
           </Button>
         </div>

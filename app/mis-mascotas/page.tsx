@@ -65,7 +65,7 @@ export default function MisMascotasPage() {
         <div className="flex items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold">{t('member.my_pets')}</h1>
           {pets.length > 0 && (
-            <Button onClick={openCreate} className="rounded-xl">
+            <Button onClick={openCreate}>
               <FontAwesomeIcon icon={faPlus} className="text-xs mr-1.5" />
               {t('member.add_pet')}
             </Button>
@@ -80,7 +80,7 @@ export default function MisMascotasPage() {
           <div className="flex flex-col items-center justify-center text-center py-24 gap-4">
             <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />
             <p className="text-muted-foreground max-w-sm">{t('member.my_pets_empty')}</p>
-            <Button onClick={openCreate} className="rounded-xl">
+            <Button onClick={openCreate}>
               <FontAwesomeIcon icon={faPlus} className="text-xs mr-1.5" />
               {t('member.add_pet')}
             </Button>

@@ -178,7 +178,7 @@ export function FormsTab({ onDirtyChange, onSaveRef, onNavigateToInterested }: F
 
         {view !== 'submissions' && (
           <div className="ml-auto">
-            <Button size="sm" className="rounded-xl" onClick={handleSave} disabled={!dirty || saving}>
+            <Button size="sm" onClick={handleSave} disabled={!dirty || saving}>
               {saving ? t('forms.saving') : saveMsg || t('forms.save_form')}
             </Button>
           </div>

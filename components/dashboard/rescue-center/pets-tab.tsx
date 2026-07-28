@@ -828,7 +828,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
           )}
         </div>
 
-        <Button onClick={() => setAddPetOpen(true)} className="rounded-xl gap-2 shrink-0">
+        <Button onClick={() => setAddPetOpen(true)} className="gap-2 shrink-0">
           <FontAwesomeIcon icon={faPlus} className="text-sm" />
           Agregar mascota
         </Button>
@@ -920,7 +920,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
                 </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="rounded-xl w-7 h-7">
+                    <Button variant="ghost" size="icon" className="w-7 h-7">
                       <FontAwesomeIcon icon={faEllipsis} className="text-base" />
                     </Button>
                   </DropdownMenuTrigger>

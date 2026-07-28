@@ -130,7 +130,7 @@ export function AgendaTab({ items, onEventCreated }: AgendaTabProps) {
                 {t('agenda.today')}
               </button>
             )}
-            <Button onClick={() => setAddEventOpen(true)} className="rounded-xl gap-2 shrink-0">
+            <Button onClick={() => setAddEventOpen(true)} className="gap-2 shrink-0">
               <FontAwesomeIcon icon={faPlus} className="text-sm" />
               {t('events.create', { ns: 'common' })}
             </Button>

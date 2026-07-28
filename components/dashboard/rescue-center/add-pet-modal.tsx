@@ -530,10 +530,10 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
 
               {/* Footer */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={handleClose} className="rounded-xl">
+                <Button variant="outline" onClick={handleClose}>
                   Cancelar
                 </Button>
-                <Button onClick={handleConfirm} disabled={!canSave} className="rounded-xl">
+                <Button onClick={handleConfirm} disabled={!canSave}>
                   Guardar mascota
                 </Button>
               </div>

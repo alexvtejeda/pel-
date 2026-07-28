@@ -319,7 +319,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-xl shrink-0 w-9 h-9">
+                <Button variant="ghost" size="icon" className="shrink-0 w-9 h-9">
                   <FontAwesomeIcon icon={faPlus} className="text-sm" />
                 </Button>
               </DropdownMenuTrigger>

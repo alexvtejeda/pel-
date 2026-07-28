@@ -331,10 +331,10 @@ export function AddEventModal({ open, onConfirm, onClose }: AddEventModalProps) 
 
                 {/* Footer */}
                 <div className="flex justify-end gap-2 pt-2">
-                  <Button variant="outline" onClick={handleClose} className="rounded-xl">
+                  <Button variant="outline" onClick={handleClose}>
                     Cancelar
                   </Button>
-                  <Button onClick={handleSubmit} disabled={!canSave || submitting} className="rounded-xl">
+                  <Button onClick={handleSubmit} disabled={!canSave || submitting}>
                     {submitting ? 'Guardando…' : t('events.form.submit')}
                   </Button>
                 </div>

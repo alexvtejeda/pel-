@@ -178,12 +178,11 @@ export function ReportIssueButton() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={handleClose}>
+            <Button variant="outline" onClick={handleClose}>
               {t('admin.report_issue.cancel')}
             </Button>
             <Button
               data-testid="report-issue-submit"
-              className="rounded-xl"
               onClick={handleSubmit}
               disabled={!canSubmit}
             >

@@ -474,10 +474,10 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
 
               {/* Footer */}
               <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={handleClose} disabled={saving} className="rounded-xl">
+                <Button variant="outline" onClick={handleClose} disabled={saving}>
                   {t('member.cancel')}
                 </Button>
-                <Button onClick={handleSubmit} disabled={!canSave} className="rounded-xl">
+                <Button onClick={handleSubmit} disabled={!canSave}>
                   {saving ? t('member.publishing') : isEdit ? t('member.save_changes') : t('member.publish_button')}
                 </Button>
               </div>

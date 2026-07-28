@@ -70,7 +70,7 @@ export function AdminFormTab() {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-4">
         <p className="text-sm text-muted-foreground">{t('admin.load_error')}</p>
-        <Button size="sm" className="rounded-xl" onClick={loadTemplate}>
+        <Button size="sm" onClick={loadTemplate}>
           {t('admin.retry')}
         </Button>
       </div>
@@ -94,7 +94,7 @@ export function AdminFormTab() {
         </div>
 
         <div className="ml-auto">
-          <Button size="sm" className="rounded-xl" onClick={handleSave} disabled={!dirty || saving}>
+          <Button size="sm" onClick={handleSave} disabled={!dirty || saving}>
             {saving ? t('forms.saving') : saveMsg || t('forms.save_template')}
           </Button>
         </div>
