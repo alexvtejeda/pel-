@@ -1,0 +1,53 @@
+/*
+  Ported from pelu/decks/tesis/index.html (:96-109). Scoped to this module on
+  purpose — [data-assemble] is a deck convention and must not leak globally.
+*/
+
+@keyframes peluAssemble {
+  from {
+    opacity: var(--fromO, 0);
+    transform: translate(var(--fromX, 0), var(--fromY, 0)) rotate(var(--fromRot, 0deg));
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0) rotate(var(--toRot, 0deg));
+  }
+}
+
+@keyframes peluBreathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+
+/* Load-bearing: without fill-box the pieces rotate around the viewBox origin,
+   not their own centers, and the assembly reads as a scatter. */
+.piece {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Under prefers-reduced-motion: reduce this block never applies, so the logo
+   simply renders assembled and static. That is the correct fallback. */
+@media (prefers-reduced-motion: no-preference) {
+  .piece {
+    animation: peluAssemble var(--dur, 0.7s) cubic-bezier(0.16, 1, 0.3, 1) var(--d, 0s) both;
+  }
+
+  /* The assemble runs once (0.36s stagger + 0.7s duration = 1.06s), then the
+     assembled logo idles with a breathing pulse so long loads read as alive.
+     Do NOT loop the assembly — flying pieces every second is noise. */
+  .svg {
+    animation: peluBreathe 2s ease-in-out 1.06s infinite;
+  }
+}
+
+/* The logo's slate fills sit too close to the forced-dark MFA background.
+   Lift them there only. */
+:global(.dark) .svg {
+  filter: brightness(1.9);
+}
