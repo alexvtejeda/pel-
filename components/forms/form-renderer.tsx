@@ -138,8 +138,11 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
       <h1 className="text-2xl font-bold">{form.name}</h1>
 
       {!isPreview && requiredFields.length > 0 && (
-        // top-40 matches the h-40 banner /adopt pins above this form.
-        <div className="sticky top-40 z-10 -mx-4 bg-background/90 px-4 py-2 backdrop-blur">
+        // /adopt pins two things above this form and both stay pinned for the
+        // whole scroll, so the offset has to clear both: 10rem of banner plus
+        // the 4.5rem + 2px pet chip. Sticky has no stacking rule that would
+        // park us below them on its own — at a shared top they just overlap.
+        <div className="sticky top-[calc(14.5rem+2px)] z-10 -mx-4 bg-background/90 px-4 py-2 backdrop-blur">
           <div
             role="progressbar"
             aria-valuenow={answeredRequired}

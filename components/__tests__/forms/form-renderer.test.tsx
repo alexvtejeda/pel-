@@ -238,8 +238,8 @@ describe('FormRenderer — live form vs builder preview', () => {
       expect(root.className, `preview root should carry ${token}`).toContain(token)
     }
 
-    // The sticky bar bleeds -mx-4 and pins 160px from the viewport top, which
-    // is meaningless inside a dashboard panel.
+    // The sticky bar bleeds -mx-4 and pins itself clear of /adopt's banner and
+    // pet chip, an offset that is meaningless inside a dashboard panel.
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     // The button could never do anything here — handleSubmit early-returns.
     expect(screen.queryByRole('button', { name: /Enviar solicitud/ })).not.toBeInTheDocument()

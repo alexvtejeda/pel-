@@ -149,7 +149,13 @@ export function AdoptPetPage({ petId }: { petId: string }) {
           {t('adopt.back_to', { name: pet.name })}
         </button>
 
-        <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border mb-8">
+        {/*
+          Pins directly under the h-40 banner so a long form never scrolls the
+          pet's identity away. Height is 4.5rem + 2px — a 3rem avatar, p-3 top
+          and bottom, and the 1px border on each edge; FormRenderer's progress
+          bar offsets itself by exactly that to pin below rather than over it.
+        */}
+        <div className="sticky top-40 z-10 mb-8 flex items-center gap-3 rounded-2xl border border-border bg-card/95 p-3 backdrop-blur">
           {firstPhoto ? (
             <Image src={firstPhoto} alt={pet.name} width={48} height={48} className="w-12 h-12 rounded-xl object-cover shrink-0" />
           ) : (
