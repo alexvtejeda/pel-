@@ -326,6 +326,7 @@
     "success_title": "¡Solicitud enviada!",
     "success_description": "Tu solicitud ha sido enviada. El centro revisará tu información y te notificará pronto.",
     "success_status": "Pendiente de revisión",
+    "success_file_warning": "Tu solicitud se envió, pero el archivo adjunto no se pudo subir. El centro puede pedírtelo por chat.",
     "back_to_pets": "Volver a mascotas"
   },
   "adopt": {

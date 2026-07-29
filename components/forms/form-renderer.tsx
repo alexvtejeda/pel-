@@ -3,8 +3,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { faArrowUpFromBracket, faPaw } from '@fortawesome/free-solid-svg-icons'
 import { Form, FormField, FieldType } from '@/lib/api/forms'
+import { TransitionLink } from '@/components/transitions/transition-link'
 
 type Answers = Record<string, string | string[]>
 type FileMap = Record<string, File>
@@ -14,9 +15,15 @@ interface FormRendererProps {
   rc: { name: string; logo_url: string | null }
   preview?: boolean
   onSubmit?: (answers: Answers, files: FileMap) => Promise<void>
+  /**
+   * Shown on the success screen when the submission itself succeeded but a
+   * secondary step (e.g. a file upload) did not. Distinct from submitError,
+   * which means the submission failed and there is no success to show.
+   */
+  submitWarning?: string | null
 }
 
-export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormRendererProps) {
+export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitWarning }: FormRendererProps) {
   const { t } = useTranslation('pets')
   const [answers, setAnswers]     = useState<Answers>({})
   const [files, setFiles]         = useState<FileMap>({})
@@ -65,7 +72,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
   if (submitted) {
     return (
       <div className="text-center py-12 space-y-4">
-        <p className="text-4xl">&#x1F43E;</p>
+        <FontAwesomeIcon icon={faPaw} className="text-4xl text-pop-550" />
         <h2 className="text-xl font-bold">{t('forms.success_title')}</h2>
         <p className="text-muted-foreground text-sm">
           {t('forms.success_description')}
@@ -73,9 +80,17 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit }: FormR
         <div className="p-4 bg-muted rounded-2xl text-sm text-muted-foreground">
           {t('submission.pending', { ns: 'pets' })}: <span className="font-medium text-foreground">{t('forms.success_status')}</span>
         </div>
-        <a href="/pets" className="focus-ring inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:bg-pop-850 transition-colors">
+        {submitWarning && (
+          <div role="alert" className="p-4 bg-warning-bg border border-warning/40 rounded-2xl text-sm text-warning-foreground text-left">
+            {submitWarning}
+          </div>
+        )}
+        <TransitionLink
+          href="/pets"
+          className="focus-ring inline-block px-6 py-2.5 bg-pop-solid text-white rounded-xl text-sm font-medium hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98]"
+        >
           {t('forms.back_to_pets')}
-        </a>
+        </TransitionLink>
       </div>
     )
   }

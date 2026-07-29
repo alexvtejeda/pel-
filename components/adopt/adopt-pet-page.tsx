@@ -22,7 +22,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
   const [pet, setPet] = useState<Pet | null>(null)
   const [formData, setFormData] = useState<PetFormResponse | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [fileWarning, setFileWarning] = useState<string | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
 
   const load = useCallback(() => {
@@ -73,16 +73,21 @@ export function AdoptPetPage({ petId }: { petId: string }) {
     files: Record<string, File>
   ) => {
     if (!formData) return
+    setFileWarning(null)
 
     const { data, error: submitErr } = await submitAdoptionForm(petId, {
       form_id: formData.form.id,
       answers,
     })
 
+    // Throwing keeps FormRenderer on the form with its own error banner — there
+    // is no success to show, so the success screen must never render.
     if (submitErr || !data) {
       throw new Error(submitErr || t('adopt.submit_error'))
     }
 
+    // The submission succeeded. A failed attachment is a warning ON the success
+    // screen, not a competing error banner.
     for (const [fieldId, file] of Object.entries(files)) {
       const { error: fileErr } = await uploadSubmissionFile(
         data.submission_id,
@@ -90,7 +95,7 @@ export function AdoptPetPage({ petId }: { petId: string }) {
         file
       )
       if (fileErr) {
-        setError(fileErr)
+        setFileWarning(t('forms.success_file_warning'))
         break
       }
     }
@@ -167,16 +172,11 @@ export function AdoptPetPage({ petId }: { petId: string }) {
           </div>
         )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm animate-wiggle">
-            {error}
-          </div>
-        )}
-
         <FormRenderer
           form={formData.form}
           rc={{ name: rc.name, logo_url: rc.logo_url }}
           onSubmit={handleSubmit}
+          submitWarning={fileWarning}
         />
       </div>
     </div>

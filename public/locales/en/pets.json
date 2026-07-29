@@ -326,6 +326,7 @@
     "success_title": "Application submitted!",
     "success_description": "Your application has been submitted. The center will review your information and notify you soon.",
     "success_status": "Pending review",
+    "success_file_warning": "Your application was sent, but the attachment couldn't be uploaded. The centre may ask you for it over chat.",
     "back_to_pets": "Back to pets"
   },
   "adopt": {
