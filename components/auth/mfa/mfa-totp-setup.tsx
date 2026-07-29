@@ -29,6 +29,8 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
   // useMfaError() hands back a fresh closure on every render. Holding it in a ref
   // keeps startSetup stable, so the mount effect below fires once instead of
   // refetching on every render.
+  // Remove once useMfaError is memoized on [t]; then useCallback(..., [resolveError])
+  // works as originally intended and this ref can go.
   const resolveErrorRef = useRef(resolveError)
   resolveErrorRef.current = resolveError
 
@@ -74,32 +76,23 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
     onSuccess(data?.recovery_codes)
   }
 
-  if (step === 'loading') {
-    return (
-      <div className="text-center py-8">
-        <Spinner className="text-2xl text-pop-550" />
-      </div>
-    )
-  }
-
-  if (step === 'failed') {
-    return (
-      <div className="space-y-6">
-        <button onClick={onBack} className="focus-ring flex items-center gap-2 rounded-xl text-sm text-muted-foreground hover:text-foreground">
-          <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-          {t('mfa.enrollment.back')}
-        </button>
-        <ErrorState message={error ?? undefined} onRetry={startSetup} />
-      </div>
-    )
-  }
-
+  // The back control sits above the step branches on purpose: `fetch` has no
+  // default timeout, so a hung /totp/setup parks the user on the spinner
+  // indefinitely. Every step — loading included — needs a way back.
   return (
     <div className="space-y-6">
       <button onClick={onBack} className="focus-ring flex items-center gap-2 rounded-xl text-sm text-muted-foreground hover:text-foreground">
         <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
         {t('mfa.enrollment.back')}
       </button>
+
+      {step === 'loading' && (
+        <div className="text-center py-8">
+          <Spinner className="text-2xl text-pop-550" />
+        </div>
+      )}
+
+      {step === 'failed' && <ErrorState message={error ?? undefined} onRetry={startSetup} />}
 
       {step === 'scan' && (
         <>

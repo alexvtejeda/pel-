@@ -12,6 +12,17 @@ import { totpSetup } from '@/lib/api/mfa'
 
 const mockTotpSetup = vi.mocked(totpSetup)
 
+// mockResolvedValue would flush straight past the loading step. A hand-held
+// deferred keeps /totp/setup open so the test observes the in-flight render —
+// which is the whole point of the hung-request case.
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
+
 function renderSetup(onBack = vi.fn()) {
   renderWithProviders(<MfaTotpSetup onSuccess={vi.fn()} onBack={onBack} />)
   return onBack
@@ -55,6 +66,22 @@ describe('MfaTotpSetup — a failed /totp/setup must not trap the user on the sp
     })
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
+  it('offers a back control while the request is still in flight', async () => {
+    // A hung /totp/setup — the API accepts the connection but never answers — never
+    // reaches the .catch, so the spinner is all the user gets. It still needs an exit.
+    const pending = deferred<Awaited<ReturnType<typeof totpSetup>>>()
+    mockTotpSetup.mockReturnValueOnce(pending.promise)
+    const onBack = renderSetup()
+
+    // Assert we are genuinely on the loading step, not racing past it.
+    expect(screen.getByRole('status')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atrás' }))
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+    expect(screen.getByRole('status')).toBeInTheDocument()
   })
 
   it('offers a back control that calls onBack', async () => {
