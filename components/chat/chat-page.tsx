@@ -55,7 +55,7 @@ export function ChatPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
               <FontAwesomeIcon icon={faComments} className="text-4xl text-muted-foreground/20" />
-              <p className="text-sm">{t('chat.empty')}</p>
+              <p className="text-sm">{t('chat.select_conversation')}</p>
             </div>
           )}
         </div>
