@@ -27,17 +27,22 @@ export function ChatPage() {
     }
   }, [searchParams, t, router])
 
+  /*
+    A flex column, not viewport arithmetic: the old h-[calc(100vh-72px)] hard-coded
+    a header height the header does not have (~88px), so the panels sat 16px past
+    the fold. min-h-dvh + flex-1 lets the header measure itself.
+  */
   return (
-    <div className="min-h-screen bg-muted/30">
+    <div className="flex min-h-dvh flex-col bg-muted/30">
       <PetsHeader />
-      <div className="h-[calc(100vh-72px)] flex max-w-6xl mx-auto">
+      <div className="mx-auto flex w-full max-w-6xl flex-1 gap-4 overflow-hidden p-0 sm:p-4">
         {/* Left sidebar — conversation list */}
         <div
-          className={`w-80 shrink-0 bg-background border-r border-border shadow-[4px_0_12px_var(--shadow-divider)] z-10 flex flex-col overflow-hidden ${
+          className={`w-80 shrink-0 flex-col overflow-hidden rounded-none border-border bg-background sm:rounded-2xl sm:border ${
             active ? 'hidden md:flex' : 'flex w-full md:w-80'
           }`}
         >
-          <div className="p-4 border-b border-border">
+          <div className="border-b border-border p-4">
             <h1 className="text-lg font-semibold">{t('chat.my_conversations')}</h1>
           </div>
           <div className="flex-1 overflow-y-auto">
@@ -46,14 +51,18 @@ export function ChatPage() {
         </div>
 
         {/* Right panel — message thread or empty state */}
-        <div className={`flex-1 flex flex-col bg-background ${active ? 'flex' : 'hidden md:flex'}`}>
+        <div
+          className={`flex-1 flex-col overflow-hidden rounded-none border-border bg-background sm:rounded-2xl sm:border ${
+            active ? 'flex' : 'hidden md:flex'
+          }`}
+        >
           {active ? (
             <ChatMessageThread
               conversation={active}
               onBack={() => setActive(null)}
             />
           ) : (
-            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground gap-3">
+            <div className="flex flex-1 flex-col items-center justify-center gap-3 text-muted-foreground">
               <FontAwesomeIcon icon={faComments} className="text-4xl text-muted-foreground/20" />
               <p className="text-sm">{t('chat.select_conversation')}</p>
             </div>
