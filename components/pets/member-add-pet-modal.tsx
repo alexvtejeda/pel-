@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { AnimatePresence, motion, Reorder } from 'framer-motion'
+import { Reorder } from 'framer-motion'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faXmark,
@@ -15,8 +15,23 @@ import {
   faScissors,
 } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
-import { createUserPets, updateUserPet, uploadUserPetPhotos, UserPet } from '@/lib/api/user-pets'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
+  createUserPets,
+  updateUserPet,
+  uploadUserPetPhotos,
+  deleteUserPetPhoto,
+  UserPet,
+} from '@/lib/api/user-pets'
 import { UserPetCard } from '@/components/pets/user-pet-card'
 
 interface PendingPhoto {
@@ -49,10 +64,15 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
   const [mobilePreview, setMobilePreview] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Removal of an already-uploaded photo is staged until save, so "Cancelar"
+  // stays non-destructive like every other field in this form.
+  const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   const isEdit = !!pet
-  const existingPhotoUrls = pet?.photos?.map((p) => p.url) ?? []
+  const existingPhotos = (pet?.photos ?? []).filter((p) => !removedPhotoIds.includes(p.id))
+  const existingPhotoUrls = existingPhotos.map((p) => p.url)
+  const photoAlt = t('member.photo_alt', { name: name.trim() || t('details.name') })
 
   const MAX_PHOTOS = 5
   const parsedAge = parseInt(age, 10)
@@ -98,6 +118,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
     setGender('male')
     setSpecies('dog')
     setPhotos([])
+    setRemovedPhotoIds([])
     setVaccinated(false)
     setCastrated(false)
     setSize('medium')
@@ -138,6 +159,15 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
         return
       }
 
+      for (const photoId of removedPhotoIds) {
+        const { error: deleteError } = await deleteUserPetPhoto(pet.id, photoId)
+        if (deleteError) {
+          setError(deleteError)
+          setSaving(false)
+          return
+        }
+      }
+
       if (photos.length > 0) {
         const { error: uploadError } = await uploadUserPetPhotos(pet.id, photos.map(p => p.file))
         if (uploadError) {
@@ -147,6 +177,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
         }
       }
 
+      toast.success(t('member.saved'))
       onSaved?.()
       reset()
       onClose()
@@ -184,327 +215,338 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
       }
     }
 
+    toast.success(t('member.published'))
     onSaved?.()
     reset()
     onClose()
   }
 
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1, backdropFilter: 'blur(10px)' }}
-          exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-          className="fixed inset-0 z-60 flex items-center justify-center"
-          onClick={handleClose}
+    <Dialog open={open} onOpenChange={(next) => { if (!next) handleClose() }}>
+      {/* max-w-none/rounded-2xl restate what the shared DialogContent only does
+          from `sm:` up — this modal keeps its width and radius on phones too. */}
+      <DialogContent className="flex max-h-[calc(90vh-4rem)] w-[90%] max-w-none flex-col gap-0 overflow-hidden rounded-2xl p-0 sm:max-h-[90vh] md:max-w-3xl">
+        <DialogHeader className="p-6 pb-0 text-left">
+          <DialogTitle className="text-base font-semibold">
+            {isEdit ? t('member.edit_title') : t('member.publish_title')}
+          </DialogTitle>
+          <DialogDescription className="text-xs">
+            {isEdit ? t('member.edit_subtitle') : t('member.publish_subtitle')}
+          </DialogDescription>
+        </DialogHeader>
+
+        <DialogClose
+          aria-label={t('member.close_modal')}
+          disabled={saving}
+          className="focus-ring absolute right-5 top-5 rounded-xl p-1 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-50"
         >
-          <div className="fixed inset-0 bg-black/50" />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.5, rotateX: 40, y: 40 }}
-            animate={{ opacity: 1, scale: 1, rotateX: 0, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, rotateX: 10 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 15 }}
-            className="relative z-60 bg-card border rounded-2xl w-[90%] md:max-w-3xl flex flex-col overflow-hidden max-h-[calc(90vh-4rem)] sm:max-h-[90vh] overscroll-contain"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between p-6 pb-0">
-              <div className="flex items-center gap-3">
-                <div>
-                  <h2 className="text-base font-semibold">{isEdit ? t('member.edit_title') : t('member.publish_title')}</h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">{isEdit ? t('member.edit_subtitle') : t('member.publish_subtitle')}</p>
-                </div>
-                {/* Mobile toggle */}
-                <button
-                  type="button"
-                  onClick={() => setMobilePreview(prev => !prev)}
-                  className="md:hidden text-xs font-medium text-pop-300 hover:text-pop-550 transition-colors"
-                >
-                  {mobilePreview ? t('dashboard.edit') : t('dashboard.preview')}
-                </button>
-              </div>
-              <button type="button" aria-label={t('member.close_modal')} className="group mt-0.5" onClick={handleClose}>
-                <FontAwesomeIcon
-                  icon={faXmark}
-                  className="w-4 h-4 text-muted-foreground group-hover:text-foreground group-hover:scale-125 group-hover:rotate-3 transition duration-200"
-                />
-              </button>
-            </div>
+          <FontAwesomeIcon icon={faXmark} className="text-base" />
+        </DialogClose>
 
-            {/* Body — two-panel on desktop */}
-            <div className="flex gap-6 p-6 overflow-y-auto">
-            {/* Left panel: form (hidden on mobile when preview is active) */}
-            <div className={`flex flex-col gap-4 flex-1 min-w-0 ${mobilePreview ? 'hidden md:flex' : 'flex'}`}>
+        {/* Mobile preview toggle */}
+        <button
+          type="button"
+          onClick={() => setMobilePreview(prev => !prev)}
+          className="focus-ring mx-6 mt-2 self-start rounded-xl text-xs font-medium text-pop-300 transition-colors hover:text-pop-550 md:hidden"
+        >
+          {mobilePreview ? t('dashboard.edit') : t('dashboard.preview')}
+        </button>
 
-              {/* Name */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.name')}</label>
-                <input
-                  autoFocus
-                  type="text"
-                  placeholder={t('member.placeholder_name')}
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                />
-              </div>
+        {/* Body — two-panel on desktop */}
+        <div className="flex min-h-0 flex-1 gap-6 overflow-y-auto overscroll-contain p-6 pt-4">
+          {/* Left panel: form (hidden on mobile when preview is active) */}
+          <div className={`flex flex-col gap-4 flex-1 min-w-0 ${mobilePreview ? 'hidden md:flex' : 'flex'}`}>
 
-              {/* Species */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.species')}</label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSpecies('dog')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      species === 'dog'
-                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
-                        : 'border-input text-muted-foreground hover:border-border'
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faDog} className="text-xs" /> {t('species.dog')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSpecies('cat')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      species === 'cat'
-                        ? 'bg-pop-550/10 border-pop-550 text-foreground'
-                        : 'border-input text-muted-foreground hover:border-border'
-                    }`}
-                  >
-                    <FontAwesomeIcon icon={faCat} className="text-xs" /> {t('species.cat')}
-                  </button>
-                </div>
-              </div>
-
-              {/* Gender */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('dashboard.filter.gender')}</label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setGender('male')}
-                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                        gender === 'male'
-                          ? 'bg-pop-550/10 border-pop-550 text-foreground'
-                          : 'border-input text-muted-foreground hover:border-border'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faMars} className="text-xs" /> {t('gender.male')}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setGender('female')}
-                      className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                        gender === 'female'
-                          ? 'bg-pop-550/10 border-pop-550 text-foreground'
-                          : 'border-input text-muted-foreground hover:border-border'
-                      }`}
-                    >
-                      <FontAwesomeIcon icon={faVenus} className="text-xs" /> {t('gender.female')}
-                    </button>
-                  </div>
-              </div>
-
-              {/* Age */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.age')}</label>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder={t('member.placeholder_age')}
-                    value={age}
-                    onChange={(e) => setAge(e.target.value)}
-                    className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
-                  />
-                  <button type="button" onClick={() => setAgeUnit('months')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
-                    }`}>
-                    {t('dashboard.ageUnit.months')}
-                  </button>
-                  <button type="button" onClick={() => setAgeUnit('years')}
-                    className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                      ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
-                    }`}>
-                    {t('dashboard.ageUnit.years')}
-                  </button>
-                </div>
-              </div>
-
-              {/* Size */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.size')}</label>
-                <select
-                  value={size}
-                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
-                  className="w-full rounded-xl border border-input px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
-                >
-                  <option value="small">{t('size.small')}</option>
-                  <option value="medium">{t('size.medium')}</option>
-                  <option value="large">{t('size.large')}</option>
-                </select>
-              </div>
-
-              {/* Description */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.description')}</label>
-                <textarea
-                  placeholder={t('member.placeholder_description')}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
-                />
-              </div>
-
-              {/* Vaccinated / Castrated */}
-              <div className="grid grid-cols-2 gap-3">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={vaccinated}
-                    onChange={(e) => setVaccinated(e.target.checked)}
-                    className="w-4 h-4 rounded accent-pop-550"
-                  />
-                  <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
-                  <span className="text-sm text-foreground">{t('grid.vaccinated')}</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={castrated}
-                    onChange={(e) => setCastrated(e.target.checked)}
-                    className="w-4 h-4 rounded accent-pop-550"
-                  />
-                  <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
-                  <span className="text-sm text-foreground">{t('grid.castrated')}</span>
-                </label>
-              </div>
-
-              {/* Existing photos (edit mode) — read-only; removal is out of scope */}
-              {isEdit && existingPhotoUrls.length > 0 && (
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.existing_photos')}</label>
-                  <div className="flex gap-2 flex-wrap">
-                    {existingPhotoUrls.map((url, i) => (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img key={i} src={url} alt="" className="w-14 h-14 rounded-xl object-cover" />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Drag-and-drop photo zone */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.photos_label')}</label>
-                <input
-                  ref={inputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  multiple
-                  className="hidden"
-                  onChange={(e) => { addFiles(e.target.files ?? []); e.target.value = '' }}
-                />
-                <div
-                  className={`rounded-2xl border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 py-8 ${
-                    dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'
-                  }`}
-                  onClick={() => inputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-                  onDragLeave={() => setDragging(false)}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    setDragging(false)
-                    addFiles(e.dataTransfer.files)
-                  }}
-                >
-                  <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">
-                    <span className="text-pop-300 font-medium">{t('member.upload_text')}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground/50">{t('member.upload_hint', { max: MAX_PHOTOS })}</p>
-                </div>
-
-                {/* Thumbnails */}
-                {photos.length > 0 && (
-                  <Reorder.Group
-                    axis="x"
-                    values={photos}
-                    onReorder={setPhotos}
-                    className="flex gap-2 flex-wrap mt-1"
-                  >
-                    {photos.map((photo) => (
-                      <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
-                        <img
-                          src={photo.url}
-                          alt={t('member.photo_alt', { name: name.trim() || t('details.name') })}
-                          draggable="false"
-                          className="w-14 h-14 rounded-xl object-cover"
-                        />
-                        <button
-                          type="button"
-                          aria-label={t('member.remove_photo')}
-                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
-                          onClick={(e) => { e.stopPropagation(); removePhoto(photo.url) }}
-                        >
-                          <FontAwesomeIcon icon={faXmark} className="text-xs text-white" />
-                        </button>
-                      </Reorder.Item>
-                    ))}
-                    {photos.length < MAX_PHOTOS && (
-                      <button
-                        type="button"
-                        aria-label={t('member.add_photo')}
-                        className="w-14 h-14 rounded-xl border-2 border-dashed border-input flex items-center justify-center text-muted-foreground hover:border-pop-550/40 hover:text-pop-300 transition-colors"
-                        onClick={() => inputRef.current?.click()}
-                      >
-                        <FontAwesomeIcon icon={faPlus} className="text-base" />
-                      </button>
-                    )}
-                  </Reorder.Group>
-                )}
-              </div>
-
-              {/* Error message */}
-              {error && (
-                <p className="text-sm text-destructive">{error}</p>
-              )}
-
-              {/* Footer */}
-              <div className="flex justify-end gap-2 pt-2">
-                <Button variant="outline" onClick={handleClose} disabled={saving}>
-                  {t('member.cancel')}
-                </Button>
-                <Button onClick={handleSubmit} disabled={!canSave}>
-                  {saving ? t('member.publishing') : isEdit ? t('member.save_changes') : t('member.publish_button')}
-                </Button>
-              </div>
-            </div>
-
-            {/* Right panel: live preview (always visible on desktop, toggle on mobile) */}
-            <div className={`w-64 shrink-0 ${mobilePreview ? 'block md:block' : 'hidden md:block'}`}>
-              <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('dashboard.preview')}</p>
-              <UserPetCard
-                name={name}
-                age={age}
-                ageUnit={ageUnit}
-                gender={gender}
-                species={species}
-                photoUrls={[...existingPhotoUrls, ...photos.map(p => p.url)]}
-                vaccinated={vaccinated}
-                castrated={castrated}
-                size={size}
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-name" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.name')}</label>
+              <input
+                id="pet-name"
+                autoFocus
+                type="text"
+                placeholder={t('member.placeholder_name')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
 
+            {/* Species — a pair of toggle buttons, so the group carries the label */}
+            <div className="flex flex-col gap-1.5">
+              <span id="pet-species-label" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.species')}</span>
+              <div role="group" aria-labelledby="pet-species-label" className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  aria-pressed={species === 'dog'}
+                  onClick={() => setSpecies('dog')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    species === 'dog'
+                      ? 'bg-pop-550/10 border-pop-550 text-foreground'
+                      : 'border-input text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faDog} className="text-xs" /> {t('species.dog')}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={species === 'cat'}
+                  onClick={() => setSpecies('cat')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    species === 'cat'
+                      ? 'bg-pop-550/10 border-pop-550 text-foreground'
+                      : 'border-input text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faCat} className="text-xs" /> {t('species.cat')}
+                </button>
+              </div>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+
+            {/* Gender */}
+            <div className="flex flex-col gap-1.5">
+              <span id="pet-gender-label" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('dashboard.filter.gender')}</span>
+              <div role="group" aria-labelledby="pet-gender-label" className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  aria-pressed={gender === 'male'}
+                  onClick={() => setGender('male')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    gender === 'male'
+                      ? 'bg-pop-550/10 border-pop-550 text-foreground'
+                      : 'border-input text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faMars} className="text-xs" /> {t('gender.male')}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={gender === 'female'}
+                  onClick={() => setGender('female')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    gender === 'female'
+                      ? 'bg-pop-550/10 border-pop-550 text-foreground'
+                      : 'border-input text-muted-foreground hover:border-border'
+                  }`}
+                >
+                  <FontAwesomeIcon icon={faVenus} className="text-xs" /> {t('gender.female')}
+                </button>
+              </div>
+            </div>
+
+            {/* Age */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-age" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.age')}</label>
+              <div className="flex gap-2">
+                <input
+                  id="pet-age"
+                  type="number"
+                  min={0}
+                  placeholder={t('member.placeholder_age')}
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
+                  className="flex-1 rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <button type="button" aria-pressed={ageUnit === 'months'} onClick={() => setAgeUnit('months')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    ageUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  {t('dashboard.ageUnit.months')}
+                </button>
+                <button type="button" aria-pressed={ageUnit === 'years'} onClick={() => setAgeUnit('years')}
+                  className={`focus-ring rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
+                    ageUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'
+                  }`}>
+                  {t('dashboard.ageUnit.years')}
+                </button>
+              </div>
+            </div>
+
+            {/* Size */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-size" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.size')}</label>
+              <select
+                id="pet-size"
+                value={size}
+                onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                className="w-full rounded-xl border border-input px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
+              >
+                <option value="small">{t('size.small')}</option>
+                <option value="medium">{t('size.medium')}</option>
+                <option value="large">{t('size.large')}</option>
+              </select>
+            </div>
+
+            {/* Description */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-description" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.description')}</label>
+              <textarea
+                id="pet-description"
+                placeholder={t('member.placeholder_description')}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring resize-none"
+              />
+            </div>
+
+            {/* Vaccinated / Castrated */}
+            <div className="grid grid-cols-2 gap-3">
+              <label htmlFor="pet-vaccinated" className="flex items-center gap-2 cursor-pointer">
+                <input
+                  id="pet-vaccinated"
+                  type="checkbox"
+                  checked={vaccinated}
+                  onChange={(e) => setVaccinated(e.target.checked)}
+                  className="w-4 h-4 rounded accent-pop-550"
+                />
+                <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
+                <span className="text-sm text-foreground">{t('grid.vaccinated')}</span>
+              </label>
+              <label htmlFor="pet-castrated" className="flex items-center gap-2 cursor-pointer">
+                <input
+                  id="pet-castrated"
+                  type="checkbox"
+                  checked={castrated}
+                  onChange={(e) => setCastrated(e.target.checked)}
+                  className="w-4 h-4 rounded accent-pop-550"
+                />
+                <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
+                <span className="text-sm text-foreground">{t('grid.castrated')}</span>
+              </label>
+            </div>
+
+            {/* Existing photos (edit mode) — removal is staged until save */}
+            {isEdit && existingPhotos.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                <span id="pet-existing-photos-label" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.existing_photos')}</span>
+                <div role="group" aria-labelledby="pet-existing-photos-label" className="flex gap-2 flex-wrap">
+                  {existingPhotos.map((photo) => (
+                    <div key={photo.id} className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={photo.url} alt={photoAlt} className="w-14 h-14 rounded-xl object-cover" />
+                      <button
+                        type="button"
+                        aria-label={t('member.remove_photo')}
+                        className="focus-ring absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
+                        onClick={() => setRemovedPhotoIds((prev) => [...prev, photo.id])}
+                      >
+                        <FontAwesomeIcon icon={faXmark} className="text-xs text-white" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground/70">{t('member.photos_removed_on_save')}</p>
+              </div>
+            )}
+
+            {/* Drag-and-drop photo zone */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-photos" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.photos_label')}</label>
+              {/* sr-only + `peer`, not `hidden`: the input is the labelled control
+                  and has to stay in the tab order so the picker is reachable by
+                  keyboard; the zone below paints its focus ring for it. */}
+              <input
+                id="pet-photos"
+                ref={inputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                multiple
+                className="peer sr-only"
+                onChange={(e) => { addFiles(e.target.files ?? []); e.target.value = '' }}
+              />
+              <div
+                className={`rounded-2xl border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 py-8 peer-focus-visible:ring-2 peer-focus-visible:ring-ring ${
+                  dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/30'
+                }`}
+                onClick={() => inputRef.current?.click()}
+                onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
+                onDragLeave={() => setDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  setDragging(false)
+                  addFiles(e.dataTransfer.files)
+                }}
+              >
+                <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-muted-foreground/40" />
+                <p className="text-sm text-muted-foreground">
+                  <span className="text-pop-300 font-medium">{t('member.upload_text')}</span>
+                </p>
+                <p className="text-xs text-muted-foreground/50">{t('member.upload_hint', { max: MAX_PHOTOS })}</p>
+              </div>
+
+              {/* Thumbnails */}
+              {photos.length > 0 && (
+                <Reorder.Group
+                  axis="x"
+                  values={photos}
+                  onReorder={setPhotos}
+                  className="flex gap-2 flex-wrap mt-1"
+                >
+                  {photos.map((photo) => (
+                    <Reorder.Item key={photo.url} value={photo} className="relative cursor-grab active:cursor-grabbing">
+                      <img
+                        src={photo.url}
+                        alt={photoAlt}
+                        draggable="false"
+                        className="w-14 h-14 rounded-xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        aria-label={t('member.remove_photo')}
+                        className="focus-ring absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive flex items-center justify-center"
+                        onClick={(e) => { e.stopPropagation(); removePhoto(photo.url) }}
+                      >
+                        <FontAwesomeIcon icon={faXmark} className="text-xs text-white" />
+                      </button>
+                    </Reorder.Item>
+                  ))}
+                  {photos.length < MAX_PHOTOS && (
+                    <button
+                      type="button"
+                      aria-label={t('member.add_photo')}
+                      className="focus-ring w-14 h-14 rounded-xl border-2 border-dashed border-input flex items-center justify-center text-muted-foreground hover:border-pop-550/40 hover:text-pop-300 transition-colors"
+                      onClick={() => inputRef.current?.click()}
+                    >
+                      <FontAwesomeIcon icon={faPlus} className="text-base" />
+                    </button>
+                  )}
+                </Reorder.Group>
+              )}
+            </div>
+
+            {/* Error message */}
+            {error && (
+              <p role="alert" className="text-sm text-destructive">{error}</p>
+            )}
+
+            {/* Footer */}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button variant="outline" onClick={handleClose} disabled={saving}>
+                {t('member.cancel')}
+              </Button>
+              <Button onClick={handleSubmit} disabled={!canSave}>
+                {saving ? t('member.publishing') : isEdit ? t('member.save_changes') : t('member.publish_button')}
+              </Button>
+            </div>
+          </div>
+
+          {/* Right panel: live preview (always visible on desktop, toggle on mobile) */}
+          <div className={`w-64 shrink-0 ${mobilePreview ? 'block md:block' : 'hidden md:block'}`}>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">{t('dashboard.preview')}</p>
+            <UserPetCard
+              name={name}
+              age={age}
+              ageUnit={ageUnit}
+              gender={gender}
+              species={species}
+              photoUrls={[...existingPhotoUrls, ...photos.map(p => p.url)]}
+              vaccinated={vaccinated}
+              castrated={castrated}
+              size={size}
+            />
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -111,7 +111,10 @@
     "remove_photo": "Quitar foto",
     "add_photo": "Añadir foto",
     "photos_label": "Fotos",
-    "photo_alt": "Foto de {{name}}"
+    "photo_alt": "Foto de {{name}}",
+    "saved": "Mascota actualizada",
+    "published": "Mascota publicada",
+    "photos_removed_on_save": "Las fotos que quites se eliminarán al guardar."
   },
   "roles": {
     "adopter": "Adoptante",

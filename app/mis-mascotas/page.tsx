@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { Suspense, useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -12,13 +13,17 @@ import { UserPetCardSkeleton } from '@/components/pets/user-pet-card-skeleton'
 import { listUserPets, deleteUserPet, UserPet } from '@/lib/api/user-pets'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
+import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
 } from '@/components/ui/alert-dialog'
 
-export default function MisMascotasPage() {
+function MisMascotasContent() {
   const { t } = useTranslation('pets')
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const addParam = searchParams?.get('add')
   const [pets, setPets] = useState<UserPet[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -42,6 +47,16 @@ export default function MisMascotasPage() {
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  // The account sheet's "Publicar mascota" links here with ?add=1 instead of
+  // mounting its own modal. Consume the param as soon as it opens the modal —
+  // left in the URL it would reopen on every refresh and back-navigation.
+  useEffect(() => {
+    if (addParam !== '1') return
+    setEditingPet(null)
+    setModalOpen(true)
+    router.replace('/mis-mascotas', { scroll: false })
+  }, [addParam, router])
 
   const openCreate = () => { setEditingPet(null); setModalOpen(true) }
   const openEdit = (pet: UserPet) => { setEditingPet(pet); setModalOpen(true) }
@@ -167,5 +182,21 @@ export default function MisMascotasPage() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
+  )
+}
+
+// `useSearchParams` opts the tree into client-side rendering; without a Suspense
+// boundary the static export (`output: 'export'`) refuses to prerender the route.
+export default function MisMascotasPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <PeluLoadingLogo />
+        </div>
+      }
+    >
+      <MisMascotasContent />
+    </Suspense>
   )
 }

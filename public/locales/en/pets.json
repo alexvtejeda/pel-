@@ -111,7 +111,10 @@
     "remove_photo": "Remove photo",
     "add_photo": "Add photo",
     "photos_label": "Photos",
-    "photo_alt": "Photo of {{name}}"
+    "photo_alt": "Photo of {{name}}",
+    "saved": "Pet updated",
+    "published": "Pet published",
+    "photos_removed_on_save": "Photos you remove are deleted when you save."
   },
   "roles": {
     "adopter": "Adopter",

@@ -13,7 +13,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner, faHandHoldingHeart } from '@fortawesome/free-solid-svg-icons'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
-import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import { LanguageSwitcher } from '@/components/language-switcher'
 import {
   Sheet,
@@ -34,7 +33,6 @@ export function PetsHeader() {
   const router = useRouter()
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
-  const [addPetOpen, setAddPetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [navigating, setNavigating] = useState(false)
   const [avatarUploading, setAvatarUploading] = useState(false)
@@ -314,14 +312,17 @@ export function PetsHeader() {
                 {t('service_providers.nav_entry', { ns: 'business' })}
               </Link>
             )}
+            {/* Navigates rather than opening a second copy of the modal:
+                /mis-mascotas owns the only mount and reads ?add=1. */}
             {user?.role === 'member' && (
-              <button
-                onClick={() => { setSheetOpen(false); setAddPetOpen(true) }}
-                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors w-full text-left"
+              <Link
+                href="/mis-mascotas?add=1"
+                onClick={() => setSheetOpen(false)}
+                className="focus-ring flex items-center gap-3 px-4 py-3 text-sm font-medium hover:bg-muted rounded-xl transition-colors"
               >
                 <FontAwesomeIcon icon={faPaw} className="text-lg text-pop-550" />
                 {t('member.publish_pet')}
-              </button>
+              </Link>
             )}
             {user?.role === 'member' && (
               <Link
@@ -369,8 +370,6 @@ export function PetsHeader() {
           </nav>
         </SheetContent>
       </Sheet>
-
-      <MemberAddPetModal open={addPetOpen} onClose={() => setAddPetOpen(false)} />
 
       <PublicMobileNav />
     </header>
