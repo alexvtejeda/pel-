@@ -4,12 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faPen, faTrash, faPlus, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { PetsHeader } from '@/components/pets/pets-header'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import { UserPetCard } from '@/components/pets/user-pet-card'
 import { listUserPets, deleteUserPet, UserPet } from '@/lib/api/user-pets'
 import { Button } from '@/components/ui/button'
+import { ErrorState } from '@/components/ui/error-state'
+import { Spinner } from '@/components/ui/spinner'
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
@@ -19,14 +21,23 @@ export default function MisMascotasPage() {
   const { t } = useTranslation('pets')
   const [pets, setPets] = useState<UserPet[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingPet, setEditingPet] = useState<UserPet | null>(null)
   const [pendingDelete, setPendingDelete] = useState<UserPet | null>(null)
 
   const load = useCallback(async () => {
     setLoading(true)
-    const { data } = await listUserPets()
-    setPets(data ?? [])
+    setLoadError(false)
+    const { data, error } = await listUserPets()
+    if (error || !data) {
+      // A failed fetch is not an empty account — never fall through to the
+      // "add your first pet" state and tell the user their pets are gone.
+      setLoadError(true)
+      setPets([])
+    } else {
+      setPets(data)
+    }
     setLoading(false)
   }, [])
 
@@ -74,8 +85,10 @@ export default function MisMascotasPage() {
 
         {loading ? (
           <div className="flex justify-center py-24">
-            <FontAwesomeIcon icon={faSpinner} className="text-3xl text-muted-foreground/40 animate-spin" />
+            <Spinner className="text-3xl text-muted-foreground/40" />
           </div>
+        ) : loadError ? (
+          <ErrorState message={t('member.load_error')} onRetry={load} />
         ) : pets.length === 0 ? (
           <div className="flex flex-col items-center justify-center text-center py-24 gap-4">
             <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />

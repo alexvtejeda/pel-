@@ -85,6 +85,7 @@
     "placeholder_description": "e.g. Very playful, good with kids…",
     "my_pets": "My Pets",
     "my_pets_empty": "You haven't added any pets yet. Add your first one to get started.",
+    "load_error": "We couldn't load your pets",
     "add_pet": "Add pet",
     "edit": "Edit",
     "edit_title": "Edit pet",

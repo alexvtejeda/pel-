@@ -85,6 +85,7 @@
     "placeholder_description": "ej. Muy juguetona, buena con niños…",
     "my_pets": "Mis mascotas",
     "my_pets_empty": "Aún no has añadido ninguna mascota. Añade la primera para empezar.",
+    "load_error": "No pudimos cargar tus mascotas",
     "add_pet": "Añadir mascota",
     "edit": "Editar",
     "edit_title": "Editar mascota",
