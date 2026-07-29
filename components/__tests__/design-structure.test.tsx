@@ -106,6 +106,7 @@ describe('PetGrid', () => {
     castratedFilter: false,
     onVaccinatedChange: () => {},
     onCastratedChange: () => {},
+    onRetry: () => {},
   }
 
   it('7 — active filter pill has bg-pop-solid class', () => {

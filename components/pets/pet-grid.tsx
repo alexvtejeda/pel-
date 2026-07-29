@@ -10,6 +10,7 @@ import { Pet } from '@/lib/api/pets'
 import { instagramUrl, ensureUrl } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { PetFilters } from '@/lib/api/pets-public'
+import { ErrorState } from '@/components/ui/error-state'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -40,6 +41,7 @@ interface PetGridProps {
   castratedFilter: boolean
   onVaccinatedChange: (v: boolean) => void
   onCastratedChange: (v: boolean) => void
+  onRetry: () => void
 }
 
 export type { FilterKey }
@@ -56,6 +58,7 @@ export function PetGrid({
   castratedFilter,
   onVaccinatedChange,
   onCastratedChange,
+  onRetry,
 }: PetGridProps) {
   const { t } = useTranslation('pets')
   const [sourceFilter, setSourceFilter] = useState<'all' | 'rc' | 'member'>('all')
@@ -65,6 +68,19 @@ export function PetGrid({
     + (vaccinatedFilter ? 1 : 0)
     + (castratedFilter ? 1 : 0)
     + (sourceFilter !== 'all' ? 1 : 0)
+
+  // Every filter dimension the UI offers lives in the count above — the desktop
+  // pill row and the mobile popover drive the same four pieces of state — so this
+  // is a truthful "the user narrowed something", not just a mobile concern.
+  const hasActiveFilters = mobileFilterCount > 0
+
+  const clearFilters = () => {
+    setSourceFilter('all')
+    onVaccinatedChange(false)
+    onCastratedChange(false)
+    onFilterChange('all', {})
+    setShowMobileFilters(false)
+  }
 
   const handleFilterClick = (f: (typeof FILTERS)[number]) => {
     if (f.key === 'nearby') {
@@ -269,15 +285,22 @@ export function PetGrid({
         )}
 
         {error && !loading && (
-          <div className="flex items-center justify-center h-48 text-destructive">
-            {t('grid.error')}
-          </div>
+          <ErrorState message={t('grid.error')} onRetry={onRetry} />
         )}
 
         {!loading && !error && sourceFiltered.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-48 text-muted-foreground gap-3">
+          <div className="flex flex-col items-center justify-center gap-3 py-16 text-center text-muted-foreground">
             <FontAwesomeIcon icon={faPaw} className="text-4xl opacity-30" />
             <p className="text-sm">{t('grid.empty')}</p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="focus-ring rounded-xl border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+              >
+                {t('grid.clear_filters')}
+              </button>
+            )}
           </div>
         )}
 

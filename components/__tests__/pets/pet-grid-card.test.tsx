@@ -30,6 +30,7 @@ function renderGrid(pets: unknown[], onSelect = vi.fn()) {
       castratedFilter={false}
       onVaccinatedChange={() => {}}
       onCastratedChange={() => {}}
+      onRetry={() => {}}
     />
   )
   return { ...utils, onSelect }

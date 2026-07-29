@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters, listPublicPets } from '@/lib/api/pets-public'
@@ -32,7 +32,13 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
   const [castratedFilter, setCastratedFilter] = useState(false)
 
+  // What the last request actually asked for. Retry has to replay the request
+  // that failed — calling fetchPets() bare would quietly drop the user's filters
+  // and repopulate the grid with pets the active pills say are filtered out.
+  const lastFilters = useRef<PetFilters | undefined>(undefined)
+
   const fetchPets = useCallback(async (filters?: PetFilters) => {
+    lastFilters.current = filters
     setLoading(true)
     setError(null)
     const { data, error: err } = await listPublicPets(filters)
@@ -81,6 +87,10 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     setCastratedFilter(v)
   }, [])
 
+  const handleRetry = useCallback(() => {
+    fetchPets(lastFilters.current)
+  }, [fetchPets])
+
   const handleSelect = useCallback((pet: Pet) => {
     setSelected(pet)
     setOpen(true)
@@ -112,6 +122,7 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           castratedFilter={castratedFilter}
           onVaccinatedChange={handleVaccinatedToggle}
           onCastratedChange={handleCastratedToggle}
+          onRetry={handleRetry}
         />
       </div>
 
