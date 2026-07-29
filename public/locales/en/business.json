@@ -73,6 +73,12 @@
   },
   "aliados": {
     "title": "Partners",
+    "subtitle": "Verified transporters, groomers and sitters for your pet.",
+    "count_one": "{{count}} partner available",
+    "count_other": "{{count}} partners available",
+    "load_error": "We couldn't load the partners",
+    "empty_cta": "Offer a service? Sign up",
+    "clear_filters": "Clear filters",
     "schedule": "Business hours",
     "closed": "Closed",
     "contact": "Contact",

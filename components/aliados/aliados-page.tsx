@@ -61,6 +61,7 @@ export function AliadosPage() {
           error={error}
           selectedId={selected?.id ?? null}
           onSelect={handleSelect}
+          onRetry={fetchProviders}
         />
       </div>
 

@@ -73,6 +73,12 @@
   },
   "aliados": {
     "title": "Aliados",
+    "subtitle": "Transportistas, peluquerías y cuidadores verificados para tu mascota.",
+    "count_one": "{{count}} aliado disponible",
+    "count_other": "{{count}} aliados disponibles",
+    "load_error": "No pudimos cargar los aliados",
+    "empty_cta": "¿Ofreces un servicio? Regístrate",
+    "clear_filters": "Limpiar filtros",
     "schedule": "Horario de atención",
     "closed": "Cerrado",
     "contact": "Contactar",
