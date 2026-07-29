@@ -32,6 +32,12 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
 
+  // `preview` is a prop no call site currently passes; the real signal that we
+  // are not the live adoption form is the absence of onSubmit. Both dashboard
+  // form-builder previews render us without it. Keyed off this, not `preview`,
+  // so the layout branches below are reachable instead of dead.
+  const isPreview = preview || !onSubmit
+
   const setAnswer = (id: string, value: string | string[]) =>
     setAnswers(prev => ({ ...prev, [id]: value }))
 
@@ -55,7 +61,8 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
   }
 
   const handleSubmit = async () => {
-    if (preview || !onSubmit) return
+    // The `!onSubmit` half is redundant at runtime but narrows the type below.
+    if (isPreview || !onSubmit) return
     if (!validate()) return
     setSubmitting(true)
     setSubmitError(null)
@@ -122,10 +129,10 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
     // The /adopt page already supplies `max-w-2xl mx-auto px-4 py-8`, so the
     // live form only needs the vertical rhythm. The dashboard previews wrap us
     // in a bare bordered box with no padding of their own, hence the split.
-    <div className={preview ? 'max-w-2xl mx-auto px-4 py-8 space-y-6' : 'space-y-6'}>
+    <div className={isPreview ? 'max-w-2xl mx-auto px-4 py-8 space-y-6' : 'space-y-6'}>
       <h1 className="text-2xl font-bold">{form.name}</h1>
 
-      {!preview && requiredFields.length > 0 && (
+      {!isPreview && requiredFields.length > 0 && (
         // top-40 matches the h-40 banner /adopt pins above this form.
         <div className="sticky top-40 z-10 -mx-4 bg-background/90 px-4 py-2 backdrop-blur">
           <div
@@ -175,7 +182,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
         </section>
       ))}
 
-      {!preview && (
+      {!isPreview && (
         <div className="pt-4">
           {submitError && (
             <div className="mb-4 p-4 bg-destructive/10 border border-destructive/30 rounded-2xl text-destructive text-sm animate-wiggle">

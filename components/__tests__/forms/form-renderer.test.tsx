@@ -148,8 +148,10 @@ describe('FormRenderer — progress indicator', () => {
     field({ id: 'c', label: 'Comentario', section: 'Sobre ti' }),
   ])
 
+  // onSubmit is what marks us as the live /adopt form rather than a builder
+  // preview, and only the live form gets a progress bar.
   it('counts only required questions and updates as they are answered', () => {
-    renderWithProviders(<FormRenderer form={twoRequired} rc={RC} />)
+    renderWithProviders(<FormRenderer form={twoRequired} rc={RC} onSubmit={async () => {}} />)
 
     const bar = screen.getByRole('progressbar')
     expect(bar).toHaveAttribute('aria-valuenow', '0')
@@ -168,7 +170,7 @@ describe('FormRenderer — progress indicator', () => {
   })
 
   it('does not count a required field answered with only whitespace', () => {
-    renderWithProviders(<FormRenderer form={twoRequired} rc={RC} />)
+    renderWithProviders(<FormRenderer form={twoRequired} rc={RC} onSubmit={async () => {}} />)
 
     fireEvent.change(screen.getAllByRole('textbox')[0], { target: { value: '   ' } })
 
@@ -178,7 +180,11 @@ describe('FormRenderer — progress indicator', () => {
 
   it('renders no progress bar when the form has no required questions', () => {
     renderWithProviders(
-      <FormRenderer form={makeForm([field({ id: 'a', label: 'Opcional' })])} rc={RC} />
+      <FormRenderer
+        form={makeForm([field({ id: 'a', label: 'Opcional' })])}
+        rc={RC}
+        onSubmit={async () => {}}
+      />
     )
 
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
@@ -192,6 +198,61 @@ describe('FormRenderer — progress indicator', () => {
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     // The cards themselves still apply in preview — that is the intended change.
     expect(cards(container)).toHaveLength(1)
+  })
+})
+
+/*
+  No call site passes `preview`; both dashboard form-builder previews render
+  <FormRenderer form rc /> with no onSubmit, inside a bordered `overflow-hidden`
+  box that supplies no padding of its own. onSubmit is therefore the real
+  discriminator, and these tests pin that contract by prop shape rather than by
+  driving `preview` directly — which is why the old tests never caught it.
+*/
+describe('FormRenderer — live form vs builder preview', () => {
+  const oneRequired = makeForm([
+    field({ id: 'a', label: 'Nombre', required: true, section: 'Sobre ti' }),
+  ])
+
+  const rootOf = (container: HTMLElement) => container.firstElementChild as HTMLElement
+
+  it('supplies its own padding and drops live-form chrome without onSubmit', () => {
+    const { container } = renderWithProviders(<FormRenderer form={oneRequired} rc={RC} />)
+
+    const root = rootOf(container)
+    for (const token of ['max-w-2xl', 'mx-auto', 'px-4', 'py-8']) {
+      expect(root.className, `preview root should carry ${token}`).toContain(token)
+    }
+
+    // The sticky bar bleeds -mx-4 and pins 160px from the viewport top, which
+    // is meaningless inside a dashboard panel.
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    // The button could never do anything here — handleSubmit early-returns.
+    expect(screen.queryByRole('button', { name: /Enviar solicitud/ })).not.toBeInTheDocument()
+  })
+
+  it('leaves padding to the page and shows live-form chrome with onSubmit', () => {
+    const { container } = renderWithProviders(
+      <FormRenderer form={oneRequired} rc={RC} onSubmit={async () => {}} />
+    )
+
+    // /adopt already wraps us in `max-w-2xl mx-auto px-4 py-8`; repeating it
+    // here would inset and cap the form twice.
+    const root = rootOf(container)
+    for (const token of ['max-w-2xl', 'mx-auto', 'px-4', 'py-8']) {
+      expect(root.className, `live root should not repeat ${token}`).not.toContain(token)
+    }
+
+    expect(screen.getByRole('progressbar')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Enviar solicitud/ })).toBeInTheDocument()
+  })
+
+  it('still honours an explicit preview prop even when onSubmit is passed', () => {
+    const { container } = renderWithProviders(
+      <FormRenderer form={oneRequired} rc={RC} preview onSubmit={async () => {}} />
+    )
+
+    expect(rootOf(container).className).toContain('px-4')
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 })
 
