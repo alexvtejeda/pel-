@@ -52,6 +52,21 @@ describe('MisMascotasPage', () => {
   })
 
   /*
+    The add-pet button is gated on pets.length > 0, so the error branch would
+    otherwise leave the user with Reintentar and nothing else. A failed GET does
+    not imply a failed POST — the two calls are independent. This button lives in
+    the page body, not in the stubbed PetsHeader, so the assertion is real.
+  */
+  it('keeps the add-pet button reachable in the error state', async () => {
+    mockList.mockResolvedValue({ data: null, error: 'Error de conexión' })
+
+    renderWithProviders(<MisMascotasPage />)
+    await screen.findByText('No pudimos cargar tus mascotas')
+
+    expect(screen.getByRole('button', { name: /Añadir mascota/ })).toBeInTheDocument()
+  })
+
+  /*
     The retry resolves with a REAL pet, not an empty list. Asserting the empty
     state here would pass against a broken `onRetry` that only cleared the error
     flag without refetching — `pets` is already [] at that point, so a working

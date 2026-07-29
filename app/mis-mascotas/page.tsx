@@ -75,7 +75,10 @@ export default function MisMascotasPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold">{t('member.my_pets')}</h1>
-          {pets.length > 0 && (
+          {/* `|| loadError`: the error branch has no add button of its own, and a
+              failed GET does not imply a failed POST — don't strand the user on
+              Reintentar when all they wanted was to add a pet. */}
+          {(pets.length > 0 || loadError) && (
             <Button onClick={openCreate}>
               <FontAwesomeIcon icon={faPlus} className="text-xs mr-1.5" />
               {t('member.add_pet')}
