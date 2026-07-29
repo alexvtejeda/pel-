@@ -42,14 +42,21 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
   const setAnswer = (id: string, value: string | string[]) =>
     setAnswers(prev => ({ ...prev, [id]: value }))
 
+  // A file selection lives in `files`, never in `answers`, so "answered" has to
+  // look in both. Shared by validate() and the progress counter below — when
+  // only `answers` was consulted, a required file question could never be
+  // satisfied and blocked submission outright.
+  const isAnswered = (field: FormField): boolean => {
+    if (files[field.id]) return true
+    const answer = answers[field.id]
+    return Array.isArray(answer) ? answer.length > 0 : typeof answer === 'string' && answer.trim() !== ''
+  }
+
   const validate = (): boolean => {
     const newErrors: Record<string, string> = {}
     for (const field of form.fields) {
       if (!field.required) continue
-      const ans = answers[field.id]
-      if (!ans || (Array.isArray(ans) ? ans.length === 0 : ans.trim() === '')) {
-        newErrors[field.id] = t('forms.required_error')
-      }
+      if (!isAnswered(field)) newErrors[field.id] = t('forms.required_error')
     }
     setErrors(newErrors)
     if (Object.keys(newErrors).length > 0) {
@@ -91,10 +98,7 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
   }, [form.fields])
 
   const requiredFields = useMemo(() => form.fields.filter(f => f.required), [form.fields])
-  const answeredRequired = requiredFields.filter(f => {
-    const answer = answers[f.id]
-    return Array.isArray(answer) ? answer.length > 0 : typeof answer === 'string' && answer.trim() !== ''
-  }).length
+  const answeredRequired = requiredFields.filter(f => isAnswered(f)).length
   const progressPct = requiredFields.length === 0
     ? 100
     : Math.round((answeredRequired / requiredFields.length) * 100)

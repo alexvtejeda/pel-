@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, within } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
 import { FormRenderer } from '@/components/forms/form-renderer'
+import { RouteTransitionProvider } from '@/components/transitions/route-transition-context'
 import type { Form, FormField } from '@/lib/api/forms'
 
 /*
@@ -57,6 +58,20 @@ const describedTexts = (el: Element) =>
 
 const submit = () =>
   fireEvent.click(screen.getByRole('button', { name: /Enviar solicitud/ }))
+
+/*
+  The dropzone's real <input type=file> is `hidden` and named only through the
+  field's <label>, which also matches the zone <button> — so there is no
+  unambiguous accessible query for it. Its id is the handle, the same one
+  components/__tests__/adopt/adopt-pet-page.test.tsx drives.
+*/
+const attachFile = (fieldId: string) => {
+  const input = document.getElementById(`file-input-${fieldId}`) as HTMLInputElement | null
+  if (!input) throw new Error(`no file input rendered for field ${fieldId}`)
+  fireEvent.change(input, {
+    target: { files: [new File(['x'], 'cedula.pdf', { type: 'application/pdf' })] },
+  })
+}
 
 describe('FormRenderer — section grouping', () => {
   it('puts consecutive fields sharing a section into one card', () => {
@@ -366,6 +381,73 @@ describe('FormRenderer — file upload', () => {
 
     expect(container.querySelector('input[type="file"]')).toBeNull()
     expect(container.querySelector('label[for]')).toBeNull()
+  })
+})
+
+/*
+  A file selection is held in `files`, not `answers`. validate() and the
+  progress counter both used to read `answers` alone, so a required file
+  question was unsatisfiable: attaching the file changed nothing either could
+  see, submit was blocked forever and the bar could never reach 100%.
+*/
+describe('FormRenderer — required file questions', () => {
+  const requiredFile = makeForm([
+    field({ id: 'f', label: 'Comprobante', type: 'file_upload', required: true }),
+  ])
+
+  it('lets the form submit once the required file is attached', async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    // The success screen links back to /pets with a TransitionLink, which
+    // throws outside the provider the root layout wraps every route in.
+    renderWithProviders(
+      <RouteTransitionProvider>
+        <FormRenderer form={requiredFile} rc={RC} onSubmit={onSubmit} />
+      </RouteTransitionProvider>
+    )
+
+    attachFile('f')
+    submit()
+
+    // Reaching the success screen is the proof that validate() let it through.
+    expect(await screen.findByText('¡Solicitud enviada!')).toBeInTheDocument()
+    expect(screen.queryByText('Este campo es obligatorio')).not.toBeInTheDocument()
+    // The file still travels in the files map, not as an answer.
+    expect(onSubmit).toHaveBeenCalledWith({}, { f: expect.any(File) })
+  })
+
+  it('still blocks submit while the required file is missing', () => {
+    const onSubmit = vi.fn()
+    renderWithProviders(<FormRenderer form={requiredFile} rc={RC} onSubmit={onSubmit} />)
+
+    submit()
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent('Este campo es obligatorio')
+  })
+
+  it('counts an attached file toward the progress total', () => {
+    renderWithProviders(
+      <FormRenderer
+        form={makeForm([
+          field({ id: 't', label: 'Nombre', required: true }),
+          field({ id: 'f', label: 'Comprobante', type: 'file_upload', required: true }),
+        ])}
+        rc={RC}
+        onSubmit={async () => {}}
+      />
+    )
+
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+    expect(screen.getByText('0 de 2 preguntas obligatorias')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: 'Ana' } })
+    expect(screen.getByText('1 de 2 preguntas obligatorias')).toBeInTheDocument()
+
+    attachFile('f')
+
+    // Before the fix this stayed at 1 of 2 no matter what the user attached.
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '2')
+    expect(screen.getByText('2 de 2 preguntas obligatorias')).toBeInTheDocument()
   })
 })
 
