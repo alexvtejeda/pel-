@@ -3,9 +3,10 @@
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowUpFromBracket, faPaw } from '@fortawesome/free-solid-svg-icons'
+import { faPaw } from '@fortawesome/free-solid-svg-icons'
 import { Form, FormField, FieldType } from '@/lib/api/forms'
 import { TransitionLink } from '@/components/transitions/transition-link'
+import { FileDropzone } from '@/components/ui/file-dropzone'
 
 type Answers = Record<string, string | string[]>
 type FileMap = Record<string, File>
@@ -338,23 +339,17 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
         </div>
       )}
       {field.type === 'file_upload' && !preview && (
-        <div
-          className="rounded-xl border border-dashed border-input p-6 text-center cursor-pointer hover:border-pop-550/50 transition-colors"
-          onClick={() => document.getElementById(`file-input-${field.id}`)?.click()}
-        >
-          <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-2xl text-muted-foreground/40 mb-2" />
-          <p className="text-sm text-muted-foreground">
-            {fileValue ? fileValue.name : t('forms.attach_file')}
-          </p>
-          <p className="text-xs text-muted-foreground/60 mt-1">{t('forms.attach_hint')}</p>
-          <input
-            id={`file-input-${field.id}`}
-            type="file"
-            accept="image/png,image/jpeg,image/webp,.pdf"
-            className="hidden"
-            onChange={e => { if (e.target.files?.[0]) onFile(e.target.files[0]) }}
-          />
-        </div>
+        <FileDropzone
+          accept="image/png,image/jpeg,image/webp,.pdf"
+          label={t('forms.attach_file')}
+          hint={t('forms.attach_hint')}
+          selectedName={fileValue?.name ?? null}
+          onFiles={list => { if (list[0]) onFile(list[0]) }}
+          // Keeps the field's <label htmlFor> pointing at the real control, so
+          // it stays announced and still opens the picker when clicked.
+          inputId={`file-input-${field.id}`}
+          aria-labelledby={`label-${field.id}`}
+        />
       )}
 
       {error && <p id={errorId} role="alert" className="text-xs text-destructive">{error}</p>}

@@ -336,6 +336,39 @@ describe('FormRenderer — label association', () => {
   })
 })
 
+/*
+  The label[for] walker above already proves the file field's label resolves to
+  *something*. These pin the two things the FileDropzone swap could quietly
+  break: that the something is still the real <input type=file> (so clicking the
+  label opens the picker), and that the zone itself is a focusable <button>
+  rather than the <div onClick> it replaced.
+*/
+describe('FormRenderer — file upload', () => {
+  const fileForm = makeForm([field({ id: 'f', label: 'Comprobante', type: 'file_upload' })])
+
+  it('keeps the label on the real input and makes the zone a button', () => {
+    renderWithProviders(<FormRenderer form={fileForm} rc={RC} onSubmit={async () => {}} />)
+
+    const named = screen.getAllByLabelText('Comprobante')
+    const input = named.find(el => el.tagName === 'INPUT') as HTMLInputElement | undefined
+    const zone = named.find(el => el.tagName === 'BUTTON')
+
+    expect(input?.type).toBe('file')
+    expect(input?.id).toBe('file-input-f')
+    expect(zone).toBeInTheDocument()
+    expect(zone).toHaveAttribute('type', 'button')
+  })
+
+  it('leaves no dangling label when the zone is hidden in preview', () => {
+    const { container } = renderWithProviders(
+      <FormRenderer form={fileForm} rc={RC} preview />
+    )
+
+    expect(container.querySelector('input[type="file"]')).toBeNull()
+    expect(container.querySelector('label[for]')).toBeNull()
+  })
+})
+
 describe('FormRenderer — option rows', () => {
   it('makes the whole option row clickable and at least 44px tall', () => {
     renderWithProviders(

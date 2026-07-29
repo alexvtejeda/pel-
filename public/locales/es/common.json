@@ -7,6 +7,10 @@
     "title": "No pudimos cargar esto",
     "retry": "Reintentar"
   },
+  "dropzone": {
+    "activate": "Seleccionar archivo",
+    "remove": "Quitar archivo"
+  },
   "success": "Éxito",
   "cancel": "Cancelar",
   "confirm": "Confirmar",

@@ -7,6 +7,10 @@
     "title": "We couldn't load this",
     "retry": "Try again"
   },
+  "dropzone": {
+    "activate": "Choose file",
+    "remove": "Remove file"
+  },
   "success": "Success",
   "cancel": "Cancel",
   "confirm": "Confirm",
