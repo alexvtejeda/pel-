@@ -322,6 +322,8 @@
     "section_delete": "Eliminar sección",
     "empty_builder": "Agrega un campo para empezar",
     "untitled_form": "Formulario sin título",
+    "progress": "{{answered}} de {{total}} preguntas obligatorias",
+    "section_untitled": "Tu solicitud",
     "select_placeholder": "Selecciona...",
     "attach_file": "Adjuntar archivo",
     "attach_hint": "PNG, JPG, WEBP o PDF · max 10MB",

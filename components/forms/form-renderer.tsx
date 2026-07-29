@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowUpFromBracket, faPaw } from '@fortawesome/free-solid-svg-icons'
@@ -69,6 +69,29 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
     }
   }
 
+  // Group consecutive fields by their section so each becomes one card. The
+  // builder emits section as a plain string on each field, not as a container.
+  const sections = useMemo(() => {
+    const groups: { name: string; fields: FormField[] }[] = []
+    for (const field of form.fields) {
+      const name = field.section || ''
+      const last = groups[groups.length - 1]
+      if (last && last.name === name) last.fields.push(field)
+      else groups.push({ name, fields: [field] })
+    }
+    return groups
+  }, [form.fields])
+
+  const requiredFields = useMemo(() => form.fields.filter(f => f.required), [form.fields])
+  const answeredRequired = requiredFields.filter(f => {
+    const answer = answers[f.id]
+    return Array.isArray(answer) ? answer.length > 0 : typeof answer === 'string' && answer.trim() !== ''
+  }).length
+  const progressPct = requiredFields.length === 0
+    ? 100
+    : Math.round((answeredRequired / requiredFields.length) * 100)
+
+  // Hooks must run on every render, so the success screen returns below them.
   if (submitted) {
     return (
       <div className="text-center py-12 space-y-4">
@@ -95,27 +118,46 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
     )
   }
 
-  let lastSection = ''
-
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    // The /adopt page already supplies `max-w-2xl mx-auto px-4 py-8`, so the
+    // live form only needs the vertical rhythm. The dashboard previews wrap us
+    // in a bare bordered box with no padding of their own, hence the split.
+    <div className={preview ? 'max-w-2xl mx-auto px-4 py-8 space-y-6' : 'space-y-6'}>
       <h1 className="text-2xl font-bold">{form.name}</h1>
 
-      {form.fields.map(field => {
-        const showSectionHeader = field.section && field.section !== lastSection
-        if (field.section) lastSection = field.section
+      {!preview && requiredFields.length > 0 && (
+        // top-40 matches the h-40 banner /adopt pins above this form.
+        <div className="sticky top-40 z-10 -mx-4 bg-background/90 px-4 py-2 backdrop-blur">
+          <div
+            role="progressbar"
+            aria-valuenow={answeredRequired}
+            aria-valuemin={0}
+            aria-valuemax={requiredFields.length}
+            aria-label={t('forms.progress', { answered: answeredRequired, total: requiredFields.length })}
+            className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+          >
+            <div
+              className="h-full rounded-full bg-pop-solid transition-[width] duration-300 ease-out"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            {t('forms.progress', { answered: answeredRequired, total: requiredFields.length })}
+          </p>
+        </div>
+      )}
 
-        return (
-          <div key={field.id}>
-            {showSectionHeader && (
-              <div className="flex items-center gap-3 mt-6 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  {field.section}
-                </span>
-                <div className="flex-1 border-t border-border" />
-              </div>
-            )}
+      {sections.map((section, sectionIndex) => (
+        <section
+          key={`${section.name}-${sectionIndex}`}
+          className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6"
+        >
+          <h2 className="text-base font-semibold">
+            {section.name || t('forms.section_untitled')}
+          </h2>
+          {section.fields.map(field => (
             <FieldInput
+              key={field.id}
               field={field}
               value={answers[field.id]}
               fileValue={files[field.id]}
@@ -126,9 +168,9 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
               allAnswers={answers}
               onAnswerChange={setAnswer}
             />
-          </div>
-        )
-      })}
+          ))}
+        </section>
+      ))}
 
       {!preview && (
         <div className="pt-4">

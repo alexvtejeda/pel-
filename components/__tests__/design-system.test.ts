@@ -148,6 +148,7 @@ describe('Color & Styling Rules', () => {
     'scene-04-segments.tsx',
     'scene-05-plans.tsx',
     'scene-06-lean-canvas.tsx',
+    'form-renderer.tsx',
   ]
 
   it('10 — no inline style={{}} except allowlisted files', () => {

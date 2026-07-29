@@ -322,6 +322,8 @@
     "section_delete": "Delete section",
     "empty_builder": "Add a field to get started",
     "untitled_form": "Untitled form",
+    "progress": "{{answered}} of {{total}} required questions",
+    "section_untitled": "Your application",
     "select_placeholder": "Select...",
     "attach_file": "Attach file",
     "attach_hint": "PNG, JPG, WEBP or PDF · max 10MB",
