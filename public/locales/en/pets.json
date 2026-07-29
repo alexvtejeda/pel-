@@ -175,7 +175,12 @@
     "back_to_list": "Back to conversations",
     "attach": "Attach",
     "message_label": "Message",
-    "no_messages": "No messages"
+    "no_messages": "No messages",
+    "load_error": "We couldn't load your conversations",
+    "empty_hint": "When a rescue centre approves your application, you'll be able to chat here.",
+    "empty_cta": "Browse pets",
+    "select_conversation": "Pick a conversation to get started",
+    "thread_error": "We couldn't load these messages"
   },
   "notifications": {
     "title": "Notifications",

@@ -1,11 +1,14 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCircleUser, faComments, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCircleUser, faComments } from '@fortawesome/free-solid-svg-icons'
 import { listConversations, Conversation } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
+import { ErrorState } from '@/components/ui/error-state'
+import { Spinner } from '@/components/ui/spinner'
+import { TransitionLink } from '@/components/transitions/transition-link'
 
 interface ChatConversationListProps {
   onSelectConversation: (conversation: Conversation) => void
@@ -21,16 +24,32 @@ export default function ChatConversationList({ onSelectConversation, activeConve
   const { subscribe } = useWebSocket()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
 
-  useEffect(() => {
-    let cancelled = false
-    listConversations().then(({ data }) => {
-      if (cancelled) return
-      if (data) setConversations(data)
-      setLoading(false)
-    })
-    return () => { cancelled = true }
+  /*
+    No `cancelled` flag: `load` has no dependencies, so the effect runs once per
+    mount and the old cleanup only guarded a StrictMode double-invoke that now
+    re-runs the same idempotent fetch.
+  */
+  const load = useCallback(() => {
+    setLoading(true)
+    setLoadError(false)
+    listConversations()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setLoadError(true)
+        } else {
+          setConversations(data)
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        setLoadError(true)
+        setLoading(false)
+      })
   }, [])
+
+  useEffect(() => { load() }, [load])
 
   // Subscribe to new_message to update last message + unread count live
   useEffect(() => {
@@ -94,16 +113,29 @@ export default function ChatConversationList({ onSelectConversation, activeConve
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <FontAwesomeIcon icon={faSpinner} className={`text-2xl animate-spin ${darkBg ? 'text-sidebar-foreground' : 'text-muted-foreground'}`} />
+        <Spinner className={`text-2xl ${darkBg ? 'text-sidebar-foreground' : 'text-muted-foreground'}`} />
       </div>
     )
   }
 
+  if (loadError) {
+    return <ErrorState message={t('chat.load_error')} onRetry={load} />
+  }
+
   if (conversations.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 gap-3">
+      <div className="flex flex-col items-center justify-center py-16 gap-3 px-6 text-center">
         <FontAwesomeIcon icon={faComments} className={`text-4xl ${darkBg ? 'text-sidebar-foreground/30' : 'text-muted-foreground/30'}`} />
         <p className={`text-sm ${darkBg ? 'text-sidebar-foreground/60' : 'text-muted-foreground'}`}>{t('chat.empty')}</p>
+        <p className={`text-xs ${darkBg ? 'text-sidebar-foreground/50' : 'text-muted-foreground/70'} max-w-[15rem]`}>
+          {t('chat.empty_hint')}
+        </p>
+        <TransitionLink
+          href="/pets"
+          className="focus-ring rounded-xl border border-input px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          {t('chat.empty_cta')}
+        </TransitionLink>
       </div>
     )
   }

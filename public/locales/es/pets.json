@@ -175,7 +175,12 @@
     "back_to_list": "Volver a conversaciones",
     "attach": "Adjuntar",
     "message_label": "Mensaje",
-    "no_messages": "Sin mensajes"
+    "no_messages": "Sin mensajes",
+    "load_error": "No pudimos cargar tus conversaciones",
+    "empty_hint": "Cuando un centro apruebe tu solicitud, podrás chatear aquí.",
+    "empty_cta": "Ver mascotas",
+    "select_conversation": "Selecciona una conversación para empezar",
+    "thread_error": "No pudimos cargar los mensajes"
   },
   "notifications": {
     "title": "Notificaciones",
