@@ -21,8 +21,10 @@ const mockTotpSetup = vi.mocked(totpSetup)
 
 const BREADCRUMBS = [{ label: 'Seguridad', current: true }]
 
-function renderEnrollment(onComplete = vi.fn()) {
-  renderWithProviders(<MfaEnrollment onComplete={onComplete} breadcrumbItems={BREADCRUMBS} />)
+function renderEnrollment(onComplete = vi.fn(), onSkip?: () => void) {
+  renderWithProviders(
+    <MfaEnrollment onComplete={onComplete} onSkip={onSkip} breadcrumbItems={BREADCRUMBS} />
+  )
   return onComplete
 }
 
@@ -81,7 +83,7 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
 
   it('surfaces a translated error toast and re-enables the cards when emailEnable fails', async () => {
     mockEmailEnable.mockResolvedValueOnce({ data: null, error: 'mfa.errors.email_enable' })
-    renderEnrollment()
+    const onComplete = renderEnrollment()
 
     fireEvent.click(methodCard(EMAIL))
 
@@ -96,6 +98,8 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     expect(methodCard(TOTP)).toBeEnabled()
     expect(methodCard(PASSKEY)).toBeEnabled()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    // A failed enable must never fall through to the success path.
+    expect(onComplete).not.toHaveBeenCalled()
   })
 
   it('shows a backend-authored error message verbatim', async () => {
@@ -114,7 +118,7 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     // instead of resolving { data, error }. Without a catch the card would stay
     // pending forever — the same silent failure this fix exists to remove.
     mockEmailEnable.mockRejectedValueOnce(new TypeError('Failed to fetch'))
-    renderEnrollment()
+    const onComplete = renderEnrollment()
 
     fireEvent.click(methodCard(EMAIL))
 
@@ -124,6 +128,9 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     expect(methodCard(EMAIL)).toBeEnabled()
     expect(methodCard(TOTP)).toBeEnabled()
     expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    // handleSuccess() sits after the try/catch, so the catch has to return —
+    // otherwise a rejected enable would fall through and complete enrollment.
+    expect(onComplete).not.toHaveBeenCalled()
   })
 
   it('advances to the recovery codes on success instead of toasting', async () => {
@@ -151,6 +158,46 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
       expect(onComplete).toHaveBeenCalledTimes(1)
     })
     expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('locks the skip button while an enable is in flight so the recovery codes still render', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof emailEnable>>>()
+    mockEmailEnable.mockReturnValueOnce(pending.promise)
+    const onSkip = vi.fn()
+    renderEnrollment(vi.fn(), onSkip)
+
+    const skip = screen.getByRole('button', { name: 'Omitir por ahora' })
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(skip).toBeDisabled()
+    })
+    // In the settings tabs onSkip closes the panel, unmounting MfaEnrollment. A
+    // mid-flight skip would drop the one-time recovery codes on the floor.
+    fireEvent.click(skip)
+    expect(onSkip).not.toHaveBeenCalled()
+
+    pending.resolve({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    await waitFor(() => {
+      expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
+    })
+  })
+
+  it('re-enables the skip button once a failed enable settles', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: null, error: 'mfa.errors.email_enable' })
+    const onSkip = vi.fn()
+    renderEnrollment(vi.fn(), onSkip)
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled()
+    })
+    // The lock is for the pending window only — it must not strand the escape hatch.
+    const skip = screen.getByRole('button', { name: 'Omitir por ahora' })
+    expect(skip).toBeEnabled()
+    fireEvent.click(skip)
+    expect(onSkip).toHaveBeenCalledTimes(1)
   })
 
   it('opens the configure screen for a non-email method without calling emailEnable', async () => {

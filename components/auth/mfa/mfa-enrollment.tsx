@@ -51,21 +51,27 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
     // Email OTP has no configure screen — it enables in place, so the card
     // itself has to carry the pending and failure feedback.
     setPendingMethod('email')
+    let codes: string[] | undefined
     try {
       const { data, error } = await mfaApi.emailEnable()
       if (error) {
         toast.error(resolveError(error) ?? t('mfa.errors.generic'))
         return
       }
-      handleSuccess(data?.recovery_codes)
+      codes = data?.recovery_codes
     } catch {
       // lib/api/mfa.ts awaits res.json() unguarded, so an unreachable API
       // rejects rather than resolving { data, error }.
       toast.error(t('mfa.errors.generic'))
+      return
     } finally {
       // Always clears, so a failure can never leave every card disabled.
       setPendingMethod(null)
     }
+
+    // Deliberately outside the try: handleSuccess calls the caller's
+    // onComplete(), and a throw from there is not a failed enable.
+    handleSuccess(codes)
   }
 
   if (recoveryCodes) {
@@ -146,7 +152,8 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
           {onSkip && (
             <button
               onClick={onSkip}
-              className="focus-ring w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors"
+              disabled={pendingMethod !== null}
+              className="focus-ring w-full text-center text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-60"
             >
               {t('mfa.enrollment.skip')}
             </button>
