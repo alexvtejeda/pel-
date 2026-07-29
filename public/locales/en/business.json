@@ -105,6 +105,7 @@
   "service_providers": {
     "title": "Offer my services",
     "nav_entry": "Offer my services",
+    "subtitle": "Register as a Pelú partner and appear in the directory every adopter sees.",
     "intro": "Register as a provider and appear in Pelú's partner directory. An administrator will review your application.",
     "description_label": "Describe your services",
     "description_placeholder": "I care for and walk dogs in the Naco area...",
@@ -129,6 +130,7 @@
     "load_error": "We couldn't load your provider profile",
     "pending_title": "Application under review",
     "pending_body": "An administrator is reviewing your application. We'll notify you when there's a decision.",
+    "pending_next": "This usually takes 1–2 business days. We'll notify you.",
     "active_title": "Your provider profile",
     "active_body": "Your profile is active and visible in the partner directory.",
     "rejected_title": "Application rejected",
