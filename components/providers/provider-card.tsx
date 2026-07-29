@@ -8,11 +8,13 @@ import Image from 'next/image'
 
 interface ProviderCardProps {
   provider: UnifiedProvider
+  selected?: boolean
   onClick: () => void
 }
 
-export function ProviderCard({ provider, onClick }: ProviderCardProps) {
-  const { t } = useTranslation('business')
+export function ProviderCard({ provider, selected = false, onClick }: ProviderCardProps) {
+  const { t, i18n } = useTranslation('business')
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
 
   const initials = provider.name
     .split(' ')
@@ -21,23 +23,41 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
     .join('')
     .toUpperCase()
 
+  // Prices are DOP. Intl gives "RD$1,500" in es-DO instead of a hand-rolled
+  // "RD$" prefix over a browser-locale toLocaleString().
+  const price = provider.price != null
+    ? new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'DOP',
+        maximumFractionDigits: 0,
+      }).format(provider.price)
+    : t('provider.price_unavailable')
+
+  /*
+    Selection ring is pop-solid (pop-800), not pop-550: a state indicator has to
+    clear WCAG 1.4.11's 3:1, and pop-550 measures 2.27:1 on the light card.
+    pop-800 is 5.54:1 light / 3.70:1 dark, and staying off pop-700 keeps
+    "selected" visually distinct from the focus-ring's pop-700 outline.
+  */
+  const ring = selected ? 'outline-2 outline-offset-2 outline-pop-solid' : ''
+
   return (
     <button
       onClick={onClick}
-      className="focus-ring w-full text-left rounded-xl border bg-card p-4 space-y-3 hover:bg-muted/50 transition-colors cursor-pointer"
+      className={`focus-ring w-full text-left rounded-2xl border bg-card p-4 space-y-3 transition-colors hover:bg-muted/50 ${ring}`}
     >
       {/* Header: photo/initials + name + trust badge */}
       <div className="flex items-center gap-3">
         {provider.cover_photo_url ? (
           <Image
             src={provider.cover_photo_url}
-            alt={provider.name}
+            alt=""
             width={48}
             height={48}
-            className="rounded-full object-cover w-12 h-12"
+            className="rounded-full object-cover w-12 h-12 shrink-0"
           />
         ) : (
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-background">
+          <div aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-background">
             {initials}
           </div>
         )}
@@ -45,7 +65,7 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
           <h3 className="font-semibold text-sm truncate">{provider.name}</h3>
           <div className="flex items-center gap-1.5 mt-0.5">
             <FontAwesomeIcon icon={faShieldHalved} className="text-xs text-success" />
-            <span className="text-xs text-success">
+            <span className="text-xs text-success truncate">
               {provider.type === 'business'
                 ? t('provider.business_verified')
                 : t('provider.member_verified')}
@@ -54,15 +74,22 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
         </div>
       </div>
 
-      {/* Service badges */}
+      {/* Description snippet */}
+      {provider.description && (
+        <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+          {provider.description}
+        </p>
+      )}
+
+      {/* Service badges — rounded-full chips, matching /pets */}
       {provider.services.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {provider.services.map(service => (
             <span
               key={service}
-              className="text-xs px-2 py-0.5 rounded-xl bg-primary/10 text-primary font-medium"
+              className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
             >
-              {service}
+              {t(`service_providers.services.${service}`, { defaultValue: service })}
             </span>
           ))}
         </div>
@@ -71,11 +98,7 @@ export function ProviderCard({ provider, onClick }: ProviderCardProps) {
       {/* Price */}
       <div className="flex items-center gap-1.5">
         <FontAwesomeIcon icon={faBriefcase} className="text-xs text-muted-foreground" />
-        <span className="text-sm font-medium">
-          {provider.price != null
-            ? `RD$${provider.price.toLocaleString()}`
-            : t('provider.price_unavailable')}
-        </span>
+        <span className="text-sm font-medium">{price}</span>
       </div>
     </button>
   )

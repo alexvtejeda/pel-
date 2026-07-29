@@ -128,6 +128,15 @@ describe('ProviderGrid', () => {
     expect(container.querySelector('[aria-live="polite"]')).toHaveTextContent('1 aliado disponible')
   })
 
+  // pop-solid, not pop-550: a selection indicator has to clear WCAG 1.4.11's 3:1
+  // and pop-550 is 2.27:1 on the light card.
+  it('rings only the selected card, in an AA-safe colour', () => {
+    renderWithProviders(<ProviderGrid {...baseProps} selectedId="2" />)
+
+    expect(screen.getByRole('button', { name: /Baños Luna/ })).toHaveClass('outline-pop-solid')
+    expect(screen.getByRole('button', { name: /Transporte RD/ })).not.toHaveClass('outline-pop-solid')
+  })
+
   it('does not add a second banner landmark on top of the public header', () => {
     const { container } = renderWithProviders(<ProviderGrid {...baseProps} />)
     expect(container.querySelector('header')).toBeNull()
