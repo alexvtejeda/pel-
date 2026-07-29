@@ -331,6 +331,7 @@
   "adopt": {
     "back_to": "Volver a {{name}}",
     "advisory": "Esta mascota tiene condiciones especiales. El centro revisará tu solicitud con atención adicional.",
+    "load_error": "No pudimos cargar esta solicitud. Revisa tu conexión e inténtalo de nuevo.",
     "submit_error": "Error al enviar solicitud"
   },
   "detail": {

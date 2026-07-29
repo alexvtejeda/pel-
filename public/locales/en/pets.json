@@ -331,6 +331,7 @@
   "adopt": {
     "back_to": "Back to {{name}}",
     "advisory": "This pet has special conditions. The center will review your application with additional attention.",
+    "load_error": "We couldn't load this application. Check your connection and try again.",
     "submit_error": "Error submitting application"
   },
   "detail": {

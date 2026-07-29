@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
@@ -10,6 +10,8 @@ import { Pet } from '@/lib/api/pets'
 import { getPublicPet, getPetForm, PetFormResponse } from '@/lib/api/pets-public'
 import { submitAdoptionForm, uploadSubmissionFile } from '@/lib/api/submissions'
 import { FormRenderer } from '@/components/forms/form-renderer'
+import { ErrorState } from '@/components/ui/error-state'
+import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 import { useAuth } from '@/lib/contexts/auth-context'
 
 export function AdoptPetPage({ petId }: { petId: string }) {
@@ -21,6 +23,37 @@ export function AdoptPetPage({ petId }: { petId: string }) {
   const [formData, setFormData] = useState<PetFormResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [loadFailed, setLoadFailed] = useState(false)
+
+  const load = useCallback(() => {
+    setLoading(true)
+    setLoadFailed(false)
+
+    Promise.all([getPublicPet(petId), getPetForm(petId)])
+      .then(([petRes, formRes]) => {
+        // A network/server failure and a genuine 404 both arrive as data: null.
+        // Only the 404 (error: null) means "this pet does not exist" — the other
+        // must not silently bounce the user back to /pets.
+        if (petRes.error || formRes.error) {
+          setLoadFailed(true)
+          setLoading(false)
+          return
+        }
+        if (!petRes.data || !formRes.data) {
+          router.replace('/pets')
+          return
+        }
+        setPet(petRes.data)
+        setFormData(formRes.data)
+        setLoading(false)
+      })
+      .catch(() => {
+        // Belt and braces: pets-public never rejects today, but a future change
+        // must not be able to strand the user on a spinner.
+        setLoadFailed(true)
+        setLoading(false)
+      })
+  }, [petId, router])
 
   useEffect(() => {
     if (authLoading) return
@@ -32,18 +65,8 @@ export function AdoptPetPage({ petId }: { petId: string }) {
 
     if (!user) { router.replace('/auth/login'); return }
 
-    Promise.all([getPublicPet(petId), getPetForm(petId)]).then(
-      ([petRes, formRes]) => {
-        if (!petRes.data || !formRes.data) {
-          router.replace('/pets')
-          return
-        }
-        setPet(petRes.data)
-        setFormData(formRes.data)
-        setLoading(false)
-      }
-    )
-  }, [petId, router, user, authLoading])
+    load()
+  }, [petId, router, user, authLoading, load])
 
   const handleSubmit = async (
     answers: Record<string, string | string[]>,
@@ -75,8 +98,16 @@ export function AdoptPetPage({ petId }: { petId: string }) {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="w-8 h-8 border-2 border-pop-550 border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen items-center justify-center">
+        <PeluLoadingLogo />
+      </div>
+    )
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <ErrorState message={t('adopt.load_error')} onRetry={load} />
       </div>
     )
   }
