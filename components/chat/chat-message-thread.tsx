@@ -84,6 +84,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
     setLoadError(false)
     setMessages([])
     setHasMore(true)
+    setLoadingOlder(false)
 
     listMessages(conversation.id)
       .then(({ data, error }) => {
@@ -126,8 +127,14 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       setLoadingOlder(true)
       const oldestCreatedAt = messages[0].created_at
       const prevScrollHeight = el.scrollHeight
+      // Same token as loadMessages: without this, an older-messages response for
+      // the conversation the user just left prepends its history into the thread
+      // now on screen. loadMessages clears loadingOlder, so bailing out here
+      // cannot strand the spinner.
+      const requestId = loadRequestRef.current
 
       listMessages(conversation.id, oldestCreatedAt).then(({ data }) => {
+        if (requestId !== loadRequestRef.current) return
         if (data && data.length > 0) {
           const older = data.reverse()
           setMessages(prev => {

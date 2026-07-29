@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor, act } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
 
 /*
@@ -26,37 +26,53 @@ vi.mock('@/lib/contexts/auth-context', () => ({
 
 import ChatMessageThread from '@/components/chat/chat-message-thread'
 import { listMessages } from '@/lib/api/chat'
+import type { Conversation, Message } from '@/lib/api/chat'
 
 const mockListMessages = vi.mocked(listMessages)
 
-const CONVERSATION = {
-  id: 'c1',
+type ListResult = { data: Message[] | null; error: string | null }
+
+const conversation = (id: string, name: string): Conversation => ({
+  id,
   rescue_center_id: 'rc1',
   member_id: 'me',
-  other_user_name: 'Rescate RD',
-  other_user_email: 'rc@pelu.do',
+  other_user_name: name,
+  other_user_email: `${id}@pelu.do`,
   last_message_body: null,
   last_message_at: null,
   unread_count: 0,
   created_at: '2026-07-29T10:00:00Z',
-}
+})
 
-// A fresh array per call: the component reverses the payload in place.
-const messages = () => [
-  {
-    id: 'm1',
-    conversation_id: 'c1',
-    sender_id: 'rc-user',
-    body: '¿Sigue disponible Luna?',
-    is_read: true,
-    created_at: new Date().toISOString(),
-  },
-]
+const CONVERSATION_A = conversation('c1', 'Rescate RD')
+const CONVERSATION_B = conversation('c2', 'Huellitas')
 
-const renderThread = () =>
-  renderWithProviders(
-    <ChatMessageThread conversation={CONVERSATION} onBack={() => {}} />
-  )
+const message = (id: string, body: string): Message => ({
+  id,
+  conversation_id: 'c1',
+  sender_id: 'rc-user',
+  body,
+  is_read: true,
+  created_at: new Date().toISOString(),
+})
+
+/*
+  Built per call, and handed over through mockImplementation rather than
+  mockResolvedValue: the component reverses the payload in place, so one shared
+  array would come back reversed on a second load and read as a component
+  ordering bug.
+*/
+const messages = (): Message[] => [message('m1', '¿Sigue disponible Luna?')]
+
+const resolveWithMessages = () =>
+  mockListMessages.mockImplementation(async () => ({ data: messages(), error: null }))
+
+const thread = (convo: Conversation) => (
+  <ChatMessageThread conversation={convo} onBack={() => {}} />
+)
+
+const renderThread = (convo: Conversation = CONVERSATION_A) =>
+  renderWithProviders(thread(convo))
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -75,13 +91,40 @@ describe('ChatMessageThread', () => {
     expect(screen.getByRole('button', { name: 'Reintentar' })).toBeInTheDocument()
   })
 
+  /*
+    The signature allows a null payload with no error string, and painting that
+    as an empty thread is the same silent failure. Verified: this pins the
+    outcome, not the branch — delete the `|| !data` half and `data.reverse()`
+    throws into the .catch, which renders the identical error UI and keeps this
+    green. No test can separate those two paths; what matters is that neither
+    one renders an empty thread.
+  */
+  it('treats a null payload with no error as a failure', async () => {
+    mockListMessages.mockResolvedValue({ data: null, error: null })
+
+    renderThread()
+
+    expect(await screen.findByText('No pudimos cargar los mensajes')).toBeInTheDocument()
+  })
+
+  // listMessages is documented never to throw, so the .catch is belt to that
+  // suspenders — but a spinner that never stops is the worst of the three states.
+  it('stops spinning and surfaces the error when the request rejects', async () => {
+    mockListMessages.mockRejectedValue(new Error('boom'))
+
+    renderThread()
+
+    expect(await screen.findByText('No pudimos cargar los mensajes')).toBeInTheDocument()
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  })
+
   it('retries the fetch and renders the messages when retry succeeds', async () => {
     mockListMessages.mockResolvedValue({ data: null, error: 'Error de conexión' })
     renderThread()
     await screen.findByRole('button', { name: 'Reintentar' })
     expect(mockListMessages).toHaveBeenCalledTimes(1)
 
-    mockListMessages.mockResolvedValue({ data: messages(), error: null })
+    resolveWithMessages()
     fireEvent.click(screen.getByRole('button', { name: 'Reintentar' }))
 
     expect(await screen.findByText('¿Sigue disponible Luna?')).toBeInTheDocument()
@@ -104,5 +147,73 @@ describe('ChatMessageThread', () => {
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.queryByText('No pudimos cargar los mensajes')).not.toBeInTheDocument()
+  })
+
+  /*
+    These two cover the request token. Both stage the same user action — leaving
+    a conversation while one of its requests is still in flight — and both assert
+    the abandoned conversation's messages never reach the thread now on screen.
+    Remove either token check and the matching test goes red.
+  */
+  describe('when the user switches conversation mid-request', () => {
+    it('drops a pending initial load from the conversation left behind', async () => {
+      let releaseA!: (value: ListResult) => void
+      mockListMessages.mockImplementation((id: string) => {
+        if (id === CONVERSATION_A.id) {
+          return new Promise<ListResult>(resolve => { releaseA = resolve })
+        }
+        return Promise.resolve({ data: [message('b1', 'Mensaje de Huellitas')], error: null })
+      })
+
+      const { rerender } = renderThread(CONVERSATION_A)
+      // A is still in flight — nothing has resolved yet.
+      expect(screen.getByRole('status')).toBeInTheDocument()
+
+      rerender(thread(CONVERSATION_B))
+      expect(await screen.findByText('Mensaje de Huellitas')).toBeInTheDocument()
+
+      await act(async () => {
+        releaseA({ data: [message('a1', 'Mensaje de Rescate RD')], error: null })
+      })
+
+      expect(screen.queryByText('Mensaje de Rescate RD')).not.toBeInTheDocument()
+      expect(screen.getByText('Mensaje de Huellitas')).toBeInTheDocument()
+    })
+
+    it('drops a pending older-messages page from the conversation left behind', async () => {
+      // 50 keeps hasMore true, which is what lets a scroll to the top paginate.
+      const pageOfA = Array.from({ length: 50 }, (_, i) => message(`a${i}`, `Mensaje A ${i}`))
+      let releaseOlderA!: (value: ListResult) => void
+
+      mockListMessages.mockImplementation((id: string, cursor?: string) => {
+        if (cursor) return new Promise<ListResult>(resolve => { releaseOlderA = resolve })
+        if (id === CONVERSATION_A.id) return Promise.resolve({ data: pageOfA.slice(), error: null })
+        return Promise.resolve({ data: [message('b1', 'Mensaje de Huellitas')], error: null })
+      })
+
+      const { container, rerender } = renderThread(CONVERSATION_A)
+      expect(await screen.findByText('Mensaje A 0')).toBeInTheDocument()
+
+      /*
+        The scroller carries no role or label, so it is queried by its overflow
+        class. jsdom reports scrollTop 0, which is exactly the top-of-thread
+        condition handleScroll paginates on.
+      */
+      const scroller = container.querySelector('.overflow-y-auto')!
+      await act(async () => { fireEvent.scroll(scroller) })
+      expect(mockListMessages).toHaveBeenCalledWith(CONVERSATION_A.id, expect.any(String))
+
+      rerender(thread(CONVERSATION_B))
+      expect(await screen.findByText('Mensaje de Huellitas')).toBeInTheDocument()
+
+      await act(async () => {
+        releaseOlderA({ data: [message('a-old', 'Mensaje viejo de Rescate RD')], error: null })
+      })
+
+      expect(screen.queryByText('Mensaje viejo de Rescate RD')).not.toBeInTheDocument()
+      expect(screen.getByText('Mensaje de Huellitas')).toBeInTheDocument()
+      // The stale page must not leave the older-messages spinner running either.
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
   })
 })
