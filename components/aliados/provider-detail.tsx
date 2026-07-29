@@ -137,15 +137,13 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
         )}
       </div>
 
-      {/* Contact button (disabled for demo) */}
-      <div className="p-4 border-t border-border shrink-0">
-        <button
-          disabled
-          className="w-full py-2.5 bg-pop-550 text-white font-semibold rounded-xl opacity-50 cursor-not-allowed"
-        >
-          {t('aliados.contact')}
-        </button>
-      </div>
+      {/*
+        The "Contactar" CTA is intentionally absent until the aliados→chat
+        wiring ships. See
+        pelu/docs/superpowers/specs/2026-07-28-aliados-contactar-chat-design.md.
+        A permanently-disabled button promises something that never happens;
+        Instagram and the address above are the working contact affordances.
+      */}
     </div>
   )
 }
