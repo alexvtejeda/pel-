@@ -8,16 +8,28 @@ import { renderWithProviders } from '../test-utils'
   functions on every render would tear down and re-open the subscription on each
   re-render — noise that has nothing to do with what these tests assert.
 */
-const { ws, mockUser } = vi.hoisted(() => ({
-  ws: {
-    connected: true,
-    subscribe: vi.fn(() => () => {}),
-    sendMessage: vi.fn(),
-    sendTyping: vi.fn(),
-    sendReadReceipt: vi.fn(),
-  },
-  mockUser: { id: 'me', email: 'me@pelu.do', role: 'member' },
-}))
+const { ws, handlers, mockUser } = vi.hoisted(() => {
+  // Real subscriptions, so a test can push a socket event through the component
+  // the way the provider does. The unsubscribe returned here is the one the
+  // effect cleanup calls, so a re-render cannot leave a stale handler behind.
+  const handlers = new Map<string, ((data: any) => void)[]>()
+  return {
+    handlers,
+    ws: {
+      connected: true,
+      subscribe: vi.fn((type: string, handler: (data: any) => void) => {
+        handlers.set(type, [...(handlers.get(type) ?? []), handler])
+        return () => {
+          handlers.set(type, (handlers.get(type) ?? []).filter(h => h !== handler))
+        }
+      }),
+      sendMessage: vi.fn(),
+      sendTyping: vi.fn(),
+      sendReadReceipt: vi.fn(),
+    },
+    mockUser: { id: 'me', email: 'me@pelu.do', role: 'member' },
+  }
+})
 
 vi.mock('@/lib/api/chat', () => ({ listMessages: vi.fn() }))
 vi.mock('@/lib/contexts/websocket-context', () => ({ useWebSocket: () => ws }))
@@ -57,6 +69,14 @@ const message = (id: string, body: string): Message => ({
   created_at: new Date().toISOString(),
 })
 
+// sender_id matches the mocked user, which is what makes the bubble render its
+// read receipt — received messages carry no tick at all.
+const sentMessage = (id: string, body: string, isRead: boolean): Message => ({
+  ...message(id, body),
+  sender_id: mockUser.id,
+  is_read: isRead,
+})
+
 /*
   Built per call, and handed over through mockImplementation rather than
   mockResolvedValue: the component reverses the payload in place, so one shared
@@ -77,11 +97,15 @@ const renderThread = (convo: Conversation = CONVERSATION_A) =>
 
 const OFFLINE_BANNER = 'Sin conexión. Los mensajes no se enviarán hasta que se restablezca.'
 
+const emit = (type: string, data: unknown) =>
+  act(() => { (handlers.get(type) ?? []).forEach(handler => handler(data)) })
+
 beforeEach(() => {
   vi.clearAllMocks()
-  // clearAllMocks only clears call records, so this plain field needs resetting
+  // clearAllMocks only clears call records, so these plain values need resetting
   // by hand — a test that drops the socket would otherwise leak into the next.
   ws.connected = true
+  handlers.clear()
   // jsdom does not implement scrollIntoView; the thread auto-scrolls on load.
   Element.prototype.scrollIntoView = vi.fn()
 })
@@ -278,6 +302,50 @@ describe('ChatMessageThread', () => {
       expect(screen.getByText('Mensaje de Huellitas')).toBeInTheDocument()
       // The stale page must not leave the older-messages spinner running either.
       expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('screen-reader semantics', () => {
+    it('announces the thread as a polite log', async () => {
+      resolveWithMessages()
+
+      renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      const log = screen.getByRole('log')
+      expect(log).toHaveAttribute('aria-live', 'polite')
+      expect(log).toHaveTextContent('¿Sigue disponible Luna?')
+    })
+
+    it('names who is typing and hides the animated dots', async () => {
+      resolveWithMessages()
+
+      const { container } = renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      await emit('typing', { conversation_id: CONVERSATION_A.id, sender_id: 'rc-user' })
+
+      const alternative = screen.getByText('Rescate RD está escribiendo…')
+      expect(alternative).toBeInTheDocument()
+      // The dots carry the same meaning visually, so announcing them too would
+      // read as duplicate noise.
+      const dots = container.querySelector('.animate-bounce')
+      expect(dots?.closest('[aria-hidden="true"]')).not.toBeNull()
+    })
+
+    it('reads each sent message as delivered or read', async () => {
+      mockListMessages.mockImplementation(async () => ({
+        data: [sentMessage('s1', 'Voy en camino', true), sentMessage('s2', '¿Nos vemos?', false)],
+        error: null,
+      }))
+
+      renderThread()
+      await screen.findByText('¿Nos vemos?')
+
+      expect(screen.getByRole('img', { name: 'Leído' })).toBeInTheDocument()
+      expect(screen.getByRole('img', { name: 'Enviado' })).toBeInTheDocument()
+      // The bare ✓/✓✓ glyphs read as literal check marks, or as nothing at all.
+      expect(screen.queryByText(/✓/)).not.toBeInTheDocument()
     })
   })
 })

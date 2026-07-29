@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faCircleUser, faPaperPlane, faPlus, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faCheck, faCheckDouble, faCircleUser, faPaperPlane, faPlus, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { Conversation, Message, listMessages } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -266,9 +266,16 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       </div>
 
       {/* Message Area */}
+      {/* aria-relevant="additions": only new messages are announced. Without it
+          the pagination prepend would replay the whole scrollback into the
+          screen reader every time the user scrolls up. */}
       <div
         ref={messagesContainerRef}
         onScroll={handleScroll}
+        role="log"
+        aria-live="polite"
+        aria-relevant="additions"
+        aria-label={t('chat.messages')}
         className="flex-1 overflow-y-auto px-4 py-3"
       >
         {loading ? (
@@ -323,7 +330,16 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
                         <p className={`text-[10px] mt-1 ${isSent ? 'text-white/90 text-right' : 'text-muted-foreground'}`}>
                           {formatTime(msg.created_at, locale)}
                           {isSent && (
-                            <span className="ml-1">{msg.is_read ? '\u2713\u2713' : '\u2713'}</span>
+                            <FontAwesomeIcon
+                              icon={msg.is_read ? faCheckDouble : faCheck}
+                              /* role="img" is what makes the label reachable: the
+                                 SVG the icon renders to carries no implicit
+                                 role, and an aria-label on a role-less element
+                                 is not reliably announced. */
+                              role="img"
+                              aria-label={msg.is_read ? t('chat.read') : t('chat.delivered')}
+                              className="ml-1 text-[10px]"
+                            />
                           )}
                         </p>
                       </div>
@@ -337,7 +353,10 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
             {showTyping && (
               <div className="flex justify-start mb-2">
                 <div className="bg-card border border-border rounded-[16px_16px_16px_4px] px-4 py-3">
-                  <div className="flex gap-1">
+                  <span className="sr-only">
+                    {t('chat.typing', { name: conversation.other_user_name || conversation.other_user_email })}
+                  </span>
+                  <div aria-hidden="true" className="flex gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground animate-bounce" style={{ animationDelay: '300ms' }} />

@@ -189,7 +189,11 @@
     "empty_cta": "Ver mascotas",
     "select_conversation": "Selecciona una conversación para empezar",
     "thread_error": "No pudimos cargar los mensajes",
-    "offline_banner": "Sin conexión. Los mensajes no se enviarán hasta que se restablezca."
+    "offline_banner": "Sin conexión. Los mensajes no se enviarán hasta que se restablezca.",
+    "messages": "Mensajes",
+    "typing": "{{name}} está escribiendo…",
+    "read": "Leído",
+    "delivered": "Enviado"
   },
   "notifications": {
     "title": "Notificaciones",

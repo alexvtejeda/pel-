@@ -189,7 +189,11 @@
     "empty_cta": "Browse pets",
     "select_conversation": "Pick a conversation to get started",
     "thread_error": "We couldn't load these messages",
-    "offline_banner": "You're offline. Messages won't send until the connection is back."
+    "offline_banner": "You're offline. Messages won't send until the connection is back.",
+    "messages": "Messages",
+    "typing": "{{name}} is typing…",
+    "read": "Read",
+    "delivered": "Sent"
   },
   "notifications": {
     "title": "Notifications",
