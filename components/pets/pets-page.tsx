@@ -86,12 +86,23 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     setOpen(true)
   }, [])
 
+  const showSkeleton = loading || holdSkeleton
+
   return (
     <div data-route="pets" className="flex flex-col min-h-screen bg-muted">
       <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
+        {/* A <div>, not a <header>: the public layout's PetsHeader already owns the banner landmark. */}
+        <div className="px-4 pt-6 pb-2 sm:px-2">
+          <h1 className="text-2xl font-bold sm:text-3xl">{t('grid.title')}</h1>
+          <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t('grid.subtitle')}</p>
+          {/* Kept mounted (content varies) so screen readers announce the count when it changes. */}
+          <p aria-live="polite" className="mt-2 min-h-4 text-xs font-medium text-muted-foreground">
+            {!showSkeleton && !error ? t('grid.count', { count: pets.length }) : ''}
+          </p>
+        </div>
         <PetGrid
           pets={pets}
-          loading={loading || holdSkeleton}
+          loading={showSkeleton}
           error={error}
           selectedId={selected?.id ?? null}
           activeFilter={activeFilter}

@@ -39,6 +39,11 @@
     "female": "Hembra"
   },
   "grid": {
+    "title": "Mascotas en adopción",
+    "subtitle": "Conoce a los que están buscando un hogar en República Dominicana.",
+    "count_one": "{{count}} mascota buscando hogar",
+    "count_other": "{{count}} mascotas buscando hogar",
+    "clear_filters": "Limpiar filtros",
     "all": "Todos",
     "dogs": "Perros",
     "cats": "Gatos",

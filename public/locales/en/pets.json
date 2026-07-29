@@ -39,6 +39,11 @@
     "female": "Female"
   },
   "grid": {
+    "title": "Pets up for adoption",
+    "subtitle": "Meet the ones looking for a home in the Dominican Republic.",
+    "count_one": "{{count}} pet looking for a home",
+    "count_other": "{{count}} pets looking for a home",
+    "clear_filters": "Clear filters",
     "all": "All",
     "dogs": "Dogs",
     "cats": "Cats",
