@@ -15,7 +15,8 @@ interface ProviderDetailProps {
 }
 
 export function ProviderDetail({ provider }: ProviderDetailProps) {
-  const { t } = useTranslation('business')
+  const { t, i18n } = useTranslation('business')
+  const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
 
   const initials = provider.name
     .split(' ')
@@ -23,6 +24,16 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
     .slice(0, 2)
     .join('')
     .toUpperCase()
+
+  // Same formatting as ProviderCard: prices are DOP, and Intl renders "RD$1,500"
+  // in es-DO instead of a hand-rolled prefix over a browser-locale toLocaleString().
+  const price = provider.price != null
+    ? new Intl.NumberFormat(locale, {
+        style: 'currency',
+        currency: 'DOP',
+        maximumFractionDigits: 0,
+      }).format(provider.price)
+    : t('provider.price_unavailable')
 
   return (
     <div className="flex flex-col h-full">
@@ -61,15 +72,15 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
           </div>
         </div>
 
-        {/* Service badges */}
+        {/* Service badges — rounded-full chips, matching ProviderCard */}
         {provider.services.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
             {provider.services.map(service => (
               <span
                 key={service}
-                className="text-xs px-2.5 py-1 rounded-xl bg-primary/10 text-primary font-medium"
+                className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary"
               >
-                {service}
+                {t(`service_providers.services.${service}`, { defaultValue: service })}
               </span>
             ))}
           </div>
@@ -78,11 +89,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
         {/* Price */}
         <div className="flex items-center gap-1.5">
           <FontAwesomeIcon icon={faBriefcase} className="text-sm text-muted-foreground" />
-          <span className="text-sm font-medium">
-            {provider.price != null
-              ? `RD$${provider.price.toLocaleString()}`
-              : t('provider.price_unavailable')}
-          </span>
+          <span className="text-sm font-medium">{price}</span>
         </div>
 
         {/* Description */}
