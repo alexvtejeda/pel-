@@ -12,12 +12,21 @@ interface ProtectedRouteProps {
   children: React.ReactNode
   requireRole?: UserRole[]
   redirectTo?: string
+  /**
+   * Opt out of the forced-MFA interception below — for routes that ARE the
+   * enrollment surface. Without it the guard replaces `/auth/mfa/enrollment`
+   * with its own <MfaEnrollment>, which carries different props (no skip, and
+   * an onComplete that logs the user out) than the page that owns the route.
+   * Authentication is still enforced; only the MFA branch is skipped.
+   */
+  allowMfaSetupPending?: boolean
 }
 
 export function ProtectedRoute({
   children,
   requireRole,
   redirectTo = '/auth/login',
+  allowMfaSetupPending = false,
 }: ProtectedRouteProps) {
   const { user, loading, mfaSetupRequired } = useAuth()
   const router = useRouter()
@@ -54,7 +63,7 @@ export function ProtectedRoute({
     return null
   }
 
-  if (mfaSetupRequired && user?.role && ['rescue_center', 'business'].includes(user.role)) {
+  if (!allowMfaSetupPending && mfaSetupRequired && user?.role && ['rescue_center', 'business'].includes(user.role)) {
     return (
       <MfaEnrollment
         onComplete={async () => {
