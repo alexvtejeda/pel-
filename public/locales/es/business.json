@@ -140,7 +140,7 @@
     "load_error": "No pudimos cargar tu perfil de servicios",
     "pending_title": "Solicitud en revisión",
     "pending_body": "Un administrador está revisando tu solicitud. Te notificaremos cuando haya una decisión.",
-    "pending_next": "Suele tardar 1–2 días hábiles. Te avisaremos por notificación.",
+    "pending_next": "Suele tardar 1–2 días hábiles.",
     "active_title": "Tu perfil de proveedor",
     "active_body": "Tu perfil está activo y visible en el directorio de aliados.",
     "rejected_title": "Solicitud rechazada",

@@ -140,7 +140,7 @@
     "load_error": "We couldn't load your provider profile",
     "pending_title": "Application under review",
     "pending_body": "An administrator is reviewing your application. We'll notify you when there's a decision.",
-    "pending_next": "This usually takes 1–2 business days. We'll notify you.",
+    "pending_next": "This usually takes 1–2 business days.",
     "active_title": "Your provider profile",
     "active_body": "Your profile is active and visible in the partner directory.",
     "rejected_title": "Application rejected",
