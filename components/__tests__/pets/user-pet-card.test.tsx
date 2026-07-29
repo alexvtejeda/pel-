@@ -124,6 +124,90 @@ describe('UserPetCard', () => {
       }
     })
   })
+
+  /*
+    The carousel used to render nothing until it had measured its container, so
+    every card flashed an empty box on first paint. Simulate the unmeasured case
+    by reporting offsetWidth 0: a photo must still be there.
+  */
+  it('shows a photo before the container has been measured', () => {
+    Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 0 })
+    try {
+      const { container } = renderWithProviders(
+        <UserPetCard name="Luna" age={6} gender="female" species="cat" photoUrls={PHOTOS} />
+      )
+      expect(container.querySelectorAll('img').length).toBeGreaterThan(0)
+    } finally {
+      Object.defineProperty(HTMLElement.prototype, 'offsetWidth', { configurable: true, value: 240 })
+    }
+  })
+
+  /*
+    Vaccinated/neutered used to be a green icon vs a grey one and nothing else,
+    which WCAG 1.4.1 forbids. Both branches are asserted deliberately: a test that
+    only checked the vaccinated case would also have to be written as "is there a
+    green icon", which passes against the old colour-only markup.
+  */
+  describe('health status is stated in text, not just colour', () => {
+    const render = (props: { vaccinated?: boolean; castrated?: boolean }) =>
+      renderWithProviders(
+        <UserPetCard
+          name="Luna"
+          age={6}
+          gender="female"
+          species="cat"
+          photoUrls={[]}
+          {...props}
+        />
+      )
+
+    it('states that a vaccinated pet is vaccinated', () => {
+      render({ vaccinated: true })
+      expect(screen.getByText('Vacunado')).toBeInTheDocument()
+      expect(screen.queryByText('Sin vacunar')).not.toBeInTheDocument()
+    })
+
+    it('states that an unvaccinated pet is not vaccinated', () => {
+      render({ vaccinated: false })
+      expect(screen.getByText('Sin vacunar')).toBeInTheDocument()
+      expect(screen.queryByText('Vacunado')).not.toBeInTheDocument()
+    })
+
+    it('states that a neutered pet is neutered', () => {
+      render({ castrated: true })
+      expect(screen.getByText('Castrado')).toBeInTheDocument()
+      expect(screen.queryByText('Sin castrar')).not.toBeInTheDocument()
+    })
+
+    it('states that an unneutered pet is not neutered', () => {
+      render({ castrated: false })
+      expect(screen.getByText('Sin castrar')).toBeInTheDocument()
+      expect(screen.queryByText('Castrado')).not.toBeInTheDocument()
+    })
+
+    // An omitted flag is not a claim of health — it must read as "not", never blank.
+    it('treats an unknown status as not-yet-done rather than silence', () => {
+      render({})
+      expect(screen.getByText('Sin vacunar')).toBeInTheDocument()
+      expect(screen.getByText('Sin castrar')).toBeInTheDocument()
+    })
+
+    /*
+      The status text is sr-only, so it must not add visible clutter — but it also
+      must not be hidden from assistive tech. Guard both halves.
+    */
+    it('keeps the status text off-screen but exposed', () => {
+      const { container } = render({ vaccinated: true, castrated: false })
+
+      for (const label of ['Vacunado', 'Sin castrar']) {
+        const node = screen.getByText(label)
+        expect(node.className).toContain('sr-only')
+        expect(node.closest('[aria-hidden="true"]')).toBeNull()
+      }
+      // The icons themselves carry no meaning any more.
+      expect(container.querySelectorAll('[data-icon="syringe"][aria-hidden="true"]')).toHaveLength(1)
+    })
+  })
 })
 
 describe('UserPetCardSkeleton', () => {

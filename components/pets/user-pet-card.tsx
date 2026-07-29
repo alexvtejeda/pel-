@@ -8,7 +8,11 @@ import Carousel from '@/components/Carousel'
 import { formatAge } from '@/lib/utils/format-age'
 
 function CardCarousel({ urls, name }: { urls: string[]; name: string }) {
-  const [width, setWidth] = useState(0)
+  // Start at a plausible card width so the first paint shows a photo instead of
+  // an empty box; the ref callback corrects it before the user notices. The
+  // measured > 0 check skips an element that has not been laid out yet, which
+  // would otherwise collapse the carousel to nothing.
+  const [width, setWidth] = useState(240)
 
   const items = urls.map((url, i) => ({
     id: i,
@@ -23,20 +27,24 @@ function CardCarousel({ urls, name }: { urls: string[]; name: string }) {
   }))
 
   return (
-    <div ref={(el) => { if (el && width === 0) setWidth(el.offsetWidth) }} className="w-full h-full">
-      {width > 0 && (
-        <Carousel
-          items={items}
-          baseWidth={width}
-          autoplay={urls.length > 1}
-          autoplayDelay={3000}
-          pauseOnHover
-          loop={urls.length > 1}
-          containerPadding={0}
-          dotsOverlay
-          className="relative overflow-hidden w-full h-full"
-        />
-      )}
+    <div
+      ref={(el) => {
+        const measured = el?.offsetWidth ?? 0
+        if (measured > 0 && measured !== width) setWidth(measured)
+      }}
+      className="w-full h-full"
+    >
+      <Carousel
+        items={items}
+        baseWidth={width}
+        autoplay={urls.length > 1}
+        autoplayDelay={3000}
+        pauseOnHover
+        loop={urls.length > 1}
+        containerPadding={0}
+        dotsOverlay
+        className="relative overflow-hidden w-full h-full"
+      />
     </div>
   )
 }
@@ -76,7 +84,7 @@ export function UserPetCard({
   const displayName = name.trim() || t('details.name')
 
   return (
-    <div className="rounded-2xl overflow-hidden shadow-xs border bg-card">
+    <div className="rounded-2xl overflow-hidden shadow-sm border bg-card">
       <div className="relative aspect-square bg-muted/30">
         {photoUrls.length > 0 ? (
           <CardCarousel urls={photoUrls} name={displayName} />
@@ -100,9 +108,24 @@ export function UserPetCard({
           <span aria-hidden="true">·</span>
           <FontAwesomeIcon icon={species === 'dog' ? faDog : faCat} className="text-xs" />
         </span>
+        {/* Green-vs-grey icons alone carried the whole vaccinated/neutered
+            distinction (WCAG 1.4.1). The sr-only text is what actually states
+            it; the title is a tooltip bonus for mouse users. */}
         <div className="flex items-center gap-2 mt-1">
-          <FontAwesomeIcon icon={faSyringe} className={`text-xs ${vaccinated ? 'text-success' : 'text-muted-foreground/30'}`} />
-          <FontAwesomeIcon icon={faScissors} className={`text-xs ${castrated ? 'text-success' : 'text-muted-foreground/30'}`} />
+          <span
+            title={vaccinated ? t('grid.vaccinated') : t('grid.not_vaccinated')}
+            className={`inline-flex items-center gap-1 text-xs ${vaccinated ? 'text-success' : 'text-muted-foreground/40'}`}
+          >
+            <FontAwesomeIcon icon={faSyringe} className="text-xs" aria-hidden="true" />
+            <span className="sr-only">{vaccinated ? t('grid.vaccinated') : t('grid.not_vaccinated')}</span>
+          </span>
+          <span
+            title={castrated ? t('grid.castrated') : t('grid.not_castrated')}
+            className={`inline-flex items-center gap-1 text-xs ${castrated ? 'text-success' : 'text-muted-foreground/40'}`}
+          >
+            <FontAwesomeIcon icon={faScissors} className="text-xs" aria-hidden="true" />
+            <span className="sr-only">{castrated ? t('grid.castrated') : t('grid.not_castrated')}</span>
+          </span>
           {size && (
             <span className="text-xs text-muted-foreground">
               {size === 'small' ? t('size.small') : size === 'medium' ? t('size.medium') : t('size.large')}

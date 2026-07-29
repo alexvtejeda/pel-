@@ -56,6 +56,8 @@
     "error": "Error al cargar mascotas",
     "vaccinated": "Vacunado",
     "castrated": "Castrado",
+    "not_vaccinated": "Sin vacunar",
+    "not_castrated": "Sin castrar",
     "centers": "Centros",
     "members": "Miembros",
     "filters": "Filtros",

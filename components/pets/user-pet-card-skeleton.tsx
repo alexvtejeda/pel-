@@ -5,7 +5,7 @@
  */
 export function UserPetCardSkeleton() {
   return (
-    <div className="rounded-2xl overflow-hidden shadow-xs border bg-card animate-pulse">
+    <div className="rounded-2xl overflow-hidden shadow-sm border bg-card animate-pulse">
       <div className="aspect-square bg-muted" />
       <div className="p-3 space-y-2">
         <div className="h-3.5 w-2/3 rounded-xl bg-muted" />
