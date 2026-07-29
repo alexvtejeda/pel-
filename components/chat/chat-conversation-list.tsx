@@ -7,8 +7,26 @@ import { faCircleUser, faComments } from '@fortawesome/free-solid-svg-icons'
 import { listConversations, Conversation } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { ErrorState } from '@/components/ui/error-state'
-import { Spinner } from '@/components/ui/spinner'
 import { TransitionLink } from '@/components/transitions/transition-link'
+
+/*
+  Mirrors a full conversation row: avatar, name line, snippet line. Both
+  variants matter — the list is reused in the rescue-center and business
+  dashboard sidebars with compact/darkBg, where bg-muted is invisible against
+  the dark sidebar and the taller row would shift the layout.
+*/
+function ConversationRowSkeleton({ darkBg, compact }: { darkBg: boolean; compact: boolean }) {
+  const bar = darkBg ? 'bg-sidebar-foreground/10' : 'bg-muted'
+  return (
+    <div className={`flex items-center gap-3 animate-pulse ${compact ? 'px-3 py-2.5' : 'p-3'}`}>
+      <div className={`shrink-0 rounded-full ${bar} ${compact ? 'h-5 w-5' : 'h-7 w-7'}`} />
+      <div className="flex-1 space-y-2">
+        <div className={`h-3 w-2/3 rounded-xl ${bar}`} />
+        {!compact && <div className={`h-2.5 w-1/2 rounded-xl ${bar}`} />}
+      </div>
+    </div>
+  )
+}
 
 interface ChatConversationListProps {
   onSelectConversation: (conversation: Conversation) => void
@@ -119,8 +137,10 @@ export default function ChatConversationList({ onSelectConversation, activeConve
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-16">
-        <Spinner className={`text-2xl ${darkBg ? 'text-sidebar-foreground' : 'text-muted-foreground'}`} />
+      <div className="flex flex-col gap-1" aria-busy="true">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <ConversationRowSkeleton key={i} darkBg={darkBg} compact={compact} />
+        ))}
       </div>
     )
   }

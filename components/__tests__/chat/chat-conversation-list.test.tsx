@@ -36,12 +36,20 @@ const CONVERSATION: Conversation = {
   over a missing provider. It reads useRouter/usePathname, both mocked by
   renderWithProviders.
 */
-const renderList = () =>
+const renderList = (props: { compact?: boolean; darkBg?: boolean } = {}) =>
   renderWithProviders(
     <RouteTransitionProvider>
-      <ChatConversationList onSelectConversation={() => {}} />
+      <ChatConversationList onSelectConversation={() => {}} {...props} />
     </RouteTransitionProvider>
   )
+
+/*
+  A fetch that never settles, so the loading branch stays on screen for the
+  assertion instead of racing the microtask queue.
+*/
+const stayLoading = () => mockList.mockImplementation(() => new Promise<never>(() => {}))
+
+const skeletonRows = (container: HTMLElement) => container.querySelectorAll('.animate-pulse')
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -98,6 +106,60 @@ describe('ChatConversationList', () => {
 
     expect(await screen.findByText('No pudimos cargar tus conversaciones')).toBeInTheDocument()
     expect(screen.queryByText('No tienes conversaciones aún')).not.toBeInTheDocument()
+  })
+
+  /*
+    A centred spinner in a 320px column reads as broken rather than loading, and
+    the rows jumped in when data landed. Six placeholders that mirror the real
+    row is the shape the list settles into.
+  */
+  describe('while loading', () => {
+    it('renders skeleton rows instead of a spinner', () => {
+      stayLoading()
+
+      const { container } = renderList()
+
+      expect(skeletonRows(container)).toHaveLength(6)
+      expect(container.querySelector('[aria-busy="true"]')).not.toBeNull()
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      // The full row carries a snippet line under the name; so does its
+      // placeholder. This is also what gives the compact test below its teeth.
+      expect(container.querySelectorAll('.h-2\\.5')).toHaveLength(6)
+    })
+
+    /*
+      The list is reused in the rescue-center and business dashboard sidebars.
+      bg-muted is all but invisible against the dark sidebar, so the dark variant
+      has to swap the bar colour or the sidebar just looks empty while loading.
+    */
+    it('uses sidebar-aware bars on a dark background', () => {
+      stayLoading()
+
+      const { container } = renderList({ darkBg: true })
+
+      expect(skeletonRows(container)).toHaveLength(6)
+      expect(container.querySelector('.bg-muted')).toBeNull()
+    })
+
+    // The compact row has no snippet line, so neither may the skeleton — a
+    // taller placeholder would make the list resize the moment data lands.
+    it('drops the snippet line in the compact variant', () => {
+      stayLoading()
+
+      const { container } = renderList({ compact: true })
+
+      expect(skeletonRows(container)).toHaveLength(6)
+      expect(container.querySelectorAll('.h-2\\.5')).toHaveLength(0)
+    })
+
+    it('replaces the skeleton with the real rows once the fetch lands', async () => {
+      mockList.mockResolvedValue({ data: [CONVERSATION], error: null })
+
+      const { container } = renderList()
+
+      expect(await screen.findByText('Rescate RD')).toBeInTheDocument()
+      expect(skeletonRows(container)).toHaveLength(0)
+    })
   })
 
   it('explains how conversations start when there are genuinely none', async () => {
