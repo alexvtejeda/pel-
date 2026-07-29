@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faCircleUser, faPaperPlane, faPlus, faSpinner, faTruckFast } from '@fortawesome/free-solid-svg-icons'
+import { faArrowLeft, faCircleUser, faPaperPlane, faPlus, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { Conversation, Message, listMessages } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -15,6 +15,8 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
+import { ErrorState } from '@/components/ui/error-state'
+import { Spinner } from '@/components/ui/spinner'
 
 interface ChatMessageThreadProps {
   conversation: Conversation
@@ -56,6 +58,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
   const [loadingOlder, setLoadingOlder] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [input, setInput] = useState('')
@@ -66,26 +69,43 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   const isAtBottomRef = useRef(true)
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const lastTypingSentRef = useRef(0)
+  const loadRequestRef = useRef(0)
 
-  // Fetch initial messages
-  useEffect(() => {
-    let cancelled = false
+  /*
+    Fetch initial messages. The request token replaces the old effect-scoped
+    `cancelled` flag: loadMessages is now a callback the retry button also calls,
+    so a superseded load can come from either a conversation switch or a retry.
+    Without it, a slow response for the previous conversation lands after the new
+    one and paints its messages into the wrong thread.
+  */
+  const loadMessages = useCallback(() => {
+    const requestId = ++loadRequestRef.current
     setLoading(true)
+    setLoadError(false)
     setMessages([])
     setHasMore(true)
 
-    listMessages(conversation.id).then(({ data }) => {
-      if (cancelled) return
-      if (data) {
+    listMessages(conversation.id)
+      .then(({ data, error }) => {
+        if (requestId !== loadRequestRef.current) return
+        if (error || !data) {
+          setLoadError(true)
+          setLoading(false)
+          return
+        }
         // API returns newest first; reverse for display (oldest at top)
         setMessages(data.reverse())
         if (data.length < 50) setHasMore(false)
-      }
-      setLoading(false)
-    })
-
-    return () => { cancelled = true }
+        setLoading(false)
+      })
+      .catch(() => {
+        if (requestId !== loadRequestRef.current) return
+        setLoadError(true)
+        setLoading(false)
+      })
   }, [conversation.id])
+
+  useEffect(() => { loadMessages() }, [loadMessages])
 
   // Auto-scroll to bottom on initial load
   useEffect(() => {
@@ -241,13 +261,15 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
       >
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <FontAwesomeIcon icon={faSpinner} className="text-2xl text-muted-foreground animate-spin" />
+            <Spinner className="text-2xl text-muted-foreground" />
           </div>
+        ) : loadError ? (
+          <ErrorState message={t('chat.thread_error')} onRetry={loadMessages} />
         ) : (
           <>
             {loadingOlder && (
               <div className="flex justify-center py-2">
-                <FontAwesomeIcon icon={faSpinner} className="text-sm text-muted-foreground animate-spin" />
+                <Spinner className="text-sm text-muted-foreground" />
               </div>
             )}
 
