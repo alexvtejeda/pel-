@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -63,6 +63,29 @@ export function PetGrid({
   const { t } = useTranslation('pets')
   const [sourceFilter, setSourceFilter] = useState<'all' | 'rc' | 'member'>('all')
   const [showMobileFilters, setShowMobileFilters] = useState(false)
+  const mobileFiltersRef = useRef<HTMLDivElement>(null)
+
+  // The mobile filter popover is hand-rolled (not Radix), so it needs its own
+  // dismiss behaviour. The ref wraps the trigger *and* the popover, so a
+  // pointerdown on the trigger is "inside" and the button's own click still
+  // toggles normally.
+  useEffect(() => {
+    if (!showMobileFilters) return
+
+    const onPointerDown = (e: PointerEvent) => {
+      if (!mobileFiltersRef.current?.contains(e.target as Node)) setShowMobileFilters(false)
+    }
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMobileFilters(false)
+    }
+
+    document.addEventListener('pointerdown', onPointerDown)
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('pointerdown', onPointerDown)
+      document.removeEventListener('keydown', onKeyDown)
+    }
+  }, [showMobileFilters])
 
   const mobileFilterCount = (activeFilter !== 'all' ? 1 : 0)
     + (vaccinatedFilter ? 1 : 0)
@@ -133,10 +156,10 @@ export function PetGrid({
             key={f.key}
             onClick={() => handleFilterClick(f)}
             aria-pressed={activeFilter === f.key}
-            className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+            className={`focus-ring flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors border ${
               activeFilter === f.key
-                ? 'bg-pop-solid text-white'
-                : 'bg-background text-foreground hover:bg-secondary/80'
+                ? 'bg-pop-solid border-pop-solid text-white'
+                : 'bg-background border-input text-foreground hover:bg-secondary/80'
             }`}
           >
             <FontAwesomeIcon icon={f.icon} className="text-xs" />
@@ -147,10 +170,10 @@ export function PetGrid({
         <button
           onClick={() => onVaccinatedChange(!vaccinatedFilter)}
           aria-pressed={vaccinatedFilter}
-          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`focus-ring flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors border ${
             vaccinatedFilter
-              ? 'bg-pop-solid text-white'
-              : 'bg-background text-foreground hover:bg-secondary/80'
+              ? 'bg-pop-solid border-pop-solid text-white'
+              : 'bg-background border-input text-foreground hover:bg-secondary/80'
           }`}
         >
           <FontAwesomeIcon icon={faSyringe} className="text-xs" />
@@ -159,10 +182,10 @@ export function PetGrid({
         <button
           onClick={() => onCastratedChange(!castratedFilter)}
           aria-pressed={castratedFilter}
-          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${
+          className={`focus-ring flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors border ${
             castratedFilter
-              ? 'bg-pop-solid text-white'
-              : 'bg-background text-foreground hover:bg-secondary/80'
+              ? 'bg-pop-solid border-pop-solid text-white'
+              : 'bg-background border-input text-foreground hover:bg-secondary/80'
           }`}
         >
           <FontAwesomeIcon icon={faScissors} className="text-xs" />
@@ -172,7 +195,7 @@ export function PetGrid({
         <button
           onClick={() => setSourceFilter(sourceFilter === 'rc' ? 'all' : 'rc')}
           aria-pressed={sourceFilter === 'rc'}
-          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'rc' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`focus-ring flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors border ${sourceFilter === 'rc' ? 'bg-pop-solid border-pop-solid text-white' : 'bg-background border-input text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faHouseChimney} className="text-xs" />
           {t('grid.centers')}
@@ -180,7 +203,7 @@ export function PetGrid({
         <button
           onClick={() => setSourceFilter(sourceFilter === 'member' ? 'all' : 'member')}
           aria-pressed={sourceFilter === 'member'}
-          className={`focus-ring shadow-xl flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors ${sourceFilter === 'member' ? 'bg-pop-solid text-white' : 'bg-background text-foreground hover:bg-secondary/80'}`}
+          className={`focus-ring flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl whitespace-nowrap transition-colors border ${sourceFilter === 'member' ? 'bg-pop-solid border-pop-solid text-white' : 'bg-background border-input text-foreground hover:bg-secondary/80'}`}
         >
           <FontAwesomeIcon icon={faUser} className="text-xs" />
           {t('grid.members')}
@@ -188,7 +211,7 @@ export function PetGrid({
       </div>
 
       {/* Filter button — mobile only */}
-      <div className="sm:hidden relative px-2 py-3 shrink-0">
+      <div ref={mobileFiltersRef} className="sm:hidden relative px-2 py-3 shrink-0">
         <button
           onClick={() => setShowMobileFilters(prev => !prev)}
           aria-expanded={showMobileFilters}
@@ -208,7 +231,7 @@ export function PetGrid({
         </button>
 
         {showMobileFilters && (
-          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-xl bg-card shadow-lg p-4 space-y-3 ">
+          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-2xl bg-card shadow-lg p-4 space-y-3">
             {/* Species */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.species')}</p>
@@ -269,7 +292,7 @@ export function PetGrid({
       </div>
 
       {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-4 pb-20 sm:pb-4 sm:inset-shadow-2xl rounded-t-2xl sm:shadow-2xl bg-background min-h-screen">
+      <div className="flex-1 overflow-y-auto p-4 pb-20 sm:pb-4 sm:inset-shadow-2xl rounded-t-2xl sm:shadow-2xl bg-background">
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {Array.from({ length: 8 }).map((_, i) => (
