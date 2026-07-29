@@ -88,8 +88,14 @@ export function AdoptPetPage({ petId }: { petId: string }) {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 w-full max-h-40 overflow-hidden">
+      {/*
+        h-40 must be a DEFINITE height, not max-h-40: with a max-height the
+        child's h-full resolves to auto, the image lays out at its intrinsic
+        ratio, and overflow-hidden crops it. bg-muted letterboxes wide banners.
+      */}
+      <div className="sticky top-0 z-10 w-full h-40 overflow-hidden bg-muted">
         {rc.logo_url ? (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={rc.logo_url} alt={rc.name} className="w-full h-full object-contain" />
         ) : (
           <div className="w-full h-full bg-linear-to-r from-pop-500 to-pop-550 flex items-center justify-center">
