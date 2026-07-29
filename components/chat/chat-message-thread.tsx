@@ -24,6 +24,14 @@ interface ChatMessageThreadProps {
   showBack?: boolean
 }
 
+/*
+  How long a never-yet-open socket may stay quiet before we call it an outage.
+  Generous on purpose: the cost of waiting is nil, because a send attempt ends
+  the wait immediately (see handleSend), while the cost of being early is the
+  false alarm this constant exists to remove.
+*/
+const CONNECT_GRACE_MS = 2500
+
 function formatTime(dateStr: string, locale: string): string {
   const d = new Date(dateStr)
   return d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
@@ -52,7 +60,7 @@ function isSameDay(a: string, b: string): boolean {
 export default function ChatMessageThread({ conversation, onBack, showBack = true }: ChatMessageThreadProps) {
   const { t, i18n } = useTranslation('pets')
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const { subscribe, sendMessage, sendTyping, sendReadReceipt, connected } = useWebSocket()
   const router = useRouter()
 
@@ -63,6 +71,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   const [hasMore, setHasMore] = useState(true)
   const [input, setInput] = useState('')
   const [showTyping, setShowTyping] = useState(false)
+  const [socketSettled, setSocketSettled] = useState(false)
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
@@ -214,13 +223,46 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
   /*
+    `connected` is false on every mount — the provider only dials the socket once
+    the auth check resolves — so reading it straight through flashed "sin
+    conexión" and a greyed composer on a perfectly healthy chat, every time.
+
+    So the banner waits for the socket to *settle* instead. It settles when the
+    socket opens (any drop after that is real and shows instantly), or when it
+    has failed to open within CONNECT_GRACE_MS (an outage that never connects
+    still has to announce itself), or when a send is blocked (below).
+  */
+  useEffect(() => {
+    if (socketSettled) return
+    if (connected) {
+      setSocketSettled(true)
+      return
+    }
+    // Nothing to time yet: the provider cannot dial before it knows the user.
+    if (authLoading) return
+    const timer = setTimeout(() => setSocketSettled(true), CONNECT_GRACE_MS)
+    return () => clearTimeout(timer)
+  }, [connected, authLoading, socketSettled])
+
+  const offline = socketSettled && !connected
+
+  /*
     The `connected` guard has to come before setInput(''): the socket send is a
     no-op while the connection is down, so clearing the input first is what made
     a message disappear with no trace. Nothing is cleared unless it was sent.
+
+    Settling the socket on the way out is what stops the grace window from
+    re-creating that same silent drop in a new form: inside the window the
+    composer is live, so a blocked send has to explain itself on the spot rather
+    than wait out the timer.
   */
   const handleSend = () => {
     const body = input.trim()
-    if (!body || !connected) return
+    if (!body) return
+    if (!connected) {
+      setSocketSettled(true)
+      return
+    }
     sendMessage(conversation.id, body)
     setInput('')
   }
@@ -370,7 +412,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         )}
       </div>
 
-      {!connected && (
+      {offline && (
         <div
           role="status"
           className="shrink-0 border-t border-warning/40 bg-warning-bg px-4 py-2 text-xs text-warning-foreground"
@@ -407,14 +449,14 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          disabled={!connected}
+          disabled={offline}
           placeholder={t('chat.placeholder')}
           aria-label={t('chat.message_label')}
           className="focus-ring flex-1 rounded-xl border border-input bg-transparent px-4 py-2 text-sm placeholder:text-muted-foreground disabled:opacity-60"
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim() || !connected}
+          disabled={!input.trim() || offline}
           aria-label={t('chat.send')}
           className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40"
         >

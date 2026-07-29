@@ -180,12 +180,14 @@ describe('ChatMessageThread', () => {
   })
 
   describe('when the socket is down', () => {
-    it('says so and blocks the composer', async () => {
-      ws.connected = false
+    it('says so and blocks the composer once an open connection drops', async () => {
       resolveWithMessages()
 
-      renderThread()
+      const { rerender } = renderThread()
       await screen.findByText('¿Sigue disponible Luna?')
+
+      ws.connected = false
+      rerender(thread(CONVERSATION_A))
 
       expect(screen.getByText(OFFLINE_BANNER)).toBeInTheDocument()
       expect(screen.getByLabelText('Mensaje')).toBeDisabled()
@@ -219,6 +221,67 @@ describe('ChatMessageThread', () => {
 
       expect(ws.sendMessage).not.toHaveBeenCalled()
       expect(input).toHaveValue('¿Puedo visitarla el sábado?')
+    })
+  })
+
+  /*
+    `connected` is false on every mount until the socket opens, so the first
+    version of the banner fired on the happy path too — "sin conexión" and a dead
+    composer for a beat on a healthy chat. These pin both halves of the fix: the
+    quiet window, and that the window is never a place where a message can vanish.
+  */
+  describe('before the socket has opened for the first time', () => {
+    it('stays quiet and leaves the composer usable', async () => {
+      ws.connected = false
+      resolveWithMessages()
+
+      renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      expect(screen.queryByText(OFFLINE_BANNER)).not.toBeInTheDocument()
+      expect(screen.getByLabelText('Mensaje')).not.toBeDisabled()
+    })
+
+    // The whole point of the guard: quiet is not the same as swallowing. A send
+    // that cannot go out has to keep the draft AND say why, immediately.
+    it('keeps the draft and explains itself when a send is blocked', async () => {
+      ws.connected = false
+      resolveWithMessages()
+
+      renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      const input = screen.getByLabelText('Mensaje')
+      fireEvent.change(input, { target: { value: '¿Puedo visitarla el sábado?' } })
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      expect(ws.sendMessage).not.toHaveBeenCalled()
+      expect(input).toHaveValue('¿Puedo visitarla el sábado?')
+      expect(screen.getByText(OFFLINE_BANNER)).toBeInTheDocument()
+    })
+
+    // The other way out of the quiet window: a socket that never opens at all
+    // must not leave the user waiting on a connection nobody mentioned.
+    it('calls it an outage when the socket never opens', async () => {
+      vi.useFakeTimers()
+      try {
+        ws.connected = false
+        resolveWithMessages()
+
+        renderThread()
+        // Flushes the message fetch without moving the clock — findBy* polls on
+        // timers this test has faked, so the assertions stay synchronous.
+        await act(async () => {})
+        expect(screen.getByText('¿Sigue disponible Luna?')).toBeInTheDocument()
+        expect(screen.queryByText(OFFLINE_BANNER)).not.toBeInTheDocument()
+
+        await act(async () => { await vi.advanceTimersByTimeAsync(3000) })
+
+        expect(screen.getByText(OFFLINE_BANNER)).toBeInTheDocument()
+        expect(screen.getByLabelText('Mensaje')).toBeDisabled()
+      } finally {
+        vi.useRealTimers()
+      }
     })
   })
 
