@@ -150,9 +150,12 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
       {sections.map((section, sectionIndex) => (
         <section
           key={`${section.name}-${sectionIndex}`}
+          // A bare <section> is generic to screen readers; naming it by its own
+          // heading promotes each card to a navigable region landmark.
+          aria-labelledby={`form-section-${sectionIndex}`}
           className="space-y-5 rounded-2xl border border-border bg-card p-5 sm:p-6"
         >
-          <h2 className="text-base font-semibold">
+          <h2 id={`form-section-${sectionIndex}`} className="text-base font-semibold">
             {section.name || t('forms.section_untitled')}
           </h2>
           {section.fields.map(field => (
@@ -208,38 +211,77 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
   const { t } = useTranslation('pets')
   const strVal    = typeof value === 'string' ? value : ''
   const arrVal    = Array.isArray(value) ? value : []
-  const inputCls  = `w-full rounded-xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring bg-background ${error ? 'border-destructive ring-2 ring-destructive' : 'border-input'}`
+  const inputId   = `input-${field.id}`
+  const errorId   = `error-${field.id}`
+  const descId    = `desc-${field.id}`
+  const describedBy = [field.description ? descId : null, error ? errorId : null]
+    .filter(Boolean)
+    .join(' ') || undefined
+  const inputCls  = `focus-ring w-full rounded-xl border px-4 py-3 text-sm outline-none bg-background ${error ? 'border-destructive' : 'border-input'}`
 
   // Which follow-up to show (for multiple_choice / dropdown)?
   const activeFollowUp = (field.type === 'multiple_choice' || field.type === 'dropdown')
     ? field.follow_ups?.find(fu => fu.when_answer === strVal)
     : null
 
+  // Radio and checkbox sets get a group label instead of a for/id pair,
+  // because there is no single control to point at.
+  const isGroup = field.type === 'multiple_choice' || field.type === 'checkbox'
+  // The rating scale is a row of buttons (named as its own group below), and
+  // file_upload's real <input> lives inside the dropzone and is not rendered
+  // at all in preview. Pointing htmlFor at an id that does not exist is worse
+  // than omitting it, so those cases resolve to undefined.
+  const labelFor =
+    isGroup || field.type === 'rating'
+      ? undefined
+      : field.type === 'file_upload'
+        ? (preview ? undefined : `file-input-${field.id}`)
+        : inputId
+
   return (
-    <div id={`field-${field.id}`} className="space-y-2">
-      <label className="block text-sm font-medium">
+    <div
+      id={`field-${field.id}`}
+      className="space-y-2"
+      role={isGroup ? 'group' : undefined}
+      aria-labelledby={isGroup ? `label-${field.id}` : undefined}
+    >
+      <label
+        id={`label-${field.id}`}
+        htmlFor={labelFor}
+        className="block text-sm font-medium"
+      >
         {field.label}
-        {field.required && <span className="text-destructive ml-1">*</span>}
+        {field.required && <span className="text-destructive ml-1" aria-hidden="true">*</span>}
       </label>
       {field.description && (
-        <p className="text-xs text-muted-foreground">{field.description}</p>
+        <p id={descId} className="text-xs text-muted-foreground">{field.description}</p>
       )}
 
       {field.type === 'short_text' && (
-        <input type="text" value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+        <input id={inputId} type="text" value={strVal} onChange={e => onChange(e.target.value)}
+          required={field.required} aria-invalid={!!error} aria-describedby={describedBy}
+          className={inputCls} disabled={preview} />
       )}
       {field.type === 'long_text' && (
-        <textarea rows={4} value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+        <textarea id={inputId} rows={4} value={strVal} onChange={e => onChange(e.target.value)}
+          required={field.required} aria-invalid={!!error} aria-describedby={describedBy}
+          className={inputCls} disabled={preview} />
       )}
       {field.type === 'date' && (
-        <input type="date" value={strVal} onChange={e => onChange(e.target.value)} className={inputCls} disabled={preview} />
+        <input id={inputId} type="date" value={strVal} onChange={e => onChange(e.target.value)}
+          required={field.required} aria-invalid={!!error} aria-describedby={describedBy}
+          className={inputCls} disabled={preview} />
       )}
       {field.type === 'multiple_choice' && (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {field.options.map(opt => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <label
+              key={opt}
+              className="focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
+            >
               <input type="radio" name={field.id} value={opt}
                 checked={strVal === opt} onChange={() => onChange(opt)}
+                aria-describedby={describedBy}
                 className="accent-primary" disabled={preview} />
               <span className="text-sm">{opt}</span>
             </label>
@@ -247,15 +289,19 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
         </div>
       )}
       {field.type === 'checkbox' && (
-        <div className="space-y-1.5">
+        <div className="space-y-1">
           {field.options.map(opt => (
-            <label key={opt} className="flex items-center gap-2 cursor-pointer">
+            <label
+              key={opt}
+              className="focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
+            >
               <input type="checkbox" value={opt}
                 checked={arrVal.includes(opt)}
                 onChange={e => {
                   if (e.target.checked) onChange([...arrVal, opt])
                   else onChange(arrVal.filter(v => v !== opt))
                 }}
+                aria-describedby={describedBy}
                 className="accent-primary" disabled={preview} />
               <span className="text-sm">{opt}</span>
             </label>
@@ -263,19 +309,21 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
         </div>
       )}
       {field.type === 'dropdown' && (
-        <select value={strVal} onChange={e => onChange(e.target.value)}
+        <select id={inputId} value={strVal} onChange={e => onChange(e.target.value)}
+          required={field.required} aria-invalid={!!error} aria-describedby={describedBy}
           className={inputCls} disabled={preview}>
           <option value="">{t('forms.select_placeholder')}</option>
           {field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
         </select>
       )}
       {field.type === 'rating' && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="group" aria-labelledby={`label-${field.id}`}>
           <span className="text-xs text-muted-foreground">{field.ratingMin}</span>
           {[1, 2, 3, 4, 5].map(n => (
             <button key={n} type="button"
               onClick={() => !preview && onChange(String(n))}
-              className={`focus-ring w-9 h-9 rounded-xl border text-sm font-medium transition-colors ${strVal === String(n) ? 'bg-pop-solid border-pop-solid text-white' : 'border-input hover:border-pop-550/50'}`}>
+              aria-pressed={strVal === String(n)}
+              className={`focus-ring w-11 h-11 rounded-xl border text-sm font-medium transition-colors ${strVal === String(n) ? 'bg-pop-solid border-pop-solid text-white' : 'border-input hover:border-pop-550/50'}`}>
               {n}
             </button>
           ))}
@@ -302,7 +350,7 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
         </div>
       )}
 
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p id={errorId} role="alert" className="text-xs text-destructive">{error}</p>}
 
       {/* Conditional follow-up */}
       {activeFollowUp && (
