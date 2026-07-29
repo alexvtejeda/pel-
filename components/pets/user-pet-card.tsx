@@ -7,13 +7,17 @@ import { useTranslation } from 'react-i18next'
 import Carousel from '@/components/Carousel'
 import { formatAge } from '@/lib/utils/format-age'
 
-function CardCarousel({ urls }: { urls: string[] }) {
+function CardCarousel({ urls, name }: { urls: string[]; name: string }) {
   const [width, setWidth] = useState(0)
 
   const items = urls.map((url, i) => ({
     id: i,
     image: url,
+    // `title` also renders as a visible caption bar over the photo, so the pet's
+    // name goes in `alt` instead. It used to be neither, which left every grid
+    // photo with alt="" and invisible to screen readers.
     title: '',
+    alt: name,
     description: '',
     icon: null as unknown as React.ReactNode,
   }))
@@ -67,12 +71,15 @@ export function UserPetCard({
     : ageUnit === 'years'
       ? { count: Math.floor(parsed), unit: 'years' as const }
       : formatAge(parsed)
+  // Shared by the heading and the photo alt text so a nameless pet (the live
+  // preview in MemberAddPetModal starts empty) never falls back to alt="".
+  const displayName = name.trim() || t('details.name')
 
   return (
     <div className="rounded-2xl overflow-hidden shadow-xs border bg-card">
       <div className="relative aspect-square bg-muted/30">
         {photoUrls.length > 0 ? (
-          <CardCarousel urls={photoUrls} />
+          <CardCarousel urls={photoUrls} name={displayName} />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
             <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />
@@ -84,7 +91,7 @@ export function UserPetCard({
       </div>
       <div className="p-3">
         <div className="flex items-center gap-1.5">
-          <span className="font-medium text-sm truncate">{name.trim() || t('details.name')}</span>
+          <span className="font-medium text-sm truncate">{displayName}</span>
         </div>
         <span className="text-xs text-muted-foreground flex items-center gap-1">
           {displayAge && <span>{t(`detail.${displayAge.unit}`, { count: displayAge.count })}</span>}

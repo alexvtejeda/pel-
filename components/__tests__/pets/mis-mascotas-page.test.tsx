@@ -40,6 +40,44 @@ const EMPTY_STATE = 'Aún no has añadido ninguna mascota. Añade la primera par
 beforeEach(() => vi.clearAllMocks())
 
 describe('MisMascotasPage', () => {
+  /*
+    The loading branch used to be a single centred spinner, which told the user
+    nothing about the shape of what was coming and made the grid pop in. These
+    two tests pin the skeleton grid: that it is what renders while in flight, and
+    that its geometry is the real grid's, so nothing jumps when the pets land.
+  */
+  describe('loading branch', () => {
+    const pending = () => {
+      let settle!: (v: { data: UserPet[] | null; error: string | null }) => void
+      mockList.mockReturnValue(new Promise((resolve) => { settle = resolve }))
+      return (value: { data: UserPet[] | null; error: string | null }) => settle(value)
+    }
+
+    it('renders skeleton cards instead of a spinner', () => {
+      pending()
+
+      const { container } = renderWithProviders(<MisMascotasPage />)
+
+      expect(container.querySelectorAll('.animate-pulse')).toHaveLength(8)
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    })
+
+    it('lays the skeletons out on the same grid as the real cards', async () => {
+      const settle = pending()
+      const { container } = renderWithProviders(<MisMascotasPage />)
+
+      const gridClasses = () => container.querySelector('main > div.grid')?.className
+      const whileLoading = gridClasses()
+      expect(whileLoading).toBeDefined()
+
+      settle({ data: [PET], error: null })
+      await screen.findByText('Luna')
+
+      expect(container.querySelectorAll('.animate-pulse')).toHaveLength(0)
+      expect(gridClasses()).toBe(whileLoading)
+    })
+  })
+
   it('shows an error with retry when the fetch fails', async () => {
     mockList.mockResolvedValue({ data: null, error: 'Error de conexión' })
 

@@ -8,10 +8,10 @@ import { faPaw, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons
 import { PetsHeader } from '@/components/pets/pets-header'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import { UserPetCard } from '@/components/pets/user-pet-card'
+import { UserPetCardSkeleton } from '@/components/pets/user-pet-card-skeleton'
 import { listUserPets, deleteUserPet, UserPet } from '@/lib/api/user-pets'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
-import { Spinner } from '@/components/ui/spinner'
 import {
   AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle,
   AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction,
@@ -87,8 +87,10 @@ export default function MisMascotasPage() {
         </div>
 
         {loading ? (
-          <div className="flex justify-center py-24">
-            <Spinner className="text-3xl text-muted-foreground/40" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4" aria-busy="true">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <UserPetCardSkeleton key={i} />
+            ))}
           </div>
         ) : loadError ? (
           <ErrorState message={t('member.load_error')} onRetry={load} />
