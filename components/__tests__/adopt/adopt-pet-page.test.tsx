@@ -14,6 +14,10 @@ import i18n from '@/lib/i18n'
   The 404 branch is the behaviour this fix must not regress, so router.replace
   has to be inspectable. This file owns the router mock and wraps in the i18n
   provider directly.
+
+  Bypassing the helper also drops its next/image mock, which is only harmless
+  because the PET fixture has photos: [] and so never renders <Image>. Give a
+  fixture a photo and you have to mock next/image here too.
 */
 const { mockReplace } = vi.hoisted(() => ({ mockReplace: vi.fn() }))
 
@@ -53,6 +57,24 @@ const FORM = {
   advisory: false,
 } as never
 
+const CONN_ERROR = 'Error de conexión'
+
+/*
+  Both requests failing is the easy case. A ONE-SIDED failure is what makes the
+  loader's check an OR rather than an AND: with `&&`, the healthy leg masks the
+  broken one, the load falls through to the !data branch and redirects to /pets —
+  the exact bug this suite exists to pin. Both directions are covered because
+  either request can be the one that dies.
+*/
+const ONE_SIDED: [
+  string,
+  Awaited<ReturnType<typeof getPublicPet>>,
+  Awaited<ReturnType<typeof getPetForm>>,
+][] = [
+  ['the pet request', { data: null, error: CONN_ERROR }, { data: FORM, error: null }],
+  ['the form request', { data: PET, error: null }, { data: null, error: CONN_ERROR }],
+]
+
 const renderPage = () =>
   render(<AdoptPetPage petId="p1" />, {
     wrapper: ({ children }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>,
@@ -78,6 +100,21 @@ describe('AdoptPetPage load states', () => {
     // The whole point of the fix: an outage must not bounce the user to /pets.
     expect(mockReplace).not.toHaveBeenCalled()
   })
+
+  it.each(ONE_SIDED)(
+    'shows the error state when only %s fails',
+    async (_leg, petRes, formRes) => {
+      mockGetPet.mockResolvedValue(petRes)
+      mockGetForm.mockResolvedValue(formRes)
+
+      renderPage()
+
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'No pudimos cargar esta solicitud'
+      )
+      expect(mockReplace).not.toHaveBeenCalled()
+    }
+  )
 
   it('retries the fetch when retry is pressed', async () => {
     mockGetPet.mockResolvedValue({ data: null, error: 'Error de conexión' })
