@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleUser, faComments } from '@fortawesome/free-solid-svg-icons'
@@ -26,16 +26,22 @@ export default function ChatConversationList({ onSelectConversation, activeConve
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
 
+  const loadRequestRef = useRef(0)
+
   /*
-    No `cancelled` flag: `load` has no dependencies, so the effect runs once per
-    mount and the old cleanup only guarded a StrictMode double-invoke that now
-    re-runs the same idempotent fetch.
+    The request token replaces the old effect-scoped `cancelled` flag, matching
+    chat-message-thread. The fetch is idempotent in request but not in outcome:
+    with two loads in flight (a retry, or StrictMode's double-invoke in dev) a
+    slow failure landing after a fast success would flip a correctly loaded list
+    into the error state. Only the newest request may write.
   */
   const load = useCallback(() => {
+    const requestId = ++loadRequestRef.current
     setLoading(true)
     setLoadError(false)
     listConversations()
       .then(({ data, error }) => {
+        if (requestId !== loadRequestRef.current) return
         if (error || !data) {
           setLoadError(true)
         } else {
@@ -44,6 +50,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
         setLoading(false)
       })
       .catch(() => {
+        if (requestId !== loadRequestRef.current) return
         setLoadError(true)
         setLoading(false)
       })
@@ -127,7 +134,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
       <div className="flex flex-col items-center justify-center py-16 gap-3 px-6 text-center">
         <FontAwesomeIcon icon={faComments} className={`text-4xl ${darkBg ? 'text-sidebar-foreground/30' : 'text-muted-foreground/30'}`} />
         <p className={`text-sm ${darkBg ? 'text-sidebar-foreground/60' : 'text-muted-foreground'}`}>{t('chat.empty')}</p>
-        <p className={`text-xs ${darkBg ? 'text-sidebar-foreground/50' : 'text-muted-foreground/70'} max-w-[15rem]`}>
+        <p className={`text-xs ${darkBg ? 'text-sidebar-foreground/50' : 'text-muted-foreground/70'} max-w-60`}>
           {t('chat.empty_hint')}
         </p>
         <TransitionLink
