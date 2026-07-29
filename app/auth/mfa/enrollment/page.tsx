@@ -11,9 +11,13 @@ import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 function MfaEnrollmentInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user } = useAuth()
+  const { user, mfaSetupRequired } = useAuth()
   const { t } = useTranslation(['common', 'auth'])
-  const forced = searchParams?.get('mfa') === '1'
+  // ?mfa=1 is only set by postLoginRedirect. The account-sheet link carries no
+  // param, so the session's own pending requirement has to count as forced too
+  // — otherwise a forced user arriving from the sheet gets a skip button that
+  // silently disappears the moment they use it.
+  const forced = searchParams?.get('mfa') === '1' || mfaSetupRequired
 
   const breadcrumbItems = [
     { label: t('home', { ns: 'common' }), href: '/' },

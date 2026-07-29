@@ -99,11 +99,12 @@ describe('/auth/mfa/enrollment route guard', () => {
     renderWithProviders(<MfaEnrollmentLayout>{PAGE}</MfaEnrollmentLayout>)
 
     /*
-      This is the whole reason the guard needs an opt-out. These users are the
-      ones postLoginRedirect sends here (?mfa=1), and they are exactly the ones
-      ProtectedRoute's mfaSetupRequired branch swallows: without the opt-out the
-      guard renders its own <MfaEnrollment> — no skip button, and an onComplete
-      that logs the user out — in place of the page that owns this route.
+      This is the whole reason the guard needs isMfaEnrollmentSurface. These
+      users are the ones postLoginRedirect sends here (?mfa=1), and they are
+      exactly the ones ProtectedRoute's mfaSetupRequired branch swallows:
+      without it the guard renders its own <MfaEnrollment> — no skip button,
+      and an onComplete that logs the user out — in place of the page that owns
+      this route.
     */
     expect(screen.getByTestId('enrollment-page')).toBeInTheDocument()
     expect(screen.queryByTestId('guard-enrollment')).not.toBeInTheDocument()
@@ -118,7 +119,7 @@ describe('ProtectedRoute default (every other protected route)', () => {
 
     renderWithProviders(<ProtectedRoute requireRole={['rescue_center']}>{PAGE}</ProtectedRoute>)
 
-    // The opt-out is opt-in: forced enrollment still fires everywhere else.
+    // isMfaEnrollmentSurface is opt-in: forced enrollment fires everywhere else.
     expect(screen.getByTestId('guard-enrollment')).toBeInTheDocument()
     expect(screen.queryByTestId('enrollment-page')).not.toBeInTheDocument()
     expect(mockPush).not.toHaveBeenCalled()

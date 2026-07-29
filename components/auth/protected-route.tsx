@@ -13,20 +13,22 @@ interface ProtectedRouteProps {
   requireRole?: UserRole[]
   redirectTo?: string
   /**
-   * Opt out of the forced-MFA interception below — for routes that ARE the
-   * enrollment surface. Without it the guard replaces `/auth/mfa/enrollment`
-   * with its own <MfaEnrollment>, which carries different props (no skip, and
-   * an onComplete that logs the user out) than the page that owns the route.
-   * Authentication is still enforced; only the MFA branch is skipped.
+   * Declares that this route IS the MFA enrollment surface, which skips the
+   * forced-MFA interception below — the route renders enrollment itself.
+   * Without it the guard replaces `/auth/mfa/enrollment` with its own
+   * <MfaEnrollment>, which carries different props (no skip, and an onComplete
+   * that logs the user out) than the page that owns the route.
+   * Authentication is still enforced; only the MFA branch is skipped. Set this
+   * on no other route — anywhere else it is simply false.
    */
-  allowMfaSetupPending?: boolean
+  isMfaEnrollmentSurface?: boolean
 }
 
 export function ProtectedRoute({
   children,
   requireRole,
   redirectTo = '/auth/login',
-  allowMfaSetupPending = false,
+  isMfaEnrollmentSurface = false,
 }: ProtectedRouteProps) {
   const { user, loading, mfaSetupRequired } = useAuth()
   const router = useRouter()
@@ -63,7 +65,7 @@ export function ProtectedRoute({
     return null
   }
 
-  if (!allowMfaSetupPending && mfaSetupRequired && user?.role && ['rescue_center', 'business'].includes(user.role)) {
+  if (!isMfaEnrollmentSurface && mfaSetupRequired && user?.role && ['rescue_center', 'business'].includes(user.role)) {
     return (
       <MfaEnrollment
         onComplete={async () => {

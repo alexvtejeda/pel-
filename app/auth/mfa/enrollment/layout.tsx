@@ -6,7 +6,7 @@ export default function MfaEnrollmentLayout({ children }: { children: React.Reac
   // the users forced here (rescue_center/business with MFA pending) are exactly
   // the ones that branch fires for, and the page owns the flow, not the guard.
   return (
-    <ProtectedRoute allowMfaSetupPending>
+    <ProtectedRoute isMfaEnrollmentSurface>
       {children}
     </ProtectedRoute>
   )
