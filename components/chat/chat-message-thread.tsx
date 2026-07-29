@@ -53,7 +53,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   const { t, i18n } = useTranslation('pets')
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { user } = useAuth()
-  const { subscribe, sendMessage, sendTyping, sendReadReceipt } = useWebSocket()
+  const { subscribe, sendMessage, sendTyping, sendReadReceipt, connected } = useWebSocket()
   const router = useRouter()
 
   const [messages, setMessages] = useState<Message[]>([])
@@ -213,9 +213,14 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
     }
   }, [loading]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /*
+    The `connected` guard has to come before setInput(''): the socket send is a
+    no-op while the connection is down, so clearing the input first is what made
+    a message disappear with no trace. Nothing is cleared unless it was sent.
+  */
   const handleSend = () => {
     const body = input.trim()
-    if (!body) return
+    if (!body || !connected) return
     sendMessage(conversation.id, body)
     setInput('')
   }
@@ -346,6 +351,15 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
         )}
       </div>
 
+      {!connected && (
+        <div
+          role="status"
+          className="shrink-0 border-t border-warning/40 bg-warning-bg px-4 py-2 text-xs text-warning-foreground"
+        >
+          {t('chat.offline_banner')}
+        </div>
+      )}
+
       {/* Input Bar */}
       <div className="flex items-center gap-2 p-4 border-t border-border bg-background shrink-0">
         {conversation.pet_id && (
@@ -374,13 +388,14 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
+          disabled={!connected}
           placeholder={t('chat.placeholder')}
           aria-label={t('chat.message_label')}
-          className="flex-1 rounded-xl border border-input bg-transparent px-4 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-pop-550"
+          className="focus-ring flex-1 rounded-xl border border-input bg-transparent px-4 py-2 text-sm placeholder:text-muted-foreground disabled:opacity-60"
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim()}
+          disabled={!input.trim() || !connected}
           aria-label={t('chat.send')}
           className="focus-ring bg-pop-solid text-white rounded-xl p-2.5 hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-40"
         >

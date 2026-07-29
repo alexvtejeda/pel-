@@ -10,6 +10,7 @@ import { renderWithProviders } from '../test-utils'
 */
 const { ws, mockUser } = vi.hoisted(() => ({
   ws: {
+    connected: true,
     subscribe: vi.fn(() => () => {}),
     sendMessage: vi.fn(),
     sendTyping: vi.fn(),
@@ -74,8 +75,13 @@ const thread = (convo: Conversation) => (
 const renderThread = (convo: Conversation = CONVERSATION_A) =>
   renderWithProviders(thread(convo))
 
+const OFFLINE_BANNER = 'Sin conexión. Los mensajes no se enviarán hasta que se restablezca.'
+
 beforeEach(() => {
   vi.clearAllMocks()
+  // clearAllMocks only clears call records, so this plain field needs resetting
+  // by hand — a test that drops the socket would otherwise leak into the next.
+  ws.connected = true
   // jsdom does not implement scrollIntoView; the thread auto-scrolls on load.
   Element.prototype.scrollIntoView = vi.fn()
 })
@@ -147,6 +153,64 @@ describe('ChatMessageThread', () => {
     await waitFor(() => expect(screen.queryByRole('status')).not.toBeInTheDocument())
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(screen.queryByText('No pudimos cargar los mensajes')).not.toBeInTheDocument()
+  })
+
+  describe('when the socket is down', () => {
+    it('says so and blocks the composer', async () => {
+      ws.connected = false
+      resolveWithMessages()
+
+      renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      expect(screen.getByText(OFFLINE_BANNER)).toBeInTheDocument()
+      expect(screen.getByLabelText('Mensaje')).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Enviar' })).toBeDisabled()
+    })
+
+    /*
+      The actual bug: the input cleared on Enter regardless of socket state, so
+      the typed message vanished while the socket send was a no-op. Staged the
+      way it happens — typed while connected, socket drops, then Enter — rather
+      than by typing into an already-disabled input.
+
+      The disabled attribute is the defence a real browser applies (it never
+      dispatches keydown to a disabled input); jsdom is more permissive, which
+      is what lets this reach handleSend and pin the guard inside it. Both
+      matter: the attribute stops the keypress, the guard stops the clear.
+    */
+    it('neither sends nor clears the draft when Enter is pressed offline', async () => {
+      resolveWithMessages()
+
+      const { rerender } = renderThread()
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      const input = screen.getByLabelText('Mensaje')
+      fireEvent.change(input, { target: { value: '¿Puedo visitarla el sábado?' } })
+
+      ws.connected = false
+      rerender(thread(CONVERSATION_A))
+
+      fireEvent.keyDown(input, { key: 'Enter' })
+
+      expect(ws.sendMessage).not.toHaveBeenCalled()
+      expect(input).toHaveValue('¿Puedo visitarla el sábado?')
+    })
+  })
+
+  it('sends and clears the draft while connected', async () => {
+    resolveWithMessages()
+
+    renderThread()
+    await screen.findByText('¿Sigue disponible Luna?')
+
+    const input = screen.getByLabelText('Mensaje')
+    fireEvent.change(input, { target: { value: '¿Puedo visitarla el sábado?' } })
+    fireEvent.keyDown(input, { key: 'Enter' })
+
+    expect(ws.sendMessage).toHaveBeenCalledWith(CONVERSATION_A.id, '¿Puedo visitarla el sábado?')
+    expect(input).toHaveValue('')
+    expect(screen.queryByText(OFFLINE_BANNER)).not.toBeInTheDocument()
   })
 
   /*

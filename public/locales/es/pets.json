@@ -188,7 +188,8 @@
     "empty_hint": "Cuando un centro apruebe tu solicitud, podrás chatear aquí.",
     "empty_cta": "Ver mascotas",
     "select_conversation": "Selecciona una conversación para empezar",
-    "thread_error": "No pudimos cargar los mensajes"
+    "thread_error": "No pudimos cargar los mensajes",
+    "offline_banner": "Sin conexión. Los mensajes no se enviarán hasta que se restablezca."
   },
   "notifications": {
     "title": "Notificaciones",
