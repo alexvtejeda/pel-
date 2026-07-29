@@ -13,7 +13,9 @@
     "share": "Compartir enlace",
     "visitWebsite": "Visitar sitio web de {{name}}",
     "visitInstagram": "Visitar Instagram de {{name}}",
-    "more_actions": "Más acciones"
+    "more_actions": "Más acciones",
+    "view_details": "Ver detalles de {{name}}",
+    "verified_center": "Publicado por un centro de rescate verificado"
   },
   "details": {
     "name": "Nombre",

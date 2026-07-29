@@ -13,7 +13,9 @@
     "share": "Share link",
     "visitWebsite": "Visit {{name}}'s website",
     "visitInstagram": "Visit {{name}}'s Instagram",
-    "more_actions": "More actions"
+    "more_actions": "More actions",
+    "view_details": "View details for {{name}}",
+    "verified_center": "Posted by a verified rescue centre"
   },
   "details": {
     "name": "Name",

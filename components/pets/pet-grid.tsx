@@ -8,6 +8,7 @@ import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl, ensureUrl } from '@/lib/utils'
+import { formatAge } from '@/lib/utils/format-age'
 import { PetFilters } from '@/lib/api/pets-public'
 import {
   DropdownMenu,
@@ -256,7 +257,7 @@ export function PetGrid({
         {loading && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden bg-secondary animate-pulse">
+              <div key={i} className="rounded-2xl overflow-hidden bg-secondary animate-pulse">
                 <div className="aspect-square bg-muted" />
                 <div className="p-2 space-y-1.5">
                   <div className="h-3.5 bg-muted rounded w-2/3" />
@@ -282,97 +283,120 @@ export function PetGrid({
 
         {!loading && !error && sourceFiltered.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-            {sourceFiltered.map((pet) => (
-              <div
-                key={pet.id}
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelect(pet)}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(pet) }}
-                className={`focus-ring relative group rounded-xl overflow-hidden aspect-square cursor-pointer transition-all ${
-                  pet.conditions?.length > 0
-                    ? 'bg-warning-bg border-2 border-warning/50'
-                    : 'bg-secondary'
-                } ${
-                  selectedId === pet.id
-                    ? 'outline outline-pop-550'
-                    : 'hover:outline-2 hover:outline-border'
-                }`}
-              >
-                {pet.photos.length > 0 ? (
-                  <Image
-                    src={pet.photos[0].url}
-                    alt={pet.name}
-                    fill
-                    className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
-                    sizes="(max-width: 768px) 50vw, 25vw"
-                  />
-                ) : (
-                  <div className="flex items-center justify-center h-full">
-                    <FontAwesomeIcon icon={faPaw} className="text-xs text-muted-foreground/30" />
-                  </div>
-                )}
-
-                {/* Condition badge */}
-                {pet.conditions?.length > 0 && (
-                  <div className="absolute top-2 left-2 z-10">
-                    <span className="text-xs px-2 py-0.5 rounded-full bg-warning-bg text-warning-foreground">
-                      {t('detail.specialCondition')}
-                    </span>
-                  </div>
-                )}
-
-                {/* Verified badge — slides left on hover to avoid three-dots overlap */}
-                {pet.rescue_center && (
-                  <span className="absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:-translate-x-8" style={{ filter: 'drop-shadow(0 2px 4px var(--foreground))' }}>
-                    <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
-                    <FontAwesomeIcon icon={faCheck} className="text-background text-xs absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-                  </span>
-                )}
-
-                {/* Three-dots dropdown */}
+            {sourceFiltered.map((pet) => {
+              const age = formatAge(pet.age)
+              return (
                 <div
-                  className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 max-md:opacity-100 transition-opacity"
-                  onClick={(e) => e.stopPropagation()}
+                  key={pet.id}
+                  className={`relative group rounded-2xl overflow-hidden aspect-square transition-all ${
+                    pet.conditions?.length > 0
+                      ? 'bg-warning-bg border-2 border-warning/50'
+                      : 'bg-secondary'
+                  } ${
+                    selectedId === pet.id
+                      ? 'outline-2 outline-offset-2 outline-pop-550'
+                      : 'hover:outline-2 hover:outline-border'
+                  }`}
                 >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      {/* hover:bg-pop-solid, not pop-550: this circle carries a white
-                          glyph, and pop-550 measures 2.27:1 against it — under the 3:1
-                          WCAG 1.4.11 minimum for a functional control. */}
-                      <button aria-label={t('card.more_actions')} className="focus-ring w-7 h-7 rounded-full bg-primary flex items-center justify-center hover:bg-pop-solid transition-colors">
-                        <FontAwesomeIcon icon={faEllipsis} className="text-background text-sm" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {pet.short_slug && (
-                        <DropdownMenuItem onClick={() => handleShare(pet)}>
-                          <FontAwesomeIcon icon={faLink} className="text-sm" />
-                          {t('card.share')}
-                        </DropdownMenuItem>
-                      )}
-                      {pet.rescue_center?.website && (
-                        <DropdownMenuItem onClick={() => window.open(ensureUrl(pet.rescue_center!.website!), '_blank')}>
-                          <FontAwesomeIcon icon={faGlobe} className="text-sm" />
-                          {t('card.visitWebsite', { name: pet.rescue_center.name })}
-                        </DropdownMenuItem>
-                      )}
-                      {pet.rescue_center?.instagram && (
-                        <DropdownMenuItem onClick={() => window.open(instagramUrl(pet.rescue_center!.instagram!), '_blank')}>
-                          <FontAwesomeIcon icon={faInstagram} className="text-sm" />
-                          {t('card.visitInstagram', { name: pet.rescue_center.name })}
-                        </DropdownMenuItem>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
+                  {/*
+                    A real <button> rather than div[role=button]: it handles Space
+                    natively without scrolling the page, and the menu below is a
+                    SIBLING so we never nest interactive content.
+                  */}
+                  <button
+                    type="button"
+                    onClick={() => onSelect(pet)}
+                    aria-label={t('card.view_details', { name: pet.name })}
+                    className="focus-ring absolute inset-0 h-full w-full cursor-pointer rounded-2xl"
+                  >
+                    {pet.photos.length > 0 ? (
+                      <Image
+                        src={pet.photos[0].url}
+                        alt=""
+                        fill
+                        className="object-cover transition-transform duration-200 group-hover:scale-[1.03]"
+                        sizes="(max-width: 768px) 50vw, 25vw"
+                      />
+                    ) : (
+                      <span className="flex h-full items-center justify-center">
+                        <FontAwesomeIcon icon={faPaw} className="text-2xl text-muted-foreground/30" />
+                      </span>
+                    )}
 
-                {/* Name overlay */}
-                <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-primary to-transparent p-2 pt-6">
-                  <p className="text-background text-sm font-semibold truncate">{pet.name}</p>
+                    {/* Name + meta overlay. Spans, not <p>: a button may only
+                        contain phrasing content. */}
+                    <span className="absolute inset-x-0 bottom-0 block bg-linear-to-t from-primary to-transparent p-2 pt-6 text-left">
+                      <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
+                      <span className="block truncate text-[11px] text-background/80">
+                        {t(`detail.${age.unit}`, { count: age.count })}
+                        {' · '}
+                        {t(`gender.${pet.gender}`)}
+                      </span>
+                    </span>
+                  </button>
+
+                  {/* Condition badge */}
+                  {pet.conditions?.length > 0 && (
+                    <div className="pointer-events-none absolute top-2 left-2 z-10 max-w-[calc(100%-4rem)]">
+                      <span className="inline-block rounded-full bg-warning-bg px-2 py-0.5 text-[11px] leading-tight text-warning-foreground">
+                        {t('detail.specialCondition')}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Verified badge — slides left on hover to avoid the menu */}
+                  {pet.rescue_center && (
+                    <span
+                      title={t('card.verified_center')}
+                      aria-label={t('card.verified_center')}
+                      role="img"
+                      className="pointer-events-none absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:-translate-x-8"
+                      style={{ filter: 'drop-shadow(0 2px 4px var(--foreground))' }}
+                    >
+                      <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
+                      <FontAwesomeIcon icon={faCheck} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-background" />
+                    </span>
+                  )}
+
+                  {/* Three-dots menu — sibling of the card button */}
+                  <div className="absolute top-2 right-2 z-20 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 max-md:opacity-100">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        {/* hover:bg-pop-solid, not pop-550: this circle carries a white
+                            glyph, and pop-550 measures 2.27:1 against it — under the 3:1
+                            WCAG 1.4.11 minimum for a functional control. */}
+                        <button
+                          aria-label={t('card.more_actions')}
+                          className="focus-ring flex h-7 w-7 items-center justify-center rounded-full bg-primary transition-colors hover:bg-pop-solid"
+                        >
+                          <FontAwesomeIcon icon={faEllipsis} className="text-sm text-background" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        {pet.short_slug && (
+                          <DropdownMenuItem onClick={() => handleShare(pet)}>
+                            <FontAwesomeIcon icon={faLink} className="text-sm" />
+                            {t('card.share')}
+                          </DropdownMenuItem>
+                        )}
+                        {pet.rescue_center?.website && (
+                          <DropdownMenuItem onClick={() => window.open(ensureUrl(pet.rescue_center!.website!), '_blank')}>
+                            <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                            {t('card.visitWebsite', { name: pet.rescue_center.name })}
+                          </DropdownMenuItem>
+                        )}
+                        {pet.rescue_center?.instagram && (
+                          <DropdownMenuItem onClick={() => window.open(instagramUrl(pet.rescue_center!.instagram!), '_blank')}>
+                            <FontAwesomeIcon icon={faInstagram} className="text-sm" />
+                            {t('card.visitInstagram', { name: pet.rescue_center.name })}
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         )}
       </div>

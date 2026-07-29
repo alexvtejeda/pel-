@@ -148,7 +148,7 @@ export function TransitionOverlay() {
                   {Array.from({ length: 8 }).map((_, i) => (
                     <div
                       key={i}
-                      className="rounded-xl overflow-hidden bg-secondary animate-pulse"
+                      className="rounded-2xl overflow-hidden bg-secondary animate-pulse"
                     >
                       <div className="aspect-square bg-muted" />
                       <div className="p-2 space-y-1.5">
