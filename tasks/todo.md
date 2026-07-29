@@ -182,3 +182,95 @@ except one, which is recorded below.
   this session. Still to eyeball at 1440px and 375px, in both themes: the
   `PeluLoadingLogo` assembly, the darker `pop-solid` CTAs, keyboard focus
   rings, the chat divider shadow, and the footer above the mobile nav.
+
+---
+
+## Plan B execution (2026-07-29) — `fix/ui-pass-p0-bugs`
+
+Tasks 1–3 (`/adopt`) had landed in an earlier session. This session executed
+**Tasks 4–10**, subagent-driven: one implementer per task, then an independent
+spec-compliance review, then a code-quality review, with fix loops.
+
+**11 commits**, `8290d1a` → `44aae51`. Suite went **398/399 → 434/435** (+36
+tests); the one failure is the same pre-existing `transition-overlay.tsx`
+inline-style violation that fails on `main`.
+
+### What shipped
+
+- **`/chat`** — the conversation list and message thread both discarded the
+  fetch error, so an outage rendered as "you have no conversations" / an empty
+  thread. Both now branch `loading → error → empty` with `ErrorState` + retry.
+  The no-selection panel stopped reusing `chat.empty`.
+- **`/mis-mascotas`** — same class of bug; a failed fetch invited you to add
+  your first pet. Now an error state with retry, and the add-pet button stays
+  reachable through the failure.
+- **MFA** — the TOTP setup spinner trap, the silent email-OTP failure, and the
+  unguarded enrollment route are all fixed.
+
+### Four defects found *in the plan itself* while executing it
+
+1. **Task 8's `useCallback(..., [resolveError])` is an infinite refetch loop.**
+   `useMfaError()` returns an unmemoized closure, so `startSetup`'s identity
+   changes every render and the effect re-fires forever. Reproduced: `act()`
+   times out at 5000ms with the plan's literal code. Fixed with a latest-ref;
+   a language-switch probe (ES→EN→retry) confirms no stale closure.
+2. **`totpSetup()` rejects — the plan's `startSetup` had no `.catch`.**
+   `lib/api/client.ts` awaits raw `fetch` unguarded and `lib/api/mfa.ts` does
+   `await res.json()` unguarded, so an unreachable API throws. Without the
+   added `.catch`, the exact trap the task exists to remove survives.
+3. **Task 10's literal 3-line layout breaks the forced-MFA path.**
+   `ProtectedRoute` renders its *own* `<MfaEnrollment>` whose `onComplete`
+   **logs the user out**, short-circuiting `children`. Wrapping the route
+   naively would have logged RC/business users out on successful enrollment
+   and made the route's `?mfa=1` contract dead code. Fixed with an opt-in
+   `allowMfaSetupPending` prop (default `false`; all 8 existing call sites
+   verified unchanged; auth and role gating both still precede the MFA branch).
+4. **Task 5's replacement dropped a race guard.** The plan removed the
+   `cancelled` flag, but `loadMessages` depends on `conversation.id`, so a slow
+   response for conversation A could paint into B. Replaced with a request
+   token — then extended to the pagination path, which the token initially
+   missed and which could prepend A's history into B's thread.
+
+### Corrections made during review
+
+- The conversation-list retry test would have **passed against a retry that
+  never refetched** (it resolved with `[]`, which the empty state already
+  renders). Hardened to resolve with real data; deliberate-break check confirms
+  it now fails against a no-op retry.
+- Locking the MFA skip button required hoisting `handleSuccess` out of the
+  `try` — which, without an added `return` in the `catch`, would have made a
+  **network failure complete enrollment**. Pinned with an assertion.
+
+### Known, unfixed, out of scope — follow-ups worth their own tasks
+
+- **`lib/api/mfa.ts` violates the never-throw API convention.** Every function
+  can reject; 15 of 18 other `lib/api/` modules use try/catch. `pets.ts` is the
+  documented exception — `mfa.ts` is an undocumented second one, and every MFA
+  screen inherits the trap. The local `.catch`es are a stopgap.
+- **`apiClient` sets no timeout / `AbortSignal`.** A *hung* request still spins
+  forever; the `.catch` branches only cover rejection.
+- **`use-mfa-error.ts` is unmemoized** — the footgun behind defect 1, still
+  live for the next caller who puts it in a dep array.
+- `chat-conversation-list`'s new empty-state copy is member-framed but the
+  component is shared with the RC dashboard chat tab.
+- The chat pagination fetch still discards its error and sets `hasMore = false`,
+  permanently disabling scroll-up after one transient failure.
+- `login()` never sets `mfaSetupRequired`; `MfaRecoveryModal` renders without
+  the forced `dark` wrapper; the MFA role list omits admins whose underlying
+  role is `member`.
+- `mfa-passkey-setup.tsx:55` still has the literal `←` + misused
+  `mfa.settings.cancel` — folded into Plan C Milestone 7.
+
+### Verification
+
+- `npx vitest run` → **434/435**, the one failure pre-existing.
+- `npx tsc --noEmit` → only the 2 known pre-existing `transition-link.test.tsx`
+  errors.
+- **`bun run build` was deliberately NOT run** — it rewrites `.next/`/`out/`,
+  which the Docker prod build on port 3000 serves. Static-export risk on the
+  new layout was judged nil against `app/transporte`, a shipped structural
+  twin (client page with `useSearchParams` in `<Suspense>` under a
+  `ProtectedRoute` layout).
+- **No browser verification.** Every live step in the plan was waived and
+  replaced with automated coverage. Still to eyeball: all eight failure paths
+  in the plan's Final-verification table.
