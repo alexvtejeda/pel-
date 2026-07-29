@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw } from '@fortawesome/free-solid-svg-icons'
-import { Form, FormField, FieldType } from '@/lib/api/forms'
+import { Form, FormField } from '@/lib/api/forms'
 import { TransitionLink } from '@/components/transitions/transition-link'
 import { FileDropzone } from '@/components/ui/file-dropzone'
 
@@ -182,7 +182,15 @@ export function FormRenderer({ form, rc: _rc, preview = false, onSubmit, submitW
               error={errors[field.id]}
               preview={preview}
               onChange={val => setAnswer(field.id, val)}
-              onFile={file => setFiles(prev => ({ ...prev, [field.id]: file }))}
+              // null means "detached". The key is deleted rather than set to
+              // undefined, because isAnswered() tests truthiness and
+              // handleSubmit hands this map straight to Object.entries().
+              onFile={file => setFiles(prev => {
+                const next = { ...prev }
+                if (file) next[field.id] = file
+                else delete next[field.id]
+                return next
+              })}
               allAnswers={answers}
               onAnswerChange={setAnswer}
             />
@@ -217,7 +225,8 @@ interface FieldInputProps {
   error: string | undefined
   preview: boolean
   onChange: (val: string | string[]) => void
-  onFile: (file: File) => void
+  /** null detaches the current file. */
+  onFile: (file: File | null) => void
   allAnswers: Answers
   onAnswerChange: (id: string, value: string | string[]) => void
 }
@@ -292,7 +301,10 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
           {field.options.map(opt => (
             <label
               key={opt}
-              className="focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
+              // has-[:focus-visible] rather than focus-within: focus-within also
+              // fires on mouse click, which left a persistent outline around the
+              // row and doubled up with the control's own ring on keyboard focus.
+              className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
             >
               <input type="radio" name={field.id} value={opt}
                 checked={strVal === opt} onChange={() => onChange(opt)}
@@ -308,7 +320,10 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
           {field.options.map(opt => (
             <label
               key={opt}
-              className="focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
+              // has-[:focus-visible] rather than focus-within: focus-within also
+              // fires on mouse click, which left a persistent outline around the
+              // row and doubled up with the control's own ring on keyboard focus.
+              className="has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-pop-700 flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl px-3 transition-colors hover:bg-muted/60"
             >
               <input type="checkbox" value={opt}
                 checked={arrVal.includes(opt)}
@@ -352,6 +367,7 @@ function FieldInput({ field, value, fileValue, error, preview, onChange, onFile,
           hint={t('forms.attach_hint')}
           selectedName={fileValue?.name ?? null}
           onFiles={list => { if (list[0]) onFile(list[0]) }}
+          onClear={() => onFile(null)}
           // Keeps the field's <label htmlFor> pointing at the real control, so
           // it stays announced and still opens the picker when clicked.
           inputId={`file-input-${field.id}`}

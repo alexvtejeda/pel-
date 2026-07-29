@@ -287,6 +287,25 @@ describe('FileDropzone — drag and drop', () => {
     expect(btn.className).not.toContain('bg-pop-550/5')
   })
 
+  it('keeps its own children out of the drag hit-test', () => {
+    renderWithProviders(
+      <FileDropzone accept="image/png" label="Adjuntar archivo" hint="PNG o PDF" onFiles={() => {}} />
+    )
+
+    /*
+      dragleave bubbles, so a child that can be dragged over would fire it on
+      the button every time the cursor crossed one and strobe the highlight.
+      jsdom has no hit-testing, so the fix is asserted through the class.
+    */
+    // getAttribute, not .className — the icon is an <svg>, whose className is
+    // an SVGAnimatedString rather than a string.
+    const children = Array.from(zone().children)
+    expect(children).toHaveLength(3)
+    for (const child of children) {
+      expect(child.getAttribute('class')).toContain('pointer-events-none')
+    }
+  })
+
   it('resets the dragging treatment after a drop', () => {
     renderWithProviders(
       <FileDropzone accept="image/png" label="Adjuntar archivo" onFiles={() => {}} />

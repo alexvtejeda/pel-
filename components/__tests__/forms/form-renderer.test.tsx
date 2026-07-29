@@ -361,6 +361,14 @@ describe('FormRenderer — label association', () => {
 describe('FormRenderer — file upload', () => {
   const fileForm = makeForm([field({ id: 'f', label: 'Comprobante', type: 'file_upload' })])
 
+  const attach = (name = 'cedula.pdf') =>
+    fireEvent.change(document.getElementById('file-input-f')!, {
+      target: { files: [new File(['x'], name, { type: 'application/pdf' })] },
+    })
+
+  const remove = () =>
+    fireEvent.click(screen.getByRole('button', { name: 'Quitar archivo' }))
+
   it('keeps the label on the real input and makes the zone a button', () => {
     renderWithProviders(<FormRenderer form={fileForm} rc={RC} onSubmit={async () => {}} />)
 
@@ -381,6 +389,78 @@ describe('FormRenderer — file upload', () => {
 
     expect(container.querySelector('input[type="file"]')).toBeNull()
     expect(container.querySelector('label[for]')).toBeNull()
+  })
+
+  it('offers the remove control only once a file is attached', () => {
+    renderWithProviders(<FormRenderer form={fileForm} rc={RC} onSubmit={async () => {}} />)
+
+    expect(screen.queryByRole('button', { name: 'Quitar archivo' })).not.toBeInTheDocument()
+    expect(screen.getByText('Adjuntar archivo')).toBeInTheDocument()
+
+    attach()
+
+    expect(screen.getByRole('button', { name: 'Quitar archivo' })).toBeInTheDocument()
+    expect(screen.getByText('cedula.pdf')).toBeInTheDocument()
+    expect(screen.queryByText('Adjuntar archivo')).not.toBeInTheDocument()
+  })
+
+  it('restores the placeholder when the file is removed', () => {
+    renderWithProviders(<FormRenderer form={fileForm} rc={RC} onSubmit={async () => {}} />)
+
+    attach()
+    remove()
+
+    expect(screen.queryByText('cedula.pdf')).not.toBeInTheDocument()
+    expect(screen.getByText('Adjuntar archivo')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Quitar archivo' })).not.toBeInTheDocument()
+  })
+
+  /*
+    The one that matters. Attaching a file satisfies a required file question,
+    so detaching has to un-satisfy it — otherwise removal is cosmetic and the
+    form would submit with nothing attached.
+  */
+  it('sends a required file field back to blocking submission once removed', () => {
+    const onSubmit = vi.fn(async () => {})
+    renderWithProviders(
+      <FormRenderer
+        form={makeForm([field({ id: 'f', label: 'Comprobante', type: 'file_upload', required: true })])}
+        rc={RC}
+        onSubmit={onSubmit}
+      />
+    )
+
+    attach()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '1')
+
+    remove()
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '0')
+
+    submit()
+
+    expect(onSubmit).not.toHaveBeenCalled()
+    expect(screen.getByRole('alert')).toHaveTextContent('Este campo es obligatorio')
+  })
+
+  it('deletes the entry from the files map rather than leaving it undefined', async () => {
+    /*
+      handleSubmit hands `files` straight to Object.entries(), which would still
+      yield a [fieldId, undefined] pair and drive a bogus upload call. Submitting
+      is the only way to observe the map, and onSubmit rejects so the run stops
+      at the error banner — the success screen renders a TransitionLink, which
+      needs a RouteTransitionProvider that renderWithProviders does not supply.
+    */
+    const onSubmit = vi.fn(async () => { throw new Error('detenido') })
+    renderWithProviders(<FormRenderer form={fileForm} rc={RC} onSubmit={onSubmit} />)
+
+    attach()
+    remove()
+    submit()
+
+    await screen.findByText('detenido')
+    const sentFiles = (onSubmit.mock.calls[0] as unknown[])[1] as Record<string, File>
+    expect(Object.prototype.hasOwnProperty.call(sentFiles, 'f')).toBe(false)
+    expect(Object.entries(sentFiles)).toHaveLength(0)
   })
 })
 

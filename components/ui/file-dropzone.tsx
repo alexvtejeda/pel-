@@ -91,9 +91,14 @@ export function FileDropzone({
           dragging ? 'border-pop-550/50 bg-pop-550/5' : 'border-input hover:border-pop-550/40'
         )}
       >
-        <FontAwesomeIcon icon={faCloudArrowUp} className="text-2xl text-muted-foreground/40" />
-        <span className="text-sm text-muted-foreground">{selectedName ?? label}</span>
-        {hint && <span className="text-xs text-muted-foreground/60">{hint}</span>}
+        {/*
+          dragleave bubbles, so without pointer-events-none dragging across the
+          icon, the label and the hint would fire it on the button repeatedly
+          and strobe the highlight off and on.
+        */}
+        <FontAwesomeIcon icon={faCloudArrowUp} className="pointer-events-none text-2xl text-muted-foreground/40" />
+        <span className="pointer-events-none text-sm text-muted-foreground">{selectedName ?? label}</span>
+        {hint && <span className="pointer-events-none text-xs text-muted-foreground/60">{hint}</span>}
       </button>
       {selectedName && onClear && (
         <button
