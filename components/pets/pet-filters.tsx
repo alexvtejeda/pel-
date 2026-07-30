@@ -208,7 +208,7 @@ export function PetFilterBar({
           }`}
         >
           <FontAwesomeIcon icon={faFilter} className="text-xs" />
-          {t('grid.filters')}
+          {t('grid.filters')}{' '}
           {mobileFilterCount > 0 && (
             <span className="ml-1 w-4 h-4 rounded-full bg-white text-pop-solid text-[10px] font-bold flex items-center justify-center">
               {mobileFilterCount}
