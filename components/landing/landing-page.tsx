@@ -101,8 +101,6 @@ export function LandingPage() {
       {/* Divider — an <hr> takes its colour from border-color, not text-color. */}
       <hr className="border-input" />
 
-      <FeaturedPets />
-
       {/* How It Works */}
       <section className="bg-muted px-4 py-16">
         <div className="container mx-auto max-w-6xl text-center">
@@ -121,6 +119,8 @@ export function LandingPage() {
           </div>
         </div>
       </section>
+
+      <FeaturedPets />
 
       <Footer />
     </div>
