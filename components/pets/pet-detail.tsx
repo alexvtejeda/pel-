@@ -60,6 +60,7 @@ function DetailCarousel({ urls }: { urls: string[] }) {
           showPauseButton
           flushItems
           dotLabel={(n, total) => t('feed.photo_position', { n, total })}
+          dotsGroupLabel={t('member.photos_label')}
           className="relative overflow-hidden w-full h-full"
         />
       )}

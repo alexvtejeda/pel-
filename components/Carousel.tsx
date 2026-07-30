@@ -366,21 +366,25 @@ export default function Carousel({
                 aria-label={dotLabel ? dotLabel(index + 1, items.length) : `${index + 1} / ${items.length}`}
                 aria-current={activeIndex === index ? 'true' : undefined}
                 onClick={() => setPosition(loop ? index + 1 : index)}
-                /* 44x44, `shrink-0` so a narrow card cannot compress the target
-                   back below the minimum. `items-end` pins the dot to the button's
-                   bottom edge, which preserves the old row's vertical placement
-                   exactly — the target grows upward rather than moving the dot.
-                   The horizontal spread did change, deliberately (spec §5): the old
-                   `w-37.5` + `px-8` + `justify-between` held the outer dots at ±39px
-                   from centre for every N, so centres sat 78/39/26/19.5px apart at
-                   2/3/4/5 photos, while abutting 44px boxes give a constant 44px.
-                   The row does not wrap or shrink, so it needs N*44px of width:
-                   fine in the 351px feed card up to 7 dots, but it overflows a
-                   two-column mobile grid card (~163px) from 4 dots on, and the
-                   carousel's own overflow-hidden clips the outer dots. Clients cap
-                   uploads at 5; server-side that is enforced only for member pets
-                   (userpets.maxPhotosPerPet = 5) — rescue-centre pets allow 20. */
-                className="focus-ring pointer-events-auto flex h-11 w-11 shrink-0 items-end justify-center"
+                /* 44 wide where there is room, never narrower than 24. `items-end`
+                   pins the dot to the button's bottom edge, which preserves the old
+                   row's vertical placement exactly — the target grows upward rather
+                   than moving the dot. The horizontal spread did change, on purpose
+                   (spec §5): the old `w-37.5` + `px-8` + `justify-between` held the
+                   outer dots at ±39px from centre for every N, so centres sat
+                   78/39/26/19.5px apart at 2/3/4/5 photos.
+
+                   `min-w-6` rather than `shrink-0` because the row neither wraps nor
+                   scrolls, so a fixed 44 needs N*44px and there isn't always that
+                   much: a two-column mobile grid card is ~163px, where 4 dots (176)
+                   and 5 (220) both overflow and the carousel's own overflow-hidden
+                   clips the outer ones past their centres — invisible *and*
+                   untappable, which is worse than small. Shrinking to a 24px floor
+                   keeps every dot reachable and still clears WCAG 2.5.8; the 351px
+                   feed card has room for the full 44 (2.5.5) up to 7 photos.
+                   Reachable today: member pets cap at 5 on both the client and the
+                   server (userpets.maxPhotosPerPet), rescue-centre pets at 20. */
+                className="focus-ring pointer-events-auto flex h-11 w-11 min-w-6 items-end justify-center"
               >
                 <motion.span
                   className={`block h-2 w-2 rounded-full transition-colors duration-150 ${

@@ -84,10 +84,10 @@ describe('Carousel dots', () => {
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
     const dot = screen.getAllByRole('button')[0]
-    // 44x44, and shrink-0 so a narrow card cannot compress it back below that.
+    // 44 wide with a 24px floor: a narrow card compresses rather than clipping.
     expect(dot.className).toContain('h-11')
     expect(dot.className).toContain('w-11')
-    expect(dot.className).toContain('shrink-0')
+    expect(dot.className).toContain('min-w-6')
   })
 
   // Same jsdom caveat: this pins the classes, not the hit testing. The row is a
