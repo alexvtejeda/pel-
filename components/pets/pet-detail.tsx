@@ -112,27 +112,31 @@ export function PetDetail({ pet }: PetDetailProps) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <h2 className="text-xl font-bold">{pet.name}</h2>
+      {/* Info. No `flex-1`: with sparse content the column used to stretch and
+          push the Adoptar button to the panel floor, leaving a void above it.
+          Its own `overflow-y-auto` still lets long content scroll. */}
+      <div className="overflow-y-auto p-4 space-y-4">
+        {/* Title and chips read as one unit, not as two equally-spaced siblings. */}
+        <div className="space-y-2.5">
+          <h2 className="text-xl font-bold">{pet.name}</h2>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={speciesIcon} className="text-xs" />
-            {t(`species.${pet.species}`)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={genderIcon} className="text-xs" />
-            {t(`gender.${pet.gender}`)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
-            {(() => {
-              const { count, unit } = formatAge(pet.age)
-              return t(`detail.${unit}`, { count })
-            })()}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={speciesIcon} className="text-xs" />
+              {t(`species.${pet.species}`)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={genderIcon} className="text-xs" />
+              {t(`gender.${pet.gender}`)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
+              {(() => {
+                const { count, unit } = formatAge(pet.age)
+                return t(`detail.${unit}`, { count })
+              })()}
+            </span>
+          </div>
         </div>
 
         {/* Description */}
@@ -152,8 +156,6 @@ export function PetDetail({ pet }: PetDetailProps) {
             )}
           </div>
         )}
-
-        <hr className="border-border" />
 
         {/* Rescue Center */}
         {pet.rescue_center && (
