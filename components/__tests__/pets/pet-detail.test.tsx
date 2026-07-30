@@ -53,13 +53,15 @@ describe('PetDetail layout', () => {
 })
 
 describe('PetDetail facts', () => {
+  // The two booleans deliberately disagree here and invert in the next case:
+  // if the rows were ever cross-wired, matching values would hide it.
   it('lists the facts the payload already carries', () => {
-    renderWithProviders(<PetDetail pet={pet({ vaccinated: true, castrated: true, size: 'medium' })} />)
+    renderWithProviders(<PetDetail pet={pet({ vaccinated: true, castrated: false, size: 'medium' })} />)
 
     expect(screen.getByText('Vacunas')).toBeInTheDocument()
     expect(screen.getByText('Al día')).toBeInTheDocument()
     expect(screen.getByText('Castración')).toBeInTheDocument()
-    expect(screen.getByText('Sí')).toBeInTheDocument()
+    expect(screen.getByText('No')).toBeInTheDocument()
     expect(screen.getByText('Tamaño')).toBeInTheDocument()
     expect(screen.getByText('Mediano')).toBeInTheDocument()
   })
@@ -67,11 +69,11 @@ describe('PetDetail facts', () => {
   // Nouns as subjects on purpose: `Vacunado`/`Castrado` are masculine and much
   // of the catalogue is female (Abril, Alma, Cangura…). The label carries the
   // noun so the value never has to agree with the pet's gender.
-  it('states the negative facts without gendering the pet', () => {
-    renderWithProviders(<PetDetail pet={pet({ vaccinated: false, castrated: false, size: 'small' })} />)
+  it('reads each fact off its own field, ungendered', () => {
+    renderWithProviders(<PetDetail pet={pet({ vaccinated: false, castrated: true, size: 'small' })} />)
 
     expect(screen.getByText('Pendiente')).toBeInTheDocument()
-    expect(screen.getByText('No')).toBeInTheDocument()
+    expect(screen.getByText('Sí')).toBeInTheDocument()
     expect(screen.getByText('Pequeño')).toBeInTheDocument()
     expect(screen.queryByText('Vacunado')).toBeNull()
     expect(screen.queryByText('Castrado')).toBeNull()
