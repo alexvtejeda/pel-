@@ -173,4 +173,42 @@ describe('PetsPage header', () => {
 
     expect(order).toEqual(['Ver detalles de Luna', 'Ver detalles de Rex'])
   })
+
+  // Was a real bug: the health toggles had their own fetch effect that only ever
+  // sent the two health params, so toggling one dropped the active species from
+  // the query. The user got dogs back under a "Gatos" pill still reading
+  // aria-pressed="true" — the pill and the grid disagreed, silently.
+  it('keeps the active species when a health filter is toggled', async () => {
+    mockList.mockResolvedValue({ data: [], error: null })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('heading', { level: 1 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gatos' }))
+    mockList.mockClear()
+    fireEvent.click(screen.getByRole('button', { name: 'Vacunado' }))
+
+    expect(mockList).toHaveBeenCalledWith({ species: 'cat', vaccinated: true })
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  // Also a real bug: clearing used to fire twice — once from a closure still
+  // holding the old health values, once from the effect reacting to those values
+  // changing. `fetchPets` has no sequencing, so the stale response landing last
+  // would repopulate the grid under freshly-cleared pills.
+  it('sends exactly one unfiltered request when filters are cleared', async () => {
+    mockList.mockResolvedValue({ data: [], error: null })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('heading', { level: 1 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gatos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vacunado' }))
+    mockList.mockClear()
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Limpiar filtros' }))
+
+    expect(mockList).toHaveBeenCalledTimes(1)
+    expect(mockList).toHaveBeenCalledWith({})
+  })
 })

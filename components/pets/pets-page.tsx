@@ -39,6 +39,10 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [castratedFilter, setCastratedFilter] = useState(false)
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all')
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
+  // The species/gender/proximity half of the query. Held as state rather than
+  // passed straight to a fetch so the request effect below can see it alongside
+  // the health toggles — see the comment there.
+  const [filterParams, setFilterParams] = useState<PetFilters>({})
 
   // What the last request actually asked for. Retry has to replay the request
   // that failed — calling fetchPets() bare would quietly drop the user's filters
@@ -67,25 +71,31 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     }
   }, [transitionStatus, transitionType])
 
+  // This effect is the *only* thing that fetches. When the species/gender/nearby
+  // params and the health toggles each issued their own request, two bugs fell
+  // out: a health toggle refetched without the active species, so "Gatos" could
+  // sit pressed over a grid of dogs; and clearing filters fired twice — once
+  // from a closure still holding the old health values, once from here — with
+  // no sequencing to stop the stale response landing last. Driving every
+  // dimension from one effect means React batches the state changes and exactly
+  // one request goes out, always carrying all of them.
   useEffect(() => {
     fetchPets({
+      ...filterParams,
       ...(vaccinatedFilter ? { vaccinated: true } : {}),
       ...(castratedFilter ? { castrated: true } : {}),
     })
-  }, [fetchPets, vaccinatedFilter, castratedFilter])
+  }, [fetchPets, filterParams, vaccinatedFilter, castratedFilter])
 
-  const handleFilterChange = useCallback(
-    (filter: FilterKey, params: PetFilters) => {
-      setActiveFilter(filter)
-      setSelected(null)
-      fetchPets({
-        ...params,
-        ...(vaccinatedFilter ? { vaccinated: true } : {}),
-        ...(castratedFilter ? { castrated: true } : {}),
-      })
-    },
-    [fetchPets, vaccinatedFilter, castratedFilter]
-  )
+  const handleFilterChange = useCallback((filter: FilterKey, params: PetFilters) => {
+    setActiveFilter(filter)
+    setSelected(null)
+    // Copied, never stored by reference: `FILTERS[n].toParams` is a module-level
+    // constant, so re-clicking the active pill would hand setState the identical
+    // object, React would bail out, and the refetch users expect from clicking a
+    // filter again would silently not happen.
+    setFilterParams({ ...params })
+  }, [])
 
   const handleRetry = useCallback(() => {
     fetchPets(lastFilters.current)
