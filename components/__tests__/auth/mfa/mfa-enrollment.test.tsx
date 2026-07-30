@@ -367,6 +367,31 @@ describe('MfaEnrollment — one panel shell, one step indicator', () => {
     expect(container.firstElementChild).toHaveClass('dark')
   })
 
+  it('takes the breadcrumb links away on the recovery step', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    renderWithProviders(
+      <MfaEnrollment
+        onComplete={vi.fn()}
+        breadcrumbItems={[
+          { label: 'Inicio', href: '/' },
+          { label: 'Seguridad', current: true },
+        ]}
+      />
+    )
+
+    // Live on the picker: an abandoned setup can just be restarted.
+    expect(screen.getByRole('button', { name: 'Inicio' })).toBeInTheDocument()
+
+    fireEvent.click(methodCard(EMAIL))
+    await screen.findByText('AAAA-1111')
+
+    // Gone once the one-time codes are up. The modal this step replaced covered
+    // the nav with its overlay; inline, a click on "Inicio" would have thrown
+    // the codes away without ever meeting the acknowledgement.
+    expect(screen.queryByRole('button', { name: 'Inicio' })).not.toBeInTheDocument()
+    expect(screen.getByText('Seguridad')).toBeInTheDocument()
+  })
+
   it('does not finish enrollment until the codes are acknowledged', async () => {
     mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
     const onComplete = renderEnrollment()

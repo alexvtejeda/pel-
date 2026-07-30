@@ -186,10 +186,20 @@ function MfaPanel({ breadcrumbItems, step, children }: MfaPanelProps) {
   ]
   const progressLabel = t('mfa.enrollment.step_of', { current: step, total: 3 })
 
+  // On step 3 the trail collapses to its last crumb, as plain text. The codes
+  // are issued exactly once and a stray click on "Inicio" would navigate away
+  // and discard them — the modal this step replaced covered the nav with its
+  // overlay, so leaving the links live would be a way around the gate. Steps 1
+  // and 2 keep the full trail: an abandoned setup can simply be restarted.
+  const trail =
+    step === 3
+      ? breadcrumbItems.slice(-1).map((item) => ({ label: item.label, current: true }))
+      : breadcrumbItems
+
   return (
     <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
-      <OnboardingNav items={breadcrumbItems} />
+      <OnboardingNav items={trail} />
 
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-20">
         <div className="w-full max-w-md space-y-4">
