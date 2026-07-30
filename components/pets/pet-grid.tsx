@@ -371,13 +371,26 @@ export function PetGrid({
                     )}
 
                     {/* Name + meta overlay. Spans, not <p>: a button may only
-                        contain phrasing content. */}
-                    <span className="absolute inset-x-0 bottom-0 block bg-linear-to-t from-primary to-transparent p-2 pt-6 text-left">
-                      <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
-                      <span className="block truncate text-[11px] text-background/80">
-                        {t(`detail.${age.unit}`, { count: age.count })}
-                        {' · '}
-                        {t(`gender.${pet.gender}`)}
+                        contain phrasing content. The avatar only renders for
+                        centre-published pets — member pets carry no author
+                        identity, and a placeholder would invent one. */}
+                    <span className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-linear-to-t from-primary to-transparent p-2 pt-6 text-left">
+                      {pet.rescue_center?.avatar_url && (
+                        <Image
+                          src={pet.rescue_center.avatar_url}
+                          alt=""
+                          width={30}
+                          height={30}
+                          className="h-[30px] w-[30px] shrink-0 rounded-full border-[1.5px] border-white/90 object-cover"
+                        />
+                      )}
+                      <span className="block min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
+                        <span className="block truncate text-[11px] text-background/80">
+                          {t(`detail.${age.unit}`, { count: age.count })}
+                          {' · '}
+                          {t(`gender.${pet.gender}`)}
+                        </span>
                       </span>
                     </span>
                   </button>
