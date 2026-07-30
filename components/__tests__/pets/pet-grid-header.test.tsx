@@ -149,4 +149,28 @@ describe('PetsPage header', () => {
     expect(screen.getByRole('button', { name: 'Ver detalles de Luna' })).toBeInTheDocument()
     expect(screen.queryByText('No hay mascotas disponibles')).toBeNull()
   })
+
+  // The API returns no guaranteed order, and this sort is now a contract between
+  // two components rather than one component's private detail: the feed shows one
+  // pet per screen, so the order is far more visible there than in a grid. The
+  // fixture is deliberately reversed — in API order the assertion would pass with
+  // the sort deleted entirely.
+  it('puts centre-published pets before member ones whatever order the API sends', async () => {
+    mockList.mockResolvedValue({
+      data: [
+        pet('1', 'Rex'),
+        pet('2', 'Luna', { rescue_center: { id: 'rc1', name: 'Adoptame RD' } }),
+      ],
+      error: null,
+    })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('button', { name: 'Ver detalles de Luna' })
+
+    const order = screen
+      .getAllByRole('button', { name: /^Ver detalles de/ })
+      .map(b => b.getAttribute('aria-label'))
+
+    expect(order).toEqual(['Ver detalles de Luna', 'Ver detalles de Rex'])
+  })
 })

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters, listPublicPets } from '@/lib/api/pets-public'
@@ -87,14 +87,6 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     [fetchPets, vaccinatedFilter, castratedFilter]
   )
 
-  const handleVaccinatedToggle = useCallback((v: boolean) => {
-    setVaccinatedFilter(v)
-  }, [])
-
-  const handleCastratedToggle = useCallback((v: boolean) => {
-    setCastratedFilter(v)
-  }, [])
-
   const handleRetry = useCallback(() => {
     fetchPets(lastFilters.current)
   }, [fetchPets])
@@ -107,25 +99,35 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   // Centre-published pets first, then the source filter. Derived here rather
   // than in `PetGrid` so the feed sees exactly the same list at the other
   // breakpoint instead of a second, drifting copy of this logic.
-  const sortedPets = [...pets].sort((a, b) => {
-    const aIsRc = a.rescue_center ? 0 : 1
-    const bIsRc = b.rescue_center ? 0 : 1
-    return aIsRc - bIsRc
-  })
+  //
+  // Memoised for identity, not for speed: sorting 17 pets is free, but this
+  // array is a prop, and the renders that would churn it are the ones that have
+  // nothing to do with pets — selecting a pet, opening the sheet, a resize. The
+  // feed hands it to one card per pet, each holding a drag-driven carousel.
+  const sortedPets = useMemo(
+    () =>
+      [...pets].sort((a, b) => {
+        const aIsRc = a.rescue_center ? 0 : 1
+        const bIsRc = b.rescue_center ? 0 : 1
+        return aIsRc - bIsRc
+      }),
+    [pets],
+  )
 
-  const visiblePets =
-    sourceFilter === 'all'
-      ? sortedPets
-      : sourceFilter === 'rc'
-        ? sortedPets.filter(p => p.rescue_center !== null && p.rescue_center !== undefined)
-        : sortedPets.filter(p => !p.rescue_center)
+  const visiblePets = useMemo(() => {
+    if (sourceFilter === 'all') return sortedPets
+    // One spelling of "has a publisher", and `member` is the explicit branch —
+    // as the fallback, a fourth SourceFilter would silently render as member-only.
+    const wantsCentre = sourceFilter === 'rc'
+    return sortedPets.filter(p => Boolean(p.rescue_center) === wantsCentre)
+  }, [sortedPets, sourceFilter])
 
   const hasActiveFilters =
     countActiveFilters({ activeFilter, vaccinatedFilter, castratedFilter, sourceFilter }) > 0
 
-  // Step for step what `clearFilters` did inside the grid (pet-grid.tsx:101-107),
-  // including going through `handleFilterChange` rather than `fetchPets` — that
-  // is what also clears the selection.
+  // Step for step what `clearFilters` did inside the grid, including going
+  // through `handleFilterChange` rather than `fetchPets` — that is what also
+  // clears the selection.
   const handleClearFilters = useCallback(() => {
     setSourceFilter('all')
     setVaccinatedFilter(false)
@@ -154,9 +156,9 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           activeFilter={activeFilter}
           onFilterChange={handleFilterChange}
           vaccinatedFilter={vaccinatedFilter}
-          onVaccinatedChange={handleVaccinatedToggle}
+          onVaccinatedChange={setVaccinatedFilter}
           castratedFilter={castratedFilter}
-          onCastratedChange={handleCastratedToggle}
+          onCastratedChange={setCastratedFilter}
           sourceFilter={sourceFilter}
           onSourceChange={setSourceFilter}
           mobileFiltersOpen={mobileFiltersOpen}
