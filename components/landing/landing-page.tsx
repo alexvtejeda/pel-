@@ -10,6 +10,9 @@ import { FeaturedPets } from '@/components/landing/featured-pets'
 import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
 
+/** Flip to true once real partner logos replace the placeholders. */
+const SHOW_PARTNER_LOGOS = false
+
 const HOW_STEPS = [
   { icon: faMagnifyingGlass, titleKey: 'how.search.title', descKey: 'how.search.description' },
   { icon: faPaw, titleKey: 'how.adopt.title', descKey: 'how.adopt.description' },
@@ -24,7 +27,10 @@ export function LandingPage() {
     alt: t('partners.logo_alt', { n }),
   }))
 
-  const testimonials: Testimonial[] = [1, 2, 3, 4, 5].map(i => ({
+  // Three, not five: the other two were filler. TestimonialCarousel clones two
+  // items on each side for its coverflow effect, so three is the practical
+  // minimum for a smooth loop.
+  const testimonials: Testimonial[] = [1, 2, 3].map(i => ({
     id: i,
     quote: t(`testimonials.placeholder_${i}.quote`),
     name: t(`testimonials.placeholder_${i}.name`),
@@ -66,25 +72,34 @@ export function LandingPage() {
             </div>
           </div>
 
-          {/* Right — Marquee + Carousel */}
-          <div className="flex-1 flex flex-col items-center w-full md:max-w-150 md:bg-muted md:rounded-2xl md:p-8 md:inset-shadow-[0_0_5px_1px_var(--color-input)] gap-4">
-            <div className="opacity-48 mb-4 md:-mx-8 md:w-[calc(100%+4rem)]">
-              <LogoMarquee
-                logos={partnerLogos}
-                logoHeight={24}
-                gap={48}
-                className="grayscale brightness-75 dark:brightness-200 dark:invert"
-              />
-            </div>
-            <div className="w-full md:-mx-8 md:w-[calc(100%+4rem)]">
+          {/* Right — Carousel */}
+          <div className="flex w-full flex-1 flex-col items-center gap-4 md:max-w-150 md:justify-center md:rounded-2xl md:bg-muted md:p-6 md:inset-shadow-[0_0_5px_1px_var(--color-input)]">
+            {/*
+              Hidden until real partner logos exist (spec §4, Q2). Flip
+              SHOW_PARTNER_LOGOS to true and restore the real filenames in
+              partnerLogos when they do. The component and the assets are
+              intentionally kept — LogoMarquee's CSS animation is the mobile
+              Safari-safe replacement for LogoLoop and must not be deleted.
+            */}
+            {SHOW_PARTNER_LOGOS && (
+              <div className="opacity-48 mb-4 md:-mx-6 md:w-[calc(100%+3rem)]">
+                <LogoMarquee
+                  logos={partnerLogos}
+                  logoHeight={24}
+                  gap={48}
+                  className="grayscale brightness-75 dark:brightness-200 dark:invert"
+                />
+              </div>
+            )}
+            <div className="w-full md:-mx-6 md:w-[calc(100%+3rem)]">
               <TestimonialCarousel items={testimonials} />
             </div>
           </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <hr className="text-input"></hr>
+      {/* Divider — an <hr> takes its colour from border-color, not text-color. */}
+      <hr className="border-input" />
 
       <FeaturedPets />
 

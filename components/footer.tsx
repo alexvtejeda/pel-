@@ -1,6 +1,5 @@
 'use client'
 
-import Link from 'next/link'
 import { TransitionLink } from '@/components/transitions/transition-link'
 import { useTranslation } from 'react-i18next'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -18,16 +17,29 @@ export function Footer() {
           </div>
           <div>
             <h4 className="text-primary-foreground font-semibold mb-3">{t('footer.about')}</h4>
+            {/*
+              The contact row is gone rather than pointing at a mailto nobody
+              has confirmed receives mail. Add it back — as a real mailto or a
+              /contacto route — once an inbox exists.
+            */}
             <ul className="space-y-2 text-sm">
-              <li><TransitionLink href="/about" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.about')}</TransitionLink></li>
-              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.contact')}</Link></li>
+              <li>
+                <TransitionLink href="/about" className="focus-ring rounded-xl transition-colors hover:text-primary-foreground">
+                  {t('footer.about')}
+                </TransitionLink>
+              </li>
             </ul>
           </div>
           <div>
             <h4 className="text-primary-foreground font-semibold mb-3">{t('legal', { ns: 'common' })}</h4>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.privacy')}</Link></li>
-              <li><Link href="#" className="focus-ring hover:text-primary-foreground transition-colors">{t('footer.terms')}</Link></li>
+            {/*
+              No privacy or terms page exists yet. These render as plain text
+              rather than href="#" links that go nowhere; turn them back into
+              TransitionLinks when the pages ship.
+            */}
+            <ul className="space-y-2 text-sm text-muted-foreground/70">
+              <li>{t('footer.privacy')}</li>
+              <li>{t('footer.terms')}</li>
             </ul>
           </div>
         </div>
