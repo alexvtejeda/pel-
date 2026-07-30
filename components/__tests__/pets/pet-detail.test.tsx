@@ -51,3 +51,29 @@ describe('PetDetail layout', () => {
     expect(column.className).not.toContain('flex-1')
   })
 })
+
+describe('PetDetail facts', () => {
+  it('lists the facts the payload already carries', () => {
+    renderWithProviders(<PetDetail pet={pet({ vaccinated: true, castrated: true, size: 'medium' })} />)
+
+    expect(screen.getByText('Vacunas')).toBeInTheDocument()
+    expect(screen.getByText('Al día')).toBeInTheDocument()
+    expect(screen.getByText('Castración')).toBeInTheDocument()
+    expect(screen.getByText('Sí')).toBeInTheDocument()
+    expect(screen.getByText('Tamaño')).toBeInTheDocument()
+    expect(screen.getByText('Mediano')).toBeInTheDocument()
+  })
+
+  // Nouns as subjects on purpose: `Vacunado`/`Castrado` are masculine and much
+  // of the catalogue is female (Abril, Alma, Cangura…). The label carries the
+  // noun so the value never has to agree with the pet's gender.
+  it('states the negative facts without gendering the pet', () => {
+    renderWithProviders(<PetDetail pet={pet({ vaccinated: false, castrated: false, size: 'small' })} />)
+
+    expect(screen.getByText('Pendiente')).toBeInTheDocument()
+    expect(screen.getByText('No')).toBeInTheDocument()
+    expect(screen.getByText('Pequeño')).toBeInTheDocument()
+    expect(screen.queryByText('Vacunado')).toBeNull()
+    expect(screen.queryByText('Castrado')).toBeNull()
+  })
+})

@@ -14,6 +14,9 @@ import {
   faShareFromSquare,
   faCheck,
   faGlobe,
+  faSyringe,
+  faScissors,
+  faRulerCombined,
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
@@ -156,6 +159,40 @@ export function PetDetail({ pet }: PetDetailProps) {
             )}
           </div>
         )}
+
+        {/* Facts the payload already carries and the sheet used to drop — the
+            grid even lets users filter by the first two. Labels are nouns so
+            the values stay gender-neutral. */}
+        <dl className="text-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-border py-2.5">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faSyringe} className="text-sm" />
+              {t('detail.facts.vaccines')}
+            </dt>
+            <dd className="font-medium">
+              {pet.vaccinated ? t('detail.facts.up_to_date') : t('detail.facts.pending')}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-b border-border py-2.5">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faScissors} className="text-sm" />
+              {t('detail.facts.neutering')}
+            </dt>
+            <dd className="font-medium">
+              {pet.castrated ? t('detail.facts.yes') : t('detail.facts.no')}
+            </dd>
+          </div>
+          {/* Guarded: an absent size would render the raw `size.undefined` key. */}
+          {pet.size && (
+            <div className="flex items-center justify-between gap-3 py-2.5">
+              <dt className="flex items-center gap-2 text-muted-foreground">
+                <FontAwesomeIcon icon={faRulerCombined} className="text-sm" />
+                {t('detail.facts.size')}
+              </dt>
+              <dd className="font-medium">{t(`size.${pet.size}`)}</dd>
+            </div>
+          )}
+        </dl>
 
         {/* Rescue Center */}
         {pet.rescue_center && (

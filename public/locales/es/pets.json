@@ -372,6 +372,16 @@
     "share": "Compartir",
     "link_copied": "Enlace copiado",
     "rescueCenter": "Centro de rescate",
-    "specialCondition": "Condición especial"
+    "specialCondition": "Condición especial",
+    "verified_center": "Centro de rescate verificado",
+    "facts": {
+      "vaccines": "Vacunas",
+      "neutering": "Castración",
+      "size": "Tamaño",
+      "up_to_date": "Al día",
+      "pending": "Pendiente",
+      "yes": "Sí",
+      "no": "No"
+    }
   }
 }
