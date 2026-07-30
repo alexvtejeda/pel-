@@ -1,7 +1,18 @@
 # /pets mobile — post feed redesign
 
 **Date:** 2026-07-30
-**Status:** Approved — design decisions locked with the user
+**Status:** Implemented 2026-07-30 on `feat/pets-mobile-feed` — see
+`docs/superpowers/plans/2026-07-30-pets-mobile-feed.md`. Browser verification at
+375px is still outstanding.
+
+**Correction to §5.** That section calls all three `Carousel.tsx` changes
+"additive and all defaulting to current behaviour so the six existing call sites
+are unaffected". That is true of `dragDirectionLock` and `flushItems` but **not**
+of the dot buttons, which land everywhere on purpose — an 8×8px click-only
+`div` fails the touch-target and keyboard minimums on every screen, not just in
+the feed. The six existing carousels therefore did change: new tab stops, a
+different horizontal dot spread, and a pointer-blocking band that had to be
+neutralised with `pointer-events-none` so it did not swallow swipes.
 **Scope:** The `/pets` route **below 640px** only. Companion to
 `2026-07-30-pets-desktop-sheet-identity-design.md`, which owns the desktop grid, the
 detail Sheet, and the rescue-center avatar plumbing. Neither spec is buildable in

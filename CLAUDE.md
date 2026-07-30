@@ -219,7 +219,15 @@ All three dashboards (RC, Business, Admin) share the same layout structure: shad
 ## Route Structure
 
 - `/` — landing page (hero, testimonial carousel, logo marquee, how it works) — in the `app/(public)/` route group
-- `/pets` — public pet discovery grid — in `app/(public)/`
+- `/pets` — public pet discovery — in `app/(public)/`. Two shapes behind one
+  breakpoint fork in `pets-page.tsx`: a grid + detail Sheet at ≥640px, and a
+  terminal post feed (`pet-feed.tsx`) below it, where the card shows everything
+  and there is no detail view. Filter state lives in `pets-page.tsx` and the
+  filter UI in `pet-filters.tsx`; both shapes render the same derived list. The
+  fork is gated behind a `mounted` flag — see the hydration contract in
+  `lib/hooks/use-media-query.ts` before adding another consumer. The feed's
+  scroll snapping is a `:has([data-pet-feed])` rule in `app/globals.css`, on the
+  root element, because the document is this route's scroll container
 - `/aliados` — public providers listing — in `app/(public)/`
 - `/eventos` — public events listing — in `app/(public)/`
 - `/about` — about page

@@ -1797,7 +1797,7 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
 - [ ] **Step 5: Run the test to verify it passes**
 
 Run: `npx vitest run components/__tests__/pets/pet-feed-card.test.tsx`
-Expected: PASS — 15 tests.
+Expected: PASS — 17 tests (the `it.each` over the two CTA-less roles expands to two, and the unmeasured-width pair is two cases, not one).
 
 - [ ] **Step 6: Check the design-system rules**
 
@@ -1818,6 +1818,8 @@ git commit -m "feat(pets): add the mobile feed's post card"
 Three things live here that deliberately do not live in the card: the single width measurement, the position rail, and the view metric.
 
 **Why the width is measured here.** `DetailCarousel` (`pet-detail.tsx:43-45`) reads `offsetWidth` in a `useEffect([])` and never re-measures, so an orientation change leaves it stale — and 17 copies of that effect is waste. `PetFeed` measures its own list width once with a `ResizeObserver` and passes it down.
+
+A passive `useEffect` is the right hook for it — do **not** reach for `useLayoutEffect`. The pre-measurement frame is not blank: `PetFeedCard` renders `photos[0]` as a plain `<Image>` whenever the width is still `0`, which is the same photo the carousel would open on, so the swap adds dots rather than replacing content. Blocking paint to avoid that would cost more than it buys.
 
 **Why the snap type is in CSS.** See F2: the document is the scroll container on this route, so `scroll-snap-type` has to land on the root element. A `snap-y` class on a `PetFeed` wrapper would be silently inert.
 
