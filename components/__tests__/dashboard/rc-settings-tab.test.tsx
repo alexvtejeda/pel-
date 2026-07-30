@@ -112,3 +112,39 @@ describe('RC settings — profile photo', () => {
     expect(updateSession).not.toHaveBeenCalled()
   })
 })
+
+describe('RC settings — display name', () => {
+  it('starts from the display name, not the email', () => {
+    renderWithProviders(<SettingsTab />)
+
+    expect(screen.getByPlaceholderText('Tu nombre')).toHaveValue('Refugio Central')
+  })
+
+  it('PATCHes the profile when saved', async () => {
+    renderWithProviders(<SettingsTab />)
+
+    fireEvent.change(screen.getByPlaceholderText('Tu nombre'), {
+      target: { value: 'Refugio Luna' },
+    })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar' })[0])
+
+    await waitFor(() => expect(mockApi).toHaveBeenCalled())
+    const [path, init] = mockApi.mock.calls[0]
+    expect(path).toBe('/api/v1/auth/profile')
+    expect(init).toMatchObject({ method: 'PATCH' })
+    expect(JSON.parse(init!.body as string)).toEqual({ display_name: 'Refugio Luna' })
+    await waitFor(() =>
+      expect(updateSession).toHaveBeenCalledWith({ ...mockUser, display_name: 'Refugio Luna' }),
+    )
+  })
+
+  it('reports a failed save instead of showing "Guardado"', async () => {
+    mockApi.mockResolvedValue({ ok: false, json: async () => ({}) } as never)
+    renderWithProviders(<SettingsTab />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar' })[0])
+
+    expect(await screen.findByText('No se pudo guardar el nombre. Intenta de nuevo.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Guardado' })).toBeNull()
+  })
+})

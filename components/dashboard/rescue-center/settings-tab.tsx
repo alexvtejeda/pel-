@@ -24,12 +24,14 @@ export function SettingsTab() {
   const { t } = useTranslation('auth')
   const resolveError = useMfaError()
 
-  const [displayName, setDisplayName] = useState(user?.email ?? '')
+  const [displayName, setDisplayName] = useState(user?.display_name ?? user?.email ?? '')
   const [rescueName, setRescueName] = useState('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [avatarUploading, setAvatarUploading] = useState(false)
   const [avatarError, setAvatarError] = useState<string | null>(null)
   const [savedName, setSavedName] = useState(false)
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [savedRescue, setSavedRescue] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -155,7 +157,22 @@ export function SettingsTab() {
     if (user) updateSession({ ...user, avatar_url: data.avatar_url })
   }
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
+    setSavingName(true)
+    setNameError(null)
+
+    const res = await apiClient('/api/v1/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ display_name: displayName }),
+    })
+
+    setSavingName(false)
+    if (!res.ok) {
+      setNameError('No se pudo guardar el nombre. Intenta de nuevo.')
+      return
+    }
+
+    if (user) updateSession({ ...user, display_name: displayName })
     setSavedName(true)
     setTimeout(() => setSavedName(false), 2000)
   }
@@ -249,11 +266,13 @@ export function SettingsTab() {
           />
           <button
             onClick={handleSaveName}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
+            disabled={savingName}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {savedName ? 'Guardado' : 'Guardar'}
+            {savingName ? 'Guardando…' : savedName ? 'Guardado' : 'Guardar'}
           </button>
         </div>
+        {nameError && <p className="text-sm text-destructive">{nameError}</p>}
       </div>
 
       {/* Rescue center name */}
