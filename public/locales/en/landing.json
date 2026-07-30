@@ -48,6 +48,8 @@
     }
   },
   "testimonials": {
+    "region_label": "Testimonials",
+    "go_to": "Go to testimonial {{n}}",
     "placeholder_1": { "quote": "Adopting Luna was the best decision. The process was super easy.", "name": "María G.", "role": "Adopter" },
     "placeholder_2": { "quote": "Pelú helped us find homes for over 50 pets.", "name": "Rescate RD", "role": "Rescue Center" },
     "placeholder_3": { "quote": "The transport arrived on time and my pet was safe.", "name": "Carlos P.", "role": "Adopter" },

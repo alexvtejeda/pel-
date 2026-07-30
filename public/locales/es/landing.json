@@ -48,6 +48,8 @@
     }
   },
   "testimonials": {
+    "region_label": "Testimonios",
+    "go_to": "Ir al testimonio {{n}}",
     "placeholder_1": { "quote": "Adoptar a Luna fue la mejor decisión. El proceso fue súper sencillo.", "name": "María G.", "role": "Adoptante" },
     "placeholder_2": { "quote": "Pelú nos ayudó a encontrar hogares para más de 50 mascotas.", "name": "Rescate RD", "role": "Centro de Rescate" },
     "placeholder_3": { "quote": "El transporte llegó a tiempo y mi mascota estaba segura.", "name": "Carlos P.", "role": "Adoptante" },

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion, PanInfo, useMotionValue, useTransform } from 'motion/react'
+import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faQuoteLeft } from '@fortawesome/free-solid-svg-icons'
 import { useReducedMotion } from '@/lib/about/use-reduced-motion'
@@ -26,20 +27,19 @@ const VELOCITY_THRESHOLD = 500
 const GAP = 16
 const SPRING_OPTIONS = { type: 'spring' as const, stiffness: 300, damping: 30 }
 
-const CENTER_HEIGHT = 260
-const SIDE_HEIGHT = 210
-
 interface CardProps {
   item: Testimonial
   index: number
   itemWidth: number
   trackItemOffset: number
   centerOffset: number
+  centerHeight: number
+  sideHeight: number
   x: any
   transition: any
 }
 
-function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset, x, transition }: CardProps) {
+function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset, centerHeight, sideHeight, x, transition }: CardProps) {
   // Range accounts for centerOffset so the active card (at its animate position) gets center values
   const range = [
     centerOffset - (index + 1) * trackItemOffset,
@@ -50,7 +50,7 @@ function TestimonialCard({ item, index, itemWidth, trackItemOffset, centerOffset
   const rotateY = useTransform(x, range, [12, 0, -12], { clamp: true })
   const scale = useTransform(x, range, [0.88, 1, 0.88], { clamp: true })
   const opacity = useTransform(x, range, [0.5, 1, 0.5], { clamp: true })
-  const height = useTransform(x, range, [SIDE_HEIGHT, CENTER_HEIGHT, SIDE_HEIGHT], { clamp: true })
+  const height = useTransform(x, range, [sideHeight, centerHeight, sideHeight], { clamp: true })
   const borderOpacity = useTransform(x, range, [0, 0.2, 0], { clamp: true })
   const shadowOpacity = useTransform(x, range, [0, 0.18, 0], { clamp: true })
 
@@ -104,6 +104,7 @@ export function TestimonialCarousel({
   const containerRef = useRef<HTMLDivElement>(null)
   const [measuredWidth, setMeasuredWidth] = useState(0)
   const reducedMotion = useReducedMotion()
+  const { t } = useTranslation('landing')
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -119,6 +120,12 @@ export function TestimonialCarousel({
   const gap = effectiveWidth < 500 ? 8 : GAP
   const divisor = effectiveWidth < 500 ? 1.2 : 2.0
   const itemWidth = Math.round((effectiveWidth - containerPadding * 2) / divisor)
+  // Narrow viewports get taller cards: the card is ~83% of the container width
+  // there (divisor 1.2), so the same quote wraps to far more lines. Derived from
+  // the measured width rather than a media query — the carousel is not always
+  // as wide as the viewport, and this keeps one source of truth for both axes.
+  const centerHeight = effectiveWidth < 500 ? 320 : 260
+  const sideHeight = Math.round(centerHeight * 0.81)
   const trackItemOffset = itemWidth + gap
   // Offset so the active card sits centered in the container
   const centerOffset = Math.round((effectiveWidth - itemWidth) / 2)
@@ -216,11 +223,16 @@ export function TestimonialCarousel({
   const activeIndex = items.length === 0 ? 0 : (position - CLONES + items.length) % items.length
 
   return (
-    <div className="flex flex-col items-end w-full">
+    <div
+      className="flex flex-col items-end w-full"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label={t('testimonials.region_label')}
+    >
       <div
         ref={containerRef}
         className="relative overflow-hidden rounded-2xl py-4"
-        style={{ width: '100%', height: CENTER_HEIGHT + 32, perspective: 1000, perspectiveOrigin: '50% 50%' }}
+        style={{ width: '100%', height: centerHeight + 32, perspective: 1000, perspectiveOrigin: '50% 50%' }}
       >
         <motion.div
           className="flex items-center"
@@ -243,6 +255,8 @@ export function TestimonialCarousel({
               itemWidth={itemWidth}
               trackItemOffset={trackItemOffset}
               centerOffset={centerOffset}
+              centerHeight={centerHeight}
+              sideHeight={sideHeight}
               x={x}
               transition={effectiveTransition}
             />
@@ -250,17 +264,19 @@ export function TestimonialCarousel({
         </motion.div>
       </div>
 
-      {/* Dot indicators */}
-      <div className="flex gap-1.5 mt-4 mr-4">
+      {/* Dot indicators — real buttons, not motion.divs with onClick, so a
+          keyboard can reach and operate them. */}
+      <div className="mt-4 mr-4 flex gap-1.5">
         {items.map((_, index) => (
-          <motion.div
+          <button
             key={index}
-            className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-550 ${
-              activeIndex === index ? 'bg-pop-550' : 'bg-muted-foreground/30'
-            }`}
-            animate={{ scale: activeIndex === index ? 1.2 : 1 }}
+            type="button"
             onClick={() => setPosition(index + CLONES)}
-            transition={{ duration: 0.15 }}
+            aria-label={t('testimonials.go_to', { n: index + 1 })}
+            aria-current={activeIndex === index ? 'true' : undefined}
+            className={`focus-ring h-2 w-2 rounded-full transition-[background-color,transform] duration-300 ${
+              activeIndex === index ? 'scale-125 bg-pop-550' : 'bg-muted-foreground/30'
+            }`}
           />
         ))}
       </div>
