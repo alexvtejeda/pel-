@@ -47,6 +47,24 @@ describe('ProviderDetail', () => {
     expect(screen.queryByText('pet_sitting')).not.toBeInTheDocument()
   })
 
+  // These three are business-only keys — no service provider can carry them, so
+  // they had no entry under service_providers.services.* and a business tagged
+  // `veterinary` rendered the bare word "veterinary" to users.
+  it('translates the business-only service keys', () => {
+    renderWithProviders(
+      <ProviderDetail
+        provider={provider({ services: ['veterinary', 'other', 'pet_taxi'] })}
+      />
+    )
+
+    expect(screen.getByText('Veterinaria')).toBeInTheDocument()
+    expect(screen.getByText('Otro')).toBeInTheDocument()
+    expect(screen.getByText('Pet-taxi')).toBeInTheDocument()
+    for (const raw of ['veterinary', 'other', 'pet_taxi']) {
+      expect(screen.queryByText(raw)).not.toBeInTheDocument()
+    }
+  })
+
   it('degrades an untranslated service value to the raw string, not a translation key', () => {
     renderWithProviders(<ProviderDetail provider={provider({ services: ['pet_taxidermy'] })} />)
 

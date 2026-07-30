@@ -5,7 +5,16 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
-import { getMyBusiness, updateBusiness, uploadBusinessPhoto, DayHours, OperatingHours } from '@/lib/api/businesses'
+import {
+  getMyBusiness,
+  updateBusiness,
+  uploadBusinessPhoto,
+  BUSINESS_SERVICE_OPTIONS,
+  PET_TAXI_SERVICE,
+  DayHours,
+  OperatingHours,
+  UpdateBusinessInput,
+} from '@/lib/api/businesses'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faKey, faMobileScreen, faEnvelope, faTrash, faPlus, faArrowUpFromBracket } from '@fortawesome/free-solid-svg-icons'
@@ -28,24 +37,32 @@ const DAY_LABELS: Record<string, string> = {
   sunday: 'Domingo',
 }
 
-const SERVICES = ['transport', 'grooming', 'walking', 'sitting', 'training', 'veterinary']
-
-const SERVICE_LABELS: Record<string, string> = {
-  transport: 'Transporte',
-  grooming: 'Grooming',
-  walking: 'Paseos',
-  sitting: 'Cuidado',
-  training: 'Adiestramiento',
-  veterinary: 'Veterinaria',
-}
-
 const INPUT_CLASS =
   'w-full mt-1 px-3 py-2 border border-input rounded-xl text-sm focus:outline-hidden focus:ring-2 focus:ring-ring'
+
+/** Mirrors the 0–50000 DOP bound the backend enforces on every taxi_* field. */
+const FEE_MAX = 50000
+
+/**
+ * Mirrors the backend's utf8.RuneCountInString cap. Spread rather than `.length`
+ * so an emoji counts as one character here and one rune there.
+ */
+const TERMS_MAX = 5000
+const charCount = (s: string) => [...s].length
+
+/** Empty is valid — it means "leave it to the platform default". */
+function feeOutOfRange(value: string): boolean {
+  if (value.trim() === '') return false
+  const n = Number(value)
+  return !Number.isFinite(n) || n < 0 || n > FEE_MAX
+}
 
 export function SettingsTab() {
   const { user, logout } = useAuth()
   const router = useRouter()
   const { t } = useTranslation('auth')
+  // The MFA copy below lives in `auth`; the business copy lives in `business`.
+  const { t: tb } = useTranslation('business')
   const resolveError = useMfaError()
 
   // Profile fields
@@ -64,6 +81,13 @@ export function SettingsTab() {
   const [otherService, setOtherService] = useState('')
   const [price, setPrice] = useState<string>('')
   const [operatingHours, setOperatingHours] = useState<Record<string, DayHours>>({})
+
+  // Pet-taxi marketplace opt-in + pricing. Kept as strings so an empty input stays
+  // distinguishable from an explicit 0 — the backend reads NULL as "use the default".
+  const [taxiBaseFee, setTaxiBaseFee] = useState<string>('')
+  const [taxiPerKm, setTaxiPerKm] = useState<string>('')
+  const [taxiPerMinute, setTaxiPerMinute] = useState<string>('')
+  const [terms, setTerms] = useState('')
 
   // Save state
   const [saving, setSaving] = useState(false)
@@ -100,6 +124,10 @@ export function SettingsTab() {
         setSelectedServices(Array.isArray(data.services) ? data.services : [])
         setOtherService(data.other_service ?? '')
         setPrice(data.price != null ? String(data.price) : '')
+        setTaxiBaseFee(data.taxi_base_fee != null ? String(data.taxi_base_fee) : '')
+        setTaxiPerKm(data.taxi_per_km != null ? String(data.taxi_per_km) : '')
+        setTaxiPerMinute(data.taxi_per_minute != null ? String(data.taxi_per_minute) : '')
+        setTerms(data.terms_and_conditions ?? '')
         if (data.operating_hours) {
           const hours: Record<string, DayHours> = {}
           for (const day of DAYS) {
@@ -151,7 +179,28 @@ export function SettingsTab() {
     }))
   }
 
+  // The opt-in is just the presence of `pet_taxi` in `services` — the same pair the
+  // backend's marketplace filter reads, so there is no second source of truth.
+  const petTaxiEnabled = selectedServices.includes(PET_TAXI_SERVICE)
+
+  const togglePetTaxi = () => toggleService(PET_TAXI_SERVICE)
+
+  // Gated on the opt-in because the inputs are only rendered then. Validating a
+  // hidden field would disable the save button with nothing on screen explaining why.
+  const baseFeeInvalid = petTaxiEnabled && feeOutOfRange(taxiBaseFee)
+  const perKmInvalid = petTaxiEnabled && feeOutOfRange(taxiPerKm)
+  const perMinuteInvalid = petTaxiEnabled && feeOutOfRange(taxiPerMinute)
+  // Opted in without a base fee is the one combination the backend accepts but never
+  // lists, so it is blocked here rather than saved into an invisible state.
+  const baseFeeMissing = petTaxiEnabled && taxiBaseFee.trim() === ''
+  const termsTooLong = charCount(terms.trim()) > TERMS_MAX
+
+  const saveBlocked =
+    baseFeeInvalid || perKmInvalid || perMinuteInvalid || baseFeeMissing || termsTooLong
+
   const handleSave = async () => {
+    if (saveBlocked) return
+
     setSaving(true)
     setSaveError(null)
 
@@ -168,6 +217,17 @@ export function SettingsTab() {
       if (d) (hoursPayload as Record<string, DayHours>)[day] = d
     }
 
+    // Only send the taxi fields that carry a value. The backend applies them with
+    // COALESCE, so an explicit null would be a silent no-op rather than a clear —
+    // opting out is done by dropping `pet_taxi` from `services`, which de-lists the
+    // business whatever the stored fees still say.
+    const pricingPayload: UpdateBusinessInput = {}
+    if (petTaxiEnabled) {
+      if (taxiBaseFee.trim() !== '') pricingPayload.taxi_base_fee = Number(taxiBaseFee)
+      if (taxiPerKm.trim() !== '') pricingPayload.taxi_per_km = Number(taxiPerKm)
+      if (taxiPerMinute.trim() !== '') pricingPayload.taxi_per_minute = Number(taxiPerMinute)
+    }
+
     const { error } = await updateBusiness({
       name: businessName,
       phone,
@@ -179,6 +239,8 @@ export function SettingsTab() {
       other_service: otherService || undefined,
       operating_hours: hoursPayload,
       price: price !== '' ? Number(price) : null,
+      terms_and_conditions: terms.trim(),
+      ...pricingPayload,
     })
 
     setSaving(false)
@@ -379,12 +441,13 @@ export function SettingsTab() {
         <div>
           <label className="text-xs text-muted-foreground mb-2 block">Servicios que ofreces</label>
           <div className="flex flex-wrap gap-2">
-            {SERVICES.map((service) => {
+            {BUSINESS_SERVICE_OPTIONS.map((service) => {
               const active = selectedServices.includes(service)
               return (
                 <button
                   key={service}
                   type="button"
+                  aria-pressed={active}
                   onClick={() => toggleService(service)}
                   className={`px-3 py-1.5 rounded-xl text-sm font-medium border transition-colors ${
                     active
@@ -392,7 +455,7 @@ export function SettingsTab() {
                       : 'border-input hover:bg-muted'
                   }`}
                 >
-                  {SERVICE_LABELS[service]}
+                  {tb(`service_providers.services.${service}`)}
                 </button>
               )
             })}
@@ -469,11 +532,133 @@ export function SettingsTab() {
         </div>
       </div>
 
+      {/* Pet-taxi section */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="text-lg font-semibold">{tb('settings.pet_taxi_title')}</h2>
+        <p className="text-xs text-muted-foreground">{tb('settings.pet_taxi_intro')}</p>
+
+        {/* Marketplace opt-in */}
+        <div className="flex items-start gap-3">
+          <input
+            type="checkbox"
+            id="pet-taxi-optin"
+            checked={petTaxiEnabled}
+            onChange={togglePetTaxi}
+            className="mt-0.5 shrink-0"
+          />
+          <label htmlFor="pet-taxi-optin" className="cursor-pointer">
+            <span className="text-sm font-medium block">{tb('settings.pet_taxi_optin_label')}</span>
+            <span className="text-xs text-muted-foreground">{tb('settings.pet_taxi_optin_hint')}</span>
+          </label>
+        </div>
+
+        {petTaxiEnabled && (
+          <div className="space-y-4">
+            {/* Base fee */}
+            <div>
+              <label htmlFor="taxi-base-fee" className="text-xs text-muted-foreground mb-1 block">
+                {tb('settings.pet_taxi_base_fee_label')}
+              </label>
+              <input
+                id="taxi-base-fee"
+                type="number"
+                value={taxiBaseFee}
+                onChange={(e) => setTaxiBaseFee(e.target.value)}
+                placeholder="0"
+                min={0}
+                max={FEE_MAX}
+                aria-invalid={baseFeeInvalid || baseFeeMissing}
+                className={INPUT_CLASS}
+              />
+              {baseFeeInvalid && (
+                <p className="text-xs text-destructive mt-1">{tb('settings.pet_taxi_range_error')}</p>
+              )}
+              {baseFeeMissing && (
+                <p className="text-xs text-destructive mt-1">
+                  {tb('settings.pet_taxi_base_fee_required')}
+                </p>
+              )}
+            </div>
+
+            {/* Per km */}
+            <div>
+              <label htmlFor="taxi-per-km" className="text-xs text-muted-foreground mb-1 block">
+                {tb('settings.pet_taxi_per_km_label')}
+              </label>
+              <input
+                id="taxi-per-km"
+                type="number"
+                value={taxiPerKm}
+                onChange={(e) => setTaxiPerKm(e.target.value)}
+                placeholder="0"
+                min={0}
+                max={FEE_MAX}
+                aria-invalid={perKmInvalid}
+                className={INPUT_CLASS}
+              />
+              {perKmInvalid && (
+                <p className="text-xs text-destructive mt-1">{tb('settings.pet_taxi_range_error')}</p>
+              )}
+            </div>
+
+            {/* Per minute */}
+            <div>
+              <label htmlFor="taxi-per-minute" className="text-xs text-muted-foreground mb-1 block">
+                {tb('settings.pet_taxi_per_minute_label')}
+              </label>
+              <input
+                id="taxi-per-minute"
+                type="number"
+                value={taxiPerMinute}
+                onChange={(e) => setTaxiPerMinute(e.target.value)}
+                placeholder="0"
+                min={0}
+                max={FEE_MAX}
+                aria-invalid={perMinuteInvalid}
+                className={INPUT_CLASS}
+              />
+              {perMinuteInvalid && (
+                <p className="text-xs text-destructive mt-1">{tb('settings.pet_taxi_range_error')}</p>
+              )}
+            </div>
+
+            <p className="text-xs text-muted-foreground">{tb('settings.pet_taxi_fallback_hint')}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Terms and conditions */}
+      <div className="rounded-2xl border bg-card p-6 space-y-4">
+        <h2 className="text-lg font-semibold">{tb('settings.terms_title')}</h2>
+        <div>
+          <label htmlFor="business-terms" className="text-xs text-muted-foreground mb-1 block">
+            {tb('settings.terms_label')}
+          </label>
+          <textarea
+            id="business-terms"
+            value={terms}
+            onChange={(e) => setTerms(e.target.value)}
+            placeholder={tb('settings.terms_placeholder')}
+            rows={5}
+            aria-invalid={termsTooLong}
+            className={INPUT_CLASS}
+          />
+          <div className="flex items-center justify-between mt-1">
+            <p className={`text-xs ${termsTooLong ? 'text-destructive' : 'text-muted-foreground'}`}>
+              {tb('settings.terms_counter', { chars: charCount(terms) })}
+            </p>
+            {termsTooLong && (
+              <p className="text-xs text-destructive">{tb('settings.terms_too_long')}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       {/* Save button */}
       <div className="flex items-center gap-3">
         <button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || saveBlocked}
           className="px-6 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
         >
           {saving ? 'Guardando…' : saved ? 'Cambios guardados' : 'Guardar cambios'}
