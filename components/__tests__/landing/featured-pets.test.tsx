@@ -10,8 +10,17 @@ import { listPublicPets } from '@/lib/api/pets-public'
 
 const mockList = vi.mocked(listPublicPets)
 
-const pet = (id: string, name: string) =>
-  ({ id, name, age: 24, gender: 'female', species: 'dog', photos: [], conditions: [] }) as never
+const pet = (id: string, name: string, overrides: Record<string, unknown> = {}) =>
+  ({
+    id,
+    name,
+    age: 24,
+    gender: 'female',
+    species: 'dog',
+    photos: [],
+    conditions: [],
+    ...overrides,
+  }) as never
 
 /*
   RouteTransitionProvider is here because the strip's links are TransitionLinks
@@ -98,5 +107,87 @@ describe('FeaturedPets', () => {
     await waitFor(() => expect(container.querySelector('section')).toBeNull())
     expect(screen.queryByRole('alert')).toBeNull()
     expect(screen.queryByText('No pudimos cargar las mascotas')).toBeNull()
+  })
+
+  // The strip had no verified badge at all, while the grid card did. Same
+  // signal, same mark, everywhere a pet appears.
+  it('marks centre-published pets as verified', async () => {
+    mockList.mockResolvedValue({
+      data: [
+        pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } }),
+        pet('2', 'Rex'),
+      ],
+      error: null,
+    })
+
+    renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toHaveLength(1)
+  })
+
+  it('shows the centre avatar when the API sends one', async () => {
+    mockList.mockResolvedValue({
+      data: [
+        pet('1', 'Luna', {
+          rescue_center: { id: 'rc1', name: 'Refugio', avatar_url: 'https://cdn.test/a.jpg' },
+        }),
+      ],
+      error: null,
+    })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    const avatar = container.querySelector('img[src="https://cdn.test/a.jpg"]')
+    expect(avatar).not.toBeNull()
+    expect(avatar).toHaveAttribute('alt', '')
+    expect(avatar!.className).toContain('h-[30px]')
+    expect(avatar!.className).toContain('w-[30px]')
+  })
+
+  // The badge lives inside the <a> here (unlike the grid, where it is a
+  // sibling of a labelled button), so without an explicit label its
+  // aria-label would be absorbed into the link's accessible name.
+  it('keeps the verified badge out of the link name', async () => {
+    mockList.mockResolvedValue({
+      data: [pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } })],
+      error: null,
+    })
+
+    renderStrip()
+
+    expect(await screen.findByRole('link', { name: 'Luna' })).toBeInTheDocument()
+  })
+
+  // Member-published pets carry no author identity on either surface.
+  it('shows no badge and no avatar for member pets', async () => {
+    mockList.mockResolvedValue({ data: [pet('1', 'Luna')], error: null })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toBeNull()
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('shows no avatar for a centre that has not uploaded one', async () => {
+    mockList.mockResolvedValue({
+      data: [pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } })],
+      error: null,
+    })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    // The badge still shows — only the photo is missing.
+    expect(
+      screen.getByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toBeInTheDocument()
+    expect(container.querySelector('img')).toBeNull()
   })
 })

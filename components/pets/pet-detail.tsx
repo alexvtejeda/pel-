@@ -14,6 +14,9 @@ import {
   faShareFromSquare,
   faCheck,
   faGlobe,
+  faSyringe,
+  faScissors,
+  faRulerCombined,
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
@@ -23,6 +26,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
 import Carousel from '@/components/Carousel'
+import { VerifiedBadge } from './verified-badge'
 
 function DetailCarousel({ urls }: { urls: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -53,6 +57,7 @@ function DetailCarousel({ urls }: { urls: string[] }) {
           containerPadding={0}
           dotsOverlay
           showPauseButton
+          flushItems
           className="relative overflow-hidden w-full h-full"
         />
       )}
@@ -111,27 +116,31 @@ export function PetDetail({ pet }: PetDetailProps) {
         )}
       </div>
 
-      {/* Info */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <h2 className="text-xl font-bold">{pet.name}</h2>
+      {/* Info. No `flex-1`: with sparse content the column used to stretch and
+          push the Adoptar button to the panel floor, leaving a void above it.
+          Its own `overflow-y-auto` still lets long content scroll. */}
+      <div className="overflow-y-auto p-4 space-y-4">
+        {/* Title and chips read as one unit, not as two equally-spaced siblings. */}
+        <div className="space-y-2.5">
+          <h2 className="text-xl font-bold">{pet.name}</h2>
 
-        {/* Badges */}
-        <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={speciesIcon} className="text-xs" />
-            {t(`species.${pet.species}`)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={genderIcon} className="text-xs" />
-            {t(`gender.${pet.gender}`)}
-          </span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
-            <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
-            {(() => {
-              const { count, unit } = formatAge(pet.age)
-              return t(`detail.${unit}`, { count })
-            })()}
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={speciesIcon} className="text-xs" />
+              {t(`species.${pet.species}`)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={genderIcon} className="text-xs" />
+              {t(`gender.${pet.gender}`)}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-secondary text-secondary-foreground text-xs font-medium rounded-xl">
+              <FontAwesomeIcon icon={faCakeCandles} className="text-xs" />
+              {(() => {
+                const { count, unit } = formatAge(pet.age)
+                return t(`detail.${unit}`, { count })
+              })()}
+            </span>
+          </div>
         </div>
 
         {/* Description */}
@@ -152,42 +161,116 @@ export function PetDetail({ pet }: PetDetailProps) {
           </div>
         )}
 
-        <hr className="border-border" />
+        {/* Facts the payload already carries and the sheet used to drop — the
+            grid even lets users filter by the first two. Labels are nouns so
+            the values stay gender-neutral. */}
+        <dl className="text-sm">
+          <div className="flex items-center justify-between gap-3 border-b border-border py-2.5">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faSyringe} className="text-sm" />
+              {t('detail.facts.vaccines')}
+            </dt>
+            <dd className="font-medium">
+              {pet.vaccinated ? t('detail.facts.up_to_date') : t('detail.facts.pending')}
+            </dd>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-b border-border py-2.5">
+            <dt className="flex items-center gap-2 text-muted-foreground">
+              <FontAwesomeIcon icon={faScissors} className="text-sm" />
+              {t('detail.facts.neutering')}
+            </dt>
+            <dd className="font-medium">
+              {pet.castrated ? t('detail.facts.yes') : t('detail.facts.no')}
+            </dd>
+          </div>
+          {/* Guarded because member-published pets really can arrive without a
+              size: `user_pets.size` is nullable (API migration 000039), while
+              `pets.size` is NOT NULL DEFAULT 'medium' (000016). Unguarded, the
+              row would render the raw `size.undefined` key. */}
+          {pet.size && (
+            <div className="flex items-center justify-between gap-3 py-2.5">
+              <dt className="flex items-center gap-2 text-muted-foreground">
+                <FontAwesomeIcon icon={faRulerCombined} className="text-sm" />
+                {t('detail.facts.size')}
+              </dt>
+              <dd className="font-medium">{t(`size.${pet.size}`)}</dd>
+            </div>
+          )}
+        </dl>
 
-        {/* Rescue Center */}
+        {/* Rescue center. The card's own border separates it from the pet's
+            facts — that is why the rule above it is gone. */}
         {pet.rescue_center && (
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('detail.rescueCenter')}</p>
-            <div className="flex items-center gap-3">
-              {pet.rescue_center.logo_url ? (
+          <div className="rounded-2xl border border-border bg-muted p-3">
+            <div className="flex items-start gap-3">
+              {pet.rescue_center.avatar_url ? (
                 <Image
-                  src={pet.rescue_center.logo_url}
-                  alt={pet.rescue_center.name}
-                  width={40}
-                  height={40}
-                  className="rounded-xl object-cover"
+                  src={pet.rescue_center.avatar_url}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 shrink-0 rounded-xl border border-border bg-background object-cover"
                 />
+              ) : pet.rescue_center.logo_url ? (
+                /* `logo_url` is a 4:1 banner (LogoUpload enforces the ratio and
+                   labels it as the adoption-form banner). Contained in the same
+                   56px box — never cropped square, and never sized by the
+                   width/height attributes alone, which Tailwind preflight's
+                   `img { height: auto }` would collapse. */
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background p-1.5">
+                  <Image
+                    src={pet.rescue_center.logo_url}
+                    alt=""
+                    width={56}
+                    height={14}
+                    className="h-auto max-h-full w-full object-contain"
+                  />
+                </span>
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <FontAwesomeIcon icon={faPaw} className="text-sm text-muted-foreground" />
-                </div>
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background">
+                  <FontAwesomeIcon icon={faPaw} className="text-base text-muted-foreground" />
+                </span>
               )}
-              <span className="font-medium text-sm">{pet.rescue_center.name}</span>
+
+              <div className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-[15px] font-semibold">{pet.rescue_center.name}</span>
+                  <VerifiedBadge className="shrink-0 text-base" />
+                </span>
+                <p className="mt-0.5 text-[11.5px] uppercase tracking-wide text-muted-foreground">
+                  {t('detail.verified_center')}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              {pet.rescue_center.website && (
-                <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <FontAwesomeIcon icon={faGlobe} className="text-sm" />
-                  {t('website', { ns: 'common' })}
-                </a>
-              )}
-              {pet.rescue_center.instagram && (
-                <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <FontAwesomeIcon icon={faInstagram} className="text-sm" />
-                  {t('instagram', { ns: 'common' })}
-                </a>
-              )}
-            </div>
+
+            {/* Controls, not 14px anchors crowding the name: each gets its own
+                hit area, and a lone link takes the full width. */}
+            {(pet.rescue_center.website || pet.rescue_center.instagram) && (
+              <div className="mt-3.5 flex gap-2">
+                {pet.rescue_center.website && (
+                  <a
+                    href={ensureUrl(pet.rescue_center.website)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring flex h-[38px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium transition-colors hover:bg-secondary"
+                  >
+                    <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                    {t('website', { ns: 'common' })}
+                  </a>
+                )}
+                {pet.rescue_center.instagram && (
+                  <a
+                    href={instagramUrl(pet.rescue_center.instagram)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring flex h-[38px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium transition-colors hover:bg-secondary"
+                  >
+                    <FontAwesomeIcon icon={faInstagram} className="text-sm" />
+                    {t('instagram', { ns: 'common' })}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
+import { uploadAvatar } from '@/lib/api/auth'
 import { getMyRescueCenter, updateRescueCenter } from '@/lib/api/rescue-centers'
 import { LogoUpload } from './logo-upload'
 import { useTranslation } from 'react-i18next'
@@ -18,16 +19,22 @@ import { MfaRecoveryModal } from '@/components/auth/mfa/mfa-recovery-modal'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 export function SettingsTab() {
-  const { user, logout } = useAuth()
+  const { user, logout, updateSession } = useAuth()
   const router = useRouter()
   const { t } = useTranslation('auth')
   const resolveError = useMfaError()
 
-  const [displayName, setDisplayName] = useState(user?.email ?? '')
+  const [displayName, setDisplayName] = useState(user?.display_name ?? user?.email ?? '')
   const [rescueName, setRescueName] = useState('')
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [avatarUploading, setAvatarUploading] = useState(false)
+  const [avatarError, setAvatarError] = useState<string | null>(null)
   const [savedName, setSavedName] = useState(false)
+  const [savingName, setSavingName] = useState(false)
+  const [nameError, setNameError] = useState<string | null>(null)
   const [savedRescue, setSavedRescue] = useState(false)
+  const [savingRescue, setSavingRescue] = useState(false)
+  const [rescueError, setRescueError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -53,6 +60,7 @@ export function SettingsTab() {
     getMyRescueCenter().then(({ data }) => {
       if (data) {
         setRcId(data.id)
+        setRescueName(data.name)
         setRcLogoUrl(data.logo_url ?? null)
         setRcWebsite(data.website ?? '')
         setRcInstagram(data.instagram ?? '')
@@ -125,19 +133,75 @@ export function SettingsTab() {
     router.push('/')
   }
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
+    // Reset first: picking the same file twice must fire `change` again.
+    e.target.value = ''
     if (!file) return
-    const url = URL.createObjectURL(file)
-    setAvatarPreview(url)
+
+    // Mirrors LogoUpload's guard: the copy beside this button promises 5 MB,
+    // so reject locally instead of making the user wait for the server to.
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      setAvatarError('Imagen inválida. Máx 5 MB, PNG/JPG/WEBP.')
+      return
+    }
+
+    // Optimistic preview, same shape as LogoUpload.
+    const objectUrl = URL.createObjectURL(file)
+    setAvatarPreview(objectUrl)
+    setAvatarError(null)
+    setAvatarUploading(true)
+
+    const { data, error } = await uploadAvatar(file)
+
+    setAvatarUploading(false)
+    URL.revokeObjectURL(objectUrl)
+    setAvatarPreview(null)
+
+    if (error || !data) {
+      setAvatarError(error ?? 'Error al subir la foto')
+      return
+    }
+    // Spread, never a bare object: the session also carries role, email and the
+    // MFA flag, and this component must not drop them.
+    if (user) updateSession({ ...user, avatar_url: data.avatar_url })
   }
 
-  const handleSaveName = () => {
+  const handleSaveName = async () => {
+    setSavingName(true)
+    setNameError(null)
+
+    const res = await apiClient('/api/v1/auth/profile', {
+      method: 'PATCH',
+      body: JSON.stringify({ display_name: displayName }),
+    })
+
+    setSavingName(false)
+    if (!res.ok) {
+      setNameError('No se pudo guardar el nombre. Intenta de nuevo.')
+      return
+    }
+
+    if (user) updateSession({ ...user, display_name: displayName })
     setSavedName(true)
     setTimeout(() => setSavedName(false), 2000)
   }
 
-  const handleSaveRescue = () => {
+  const handleSaveRescue = async () => {
+    if (!rcId) return
+    setSavingRescue(true)
+    setRescueError(null)
+
+    const { error } = await updateRescueCenter(rcId, { name: rescueName.trim() })
+
+    setSavingRescue(false)
+    if (error) {
+      setRescueError(error)
+      return
+    }
+
+    setRescueName(rescueName.trim())
+
     setSavedRescue(true)
     setTimeout(() => setSavedRescue(false), 2000)
   }
@@ -164,10 +228,19 @@ export function SettingsTab() {
       {/* Profile picture */}
       <div className="rounded-2xl border bg-card p-6 space-y-4">
         <h2 className="font-semibold">Foto de perfil</h2>
+        <p className="text-xs text-muted-foreground">
+          Es la cara de tu centro en las mascotas que publicas.
+        </p>
         <div className="flex items-center gap-4">
           <div className="relative w-20 h-20 rounded-full overflow-hidden bg-muted shrink-0">
-            {avatarPreview ? (
-              <Image src={avatarPreview} alt="Avatar" fill className="object-cover" unoptimized />
+            {avatarPreview ?? user?.avatar_url ? (
+              <Image
+                src={(avatarPreview ?? user?.avatar_url) as string}
+                alt="Avatar"
+                fill
+                className="object-cover"
+                unoptimized
+              />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-2xl font-bold text-muted-foreground">
                 {displayName ? displayName[0].toUpperCase() : '?'}
@@ -177,11 +250,13 @@ export function SettingsTab() {
           <div>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="text-sm px-4 py-2 rounded-xl border border-input hover:bg-muted transition-colors"
+              disabled={avatarUploading}
+              className="text-sm px-4 py-2 rounded-xl border border-input hover:bg-muted transition-colors disabled:opacity-50"
             >
-              Cambiar foto
+              {avatarUploading ? 'Subiendo…' : 'Cambiar foto'}
             </button>
             <p className="text-xs text-muted-foreground mt-1">JPG, PNG o GIF · máx. 5 MB</p>
+            {avatarError && <p className="text-sm text-destructive mt-1">{avatarError}</p>}
             <input
               ref={fileInputRef}
               type="file"
@@ -215,11 +290,13 @@ export function SettingsTab() {
           />
           <button
             onClick={handleSaveName}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
+            disabled={savingName}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {savedName ? 'Guardado' : 'Guardar'}
+            {savingName ? 'Guardando…' : savedName ? 'Guardado' : 'Guardar'}
           </button>
         </div>
+        {nameError && <p className="text-sm text-destructive">{nameError}</p>}
       </div>
 
       {/* Rescue center name */}
@@ -235,11 +312,13 @@ export function SettingsTab() {
           />
           <button
             onClick={handleSaveRescue}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
+            disabled={savingRescue || !rcId}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {savedRescue ? 'Guardado' : 'Guardar'}
+            {savingRescue ? 'Guardando…' : savedRescue ? 'Guardado' : 'Guardar'}
           </button>
         </div>
+        {rescueError && <p className="text-sm text-destructive">{rescueError}</p>}
       </div>
       {/* Website & Instagram */}
       <div className="rounded-2xl border bg-card p-6 space-y-4">

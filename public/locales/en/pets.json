@@ -372,6 +372,16 @@
     "share": "Share",
     "link_copied": "Link copied",
     "rescueCenter": "Rescue center",
-    "specialCondition": "Special condition"
+    "specialCondition": "Special condition",
+    "verified_center": "Verified rescue center",
+    "facts": {
+      "vaccines": "Vaccines",
+      "neutering": "Neutering",
+      "size": "Size",
+      "up_to_date": "Up to date",
+      "pending": "Pending",
+      "yes": "Yes",
+      "no": "No"
+    }
   }
 }

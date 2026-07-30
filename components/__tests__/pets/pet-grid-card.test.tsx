@@ -126,4 +126,35 @@ describe('PetGrid card', () => {
     expect(img).not.toBeNull()
     expect(img).toHaveAttribute('alt', '')
   })
+
+  it('shows the rescue centre avatar in the overlay', () => {
+    const { container } = renderGrid([
+      pet({
+        rescue_center: { id: 'rc1', name: 'Refugio', avatar_url: 'https://cdn.test/a.jpg' },
+      }),
+    ])
+
+    const avatar = container.querySelector('img[src="https://cdn.test/a.jpg"]')
+    expect(avatar).not.toBeNull()
+    // Decorative: the badge already announces the verified centre.
+    expect(avatar).toHaveAttribute('alt', '')
+    // Explicit CSS size, never width/height attributes alone — Tailwind
+    // preflight's `img { height: auto }` beats the attribute and collapses it.
+    expect(avatar!.className).toContain('h-[30px]')
+    expect(avatar!.className).toContain('w-[30px]')
+  })
+
+  // Member-published pets carry no author identity, and a placeholder would
+  // invent one. Absence is the signal.
+  it('shows no avatar and no placeholder for member pets', () => {
+    const { container } = renderGrid([pet()])
+
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('shows no avatar for a centre that has not uploaded one', () => {
+    const { container } = renderGrid([pet({ rescue_center: { id: 'rc1', name: 'Refugio' } })])
+
+    expect(container.querySelector('img')).toBeNull()
+  })
 })
