@@ -139,6 +139,13 @@ export function SettingsTab() {
     e.target.value = ''
     if (!file) return
 
+    // Mirrors LogoUpload's guard: the copy beside this button promises 5 MB,
+    // so reject locally instead of making the user wait for the server to.
+    if (!file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) {
+      setAvatarError('Imagen inválida. Máx 5 MB, PNG/JPG/WEBP.')
+      return
+    }
+
     // Optimistic preview, same shape as LogoUpload.
     const objectUrl = URL.createObjectURL(file)
     setAvatarPreview(objectUrl)
@@ -192,6 +199,8 @@ export function SettingsTab() {
       setRescueError(error)
       return
     }
+
+    setRescueName(rescueName.trim())
 
     setSavedRescue(true)
     setTimeout(() => setSavedRescue(false), 2000)

@@ -111,6 +111,17 @@ describe('RC settings — profile photo', () => {
     expect(await screen.findByText('Archivo demasiado grande')).toBeInTheDocument()
     expect(updateSession).not.toHaveBeenCalled()
   })
+
+  it('rejects an oversized file locally instead of uploading it', async () => {
+    const { container } = renderWithProviders(<SettingsTab />)
+    const big = new File(['x'], 'grande.png', { type: 'image/png' })
+    Object.defineProperty(big, 'size', { value: 6 * 1024 * 1024 })
+
+    fireEvent.change(avatarInput(container), { target: { files: [big] } })
+
+    expect(await screen.findByText(/Máx 5 MB/)).toBeInTheDocument()
+    expect(mockUpload).not.toHaveBeenCalled()
+  })
 })
 
 describe('RC settings — display name', () => {
@@ -146,6 +157,21 @@ describe('RC settings — display name', () => {
 
     expect(await screen.findByText('No se pudo guardar el nombre. Intenta de nuevo.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Guardado' })).toBeNull()
+  })
+
+  it('disables the button while saving and confirms afterwards', async () => {
+    let release: (value: unknown) => void = () => {}
+    mockApi.mockReturnValue(new Promise((r) => { release = r }) as never)
+    renderWithProviders(<SettingsTab />)
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar' })[0])
+
+    const inFlight = await screen.findByRole('button', { name: 'Guardando…' })
+    expect(inFlight).toBeDisabled()
+
+    release({ ok: true, json: async () => ({}) })
+
+    expect(await screen.findByRole('button', { name: 'Guardado' })).toBeInTheDocument()
   })
 })
 
