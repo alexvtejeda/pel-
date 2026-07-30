@@ -8,26 +8,12 @@ const EMPTY = 'No hay mascotas disponibles'
 const CLEAR = 'Limpiar filtros'
 const RETRY = 'Reintentar'
 
-const pet = (overrides: Record<string, unknown> = {}) =>
-  ({
-    id: 'p1',
-    name: 'Luna',
-    age: 24,
-    gender: 'female',
-    species: 'dog',
-    photos: [],
-    conditions: [],
-    ...overrides,
-  }) as never
-
 type Props = Partial<Parameters<typeof PetGrid>[0]>
 
 function renderGrid(overrides: Props = {}) {
   const handlers = {
     onSelect: vi.fn(),
-    onFilterChange: vi.fn(),
-    onVaccinatedChange: vi.fn(),
-    onCastratedChange: vi.fn(),
+    onClearFilters: vi.fn(),
     onRetry: vi.fn(),
   }
   const utils = renderWithProviders(
@@ -36,9 +22,7 @@ function renderGrid(overrides: Props = {}) {
       loading={false}
       error={null}
       selectedId={null}
-      activeFilter="all"
-      vaccinatedFilter={false}
-      castratedFilter={false}
+      hasActiveFilters={false}
       {...handlers}
       {...overrides}
     />
@@ -69,7 +53,7 @@ describe('PetGrid error state', () => {
   })
 
   it('shows the error even when a filter is active', () => {
-    renderGrid({ error: 'boom', activeFilter: 'dogs' })
+    renderGrid({ error: 'boom', hasActiveFilters: true })
 
     expect(screen.getByRole('alert')).toBeInTheDocument()
     expect(screen.queryByText(EMPTY)).toBeNull()
@@ -85,51 +69,23 @@ describe('PetGrid empty state', () => {
     expect(screen.queryByRole('alert')).toBeNull()
   })
 
+  // `hasActiveFilters` arrives as one boolean from `pets-page`, so the grid can
+  // no longer tell a species filter from a health or source one. Which
+  // dimensions feed that boolean is asserted where they live now — in
+  // `pet-filters.test.tsx` and end to end in `pet-grid-header.test.tsx`.
   it('offers a way out when a filter emptied the grid', () => {
-    renderGrid({ pets: [], activeFilter: 'cats' })
+    renderGrid({ pets: [], hasActiveFilters: true })
 
     expect(screen.getByText(EMPTY)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: CLEAR })).toBeInTheDocument()
   })
 
-  it.each([
-    ['vaccinated', { vaccinatedFilter: true }],
-    ['castrated', { castratedFilter: true }],
-  ])('offers a way out for the %s filter too', (_label, props) => {
-    renderGrid({ pets: [], ...props })
-
-    expect(screen.getByRole('button', { name: CLEAR })).toBeInTheDocument()
-  })
-
-  it('resets every filter dimension when cleared', () => {
-    const { onFilterChange, onVaccinatedChange, onCastratedChange } = renderGrid({
-      pets: [],
-      activeFilter: 'dogs',
-      vaccinatedFilter: true,
-      castratedFilter: true,
-    })
+  it('hands the clear back to the parent that owns the filters', () => {
+    const { onClearFilters } = renderGrid({ pets: [], hasActiveFilters: true })
 
     fireEvent.click(screen.getByRole('button', { name: CLEAR }))
 
-    expect(onFilterChange).toHaveBeenCalledWith('all', {})
-    expect(onVaccinatedChange).toHaveBeenCalledWith(false)
-    expect(onCastratedChange).toHaveBeenCalledWith(false)
-  })
-
-  // The source filter is PetGrid's own state, not a prop, and it is reachable
-  // from the desktop pill row. It is the one dimension a parent-driven
-  // "hasActiveFilters" would have missed — so the escape must cover it end to end.
-  it('recovers the grid when the source filter emptied it', () => {
-    renderGrid({ pets: [pet({ name: 'Luna' })] })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
-    expect(screen.getByText(EMPTY)).toBeInTheDocument()
-    expect(screen.queryByText('Luna')).toBeNull()
-
-    fireEvent.click(screen.getByRole('button', { name: CLEAR }))
-
-    expect(screen.getByText('Luna')).toBeInTheDocument()
-    expect(screen.queryByText(EMPTY)).toBeNull()
+    expect(onClearFilters).toHaveBeenCalledTimes(1)
   })
 })
 

@@ -23,13 +23,9 @@ function renderGrid(pets: unknown[], onSelect = vi.fn()) {
       loading={false}
       error={null}
       selectedId={null}
-      activeFilter="all"
+      hasActiveFilters={false}
       onSelect={onSelect}
-      onFilterChange={() => {}}
-      vaccinatedFilter={false}
-      castratedFilter={false}
-      onVaccinatedChange={() => {}}
-      onCastratedChange={() => {}}
+      onClearFilters={() => {}}
       onRetry={() => {}}
     />
   )

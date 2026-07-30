@@ -4,7 +4,13 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pet } from '@/lib/api/pets'
 import { PetFilters, listPublicPets } from '@/lib/api/pets-public'
-import { PetGrid, FilterKey } from './pet-grid'
+import { PetGrid } from './pet-grid'
+import {
+  PetFilterBar,
+  countActiveFilters,
+  type FilterKey,
+  type SourceFilter,
+} from './pet-filters'
 import { PetDetail } from './pet-detail'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { useRouteTransition } from '@/components/transitions/route-transition-context'
@@ -31,6 +37,8 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   const [open, setOpen] = useState(false)
   const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
   const [castratedFilter, setCastratedFilter] = useState(false)
+  const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all')
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
 
   // What the last request actually asked for. Retry has to replay the request
   // that failed — calling fetchPets() bare would quietly drop the user's filters
@@ -96,6 +104,36 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
     setOpen(true)
   }, [])
 
+  // Centre-published pets first, then the source filter. Derived here rather
+  // than in `PetGrid` so the feed sees exactly the same list at the other
+  // breakpoint instead of a second, drifting copy of this logic.
+  const sortedPets = [...pets].sort((a, b) => {
+    const aIsRc = a.rescue_center ? 0 : 1
+    const bIsRc = b.rescue_center ? 0 : 1
+    return aIsRc - bIsRc
+  })
+
+  const visiblePets =
+    sourceFilter === 'all'
+      ? sortedPets
+      : sourceFilter === 'rc'
+        ? sortedPets.filter(p => p.rescue_center !== null && p.rescue_center !== undefined)
+        : sortedPets.filter(p => !p.rescue_center)
+
+  const hasActiveFilters =
+    countActiveFilters({ activeFilter, vaccinatedFilter, castratedFilter, sourceFilter }) > 0
+
+  // Step for step what `clearFilters` did inside the grid (pet-grid.tsx:101-107),
+  // including going through `handleFilterChange` rather than `fetchPets` — that
+  // is what also clears the selection.
+  const handleClearFilters = useCallback(() => {
+    setSourceFilter('all')
+    setVaccinatedFilter(false)
+    setCastratedFilter(false)
+    handleFilterChange('all', {})
+    setMobileFiltersOpen(false)
+  }, [handleFilterChange])
+
   const showSkeleton = loading || holdSkeleton
 
   return (
@@ -109,21 +147,29 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           <p className="mt-1 max-w-xl text-sm text-muted-foreground">{t('grid.subtitle')}</p>
           {/* Kept mounted (content varies) so screen readers announce the count when it changes. */}
           <p aria-live="polite" className="mt-2 min-h-4 text-xs font-medium text-muted-foreground">
-            {!showSkeleton && !error ? t('grid.count', { count: pets.length }) : ''}
+            {!showSkeleton && !error ? t('grid.count', { count: visiblePets.length }) : ''}
           </p>
         </div>
+        <PetFilterBar
+          activeFilter={activeFilter}
+          onFilterChange={handleFilterChange}
+          vaccinatedFilter={vaccinatedFilter}
+          onVaccinatedChange={handleVaccinatedToggle}
+          castratedFilter={castratedFilter}
+          onCastratedChange={handleCastratedToggle}
+          sourceFilter={sourceFilter}
+          onSourceChange={setSourceFilter}
+          mobileFiltersOpen={mobileFiltersOpen}
+          onMobileFiltersOpenChange={setMobileFiltersOpen}
+        />
         <PetGrid
-          pets={pets}
+          pets={visiblePets}
           loading={showSkeleton}
           error={error}
           selectedId={selected?.id ?? null}
-          activeFilter={activeFilter}
+          hasActiveFilters={hasActiveFilters}
           onSelect={handleSelect}
-          onFilterChange={handleFilterChange}
-          vaccinatedFilter={vaccinatedFilter}
-          castratedFilter={castratedFilter}
-          onVaccinatedChange={handleVaccinatedToggle}
-          onCastratedChange={handleCastratedToggle}
+          onClearFilters={handleClearFilters}
           onRetry={handleRetry}
         />
       </div>

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
 
 vi.mock('@/lib/api/pets-public', () => ({ listPublicPets: vi.fn() }))
@@ -13,8 +13,17 @@ import { listPublicPets } from '@/lib/api/pets-public'
 
 const mockList = vi.mocked(listPublicPets)
 
-const pet = (id: string, name: string) =>
-  ({ id, name, age: 24, gender: 'female', species: 'dog', photos: [], conditions: [] }) as never
+const pet = (id: string, name: string, overrides: Record<string, unknown> = {}) =>
+  ({
+    id,
+    name,
+    age: 24,
+    gender: 'female',
+    species: 'dog',
+    photos: [],
+    conditions: [],
+    ...overrides,
+  }) as never
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -72,5 +81,46 @@ describe('PetsPage header', () => {
 
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
     expect(screen.queryByText(/buscando hogar/)).toBeNull()
+  })
+
+  // The clear button lives in the grid's empty state and the popover lives in
+  // the filter bar — two components either side of `pets-page`. This is the
+  // only test that exercises the whole path rather than one half of it.
+  it('clears every filter dimension from the empty state', async () => {
+    mockList.mockResolvedValue({ data: [], error: null })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('heading', { level: 1 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gatos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vacunado' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Limpiar filtros' }))
+
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Vacunado' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Centros' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull()
+  })
+
+  // The source filter used to be `PetGrid`'s own state, so the page counted
+  // before the grid filtered and the two disagreed whenever "Centros" was on.
+  // One derivation upstream is what makes the count and the cards agree.
+  it('narrows both the card list and the announced count with the source filter', async () => {
+    mockList.mockResolvedValue({
+      data: [pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } }), pet('2', 'Rex')],
+      error: null,
+    })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByText('2 mascotas buscando hogar')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
+
+    expect(screen.getByText('1 mascota buscando hogar')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ver detalles de Luna' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ver detalles de Rex' })).toBeNull()
   })
 })

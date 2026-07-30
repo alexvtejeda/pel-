@@ -28,7 +28,7 @@ vi.mock('motion/react', () => {
 import { renderWithProviders } from './test-utils'
 import { OnboardingNav } from '@/components/auth/onboarding/onboarding-nav'
 import Stepper, { Step } from '@/components/Stepper'
-import { PetGrid } from '@/components/pets/pet-grid'
+import { PetFilterBar } from '@/components/pets/pet-filters'
 
 // ─── OnboardingNav ───────────────────────────────────────────
 
@@ -91,42 +91,42 @@ describe('Stepper', () => {
   })
 })
 
-// ─── PetGrid ─────────────────────────────────────────────────
+// ─── PetFilterBar ────────────────────────────────────────────
 
-describe('PetGrid', () => {
+describe('PetFilterBar', () => {
   const defaultProps = {
-    pets: [],
-    loading: false,
-    error: null,
-    selectedId: null,
     activeFilter: 'dogs' as const,
-    onSelect: () => {},
     onFilterChange: () => {},
     vaccinatedFilter: false,
-    castratedFilter: false,
     onVaccinatedChange: () => {},
+    castratedFilter: false,
     onCastratedChange: () => {},
-    onRetry: () => {},
+    sourceFilter: 'all' as const,
+    onSourceChange: () => {},
+    mobileFiltersOpen: false,
+    onMobileFiltersOpenChange: () => {},
   }
 
+  // These are design-system assertions, so they check classes on purpose — but
+  // reach the element by role first. `container.querySelector('.bg-pop-solid')`
+  // matches two nodes (the active pill *and* the mobile trigger, which also goes
+  // solid once a filter is active) and picks the pill only because the desktop
+  // row happens to render first.
   it('7 — active filter pill has bg-pop-solid class', () => {
-    const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
-    const activePill = container.querySelector('.bg-pop-solid')
-    expect(activePill).not.toBeNull()
-    expect(activePill!.textContent).toBeTruthy()
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Perros' }).className).toContain('bg-pop-solid')
   })
 
   // The pressed state is announced from the same condition that picks the fill.
   // Asserting both together is what stops them silently drifting apart.
   it('7b — the active pill announces aria-pressed, inactive pills do not', () => {
-    const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
-    expect(container.querySelector('.bg-pop-solid')).toHaveAttribute('aria-pressed', 'true')
-    expect(container.querySelector('button.bg-background')).toHaveAttribute('aria-pressed', 'false')
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Perros' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('8 — inactive filter pills have bg-background class', () => {
-    const { container } = renderWithProviders(<PetGrid {...defaultProps} />)
-    const inactivePills = container.querySelectorAll('button.bg-background')
-    expect(inactivePills.length).toBeGreaterThanOrEqual(5)
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Gatos' }).className).toContain('bg-background')
   })
 })
