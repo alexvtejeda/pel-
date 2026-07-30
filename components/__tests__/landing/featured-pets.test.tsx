@@ -10,8 +10,17 @@ import { listPublicPets } from '@/lib/api/pets-public'
 
 const mockList = vi.mocked(listPublicPets)
 
-const pet = (id: string, name: string) =>
-  ({ id, name, age: 24, gender: 'female', species: 'dog', photos: [], conditions: [] }) as never
+const pet = (id: string, name: string, overrides: Record<string, unknown> = {}) =>
+  ({
+    id,
+    name,
+    age: 24,
+    gender: 'female',
+    species: 'dog',
+    photos: [],
+    conditions: [],
+    ...overrides,
+  }) as never
 
 /*
   RouteTransitionProvider is here because the strip's links are TransitionLinks
@@ -98,5 +107,44 @@ describe('FeaturedPets', () => {
     await waitFor(() => expect(container.querySelector('section')).toBeNull())
     expect(screen.queryByRole('alert')).toBeNull()
     expect(screen.queryByText('No pudimos cargar las mascotas')).toBeNull()
+  })
+
+  // The strip had no verified badge at all, while the grid card did. Same
+  // signal, same mark, everywhere a pet appears.
+  it('marks centre-published pets as verified', async () => {
+    mockList.mockResolvedValue({
+      data: [
+        pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } }),
+        pet('2', 'Rex'),
+      ],
+      error: null,
+    })
+
+    renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    expect(
+      screen.getAllByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toHaveLength(1)
+  })
+
+  it('shows the centre avatar when the API sends one', async () => {
+    mockList.mockResolvedValue({
+      data: [
+        pet('1', 'Luna', {
+          rescue_center: { id: 'rc1', name: 'Refugio', avatar_url: 'https://cdn.test/a.jpg' },
+        }),
+      ],
+      error: null,
+    })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    const avatar = container.querySelector('img[src="https://cdn.test/a.jpg"]')
+    expect(avatar).not.toBeNull()
+    expect(avatar).toHaveAttribute('alt', '')
+    expect(avatar!.className).toContain('h-[30px]')
+    expect(avatar!.className).toContain('w-[30px]')
   })
 })

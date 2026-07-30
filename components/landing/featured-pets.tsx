@@ -10,6 +10,7 @@ import { listPublicPets } from '@/lib/api/pets-public'
 import { TransitionLink } from '@/components/transitions/transition-link'
 import { ErrorState } from '@/components/ui/error-state'
 import { formatAge } from '@/lib/utils/format-age'
+import { VerifiedBadge } from '@/components/pets/verified-badge'
 
 const MAX = 8
 
@@ -121,11 +122,28 @@ export function FeaturedPets() {
                         <FontAwesomeIcon icon={faPaw} className="text-2xl text-muted-foreground/30" />
                       </span>
                     )}
+                    {/* No hover dodge here: the strip has no ⋯ menu to make room for. */}
+                    {pet.rescue_center && (
+                      <span className="pointer-events-none absolute top-2 right-2 z-10">
+                        <VerifiedBadge className="text-xl" onPhoto />
+                      </span>
+                    )}
                     {/* Spans, not <p>: an <a> may only contain phrasing content. */}
-                    <span className="absolute inset-x-0 bottom-0 block bg-linear-to-t from-primary to-transparent p-2 pt-6">
-                      <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
-                      <span className="block truncate text-[11px] text-background/80">
-                        {t(`detail.${age.unit}`, { ns: 'pets', count: age.count })}
+                    <span className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-linear-to-t from-primary to-transparent p-2 pt-6">
+                      {pet.rescue_center?.avatar_url && (
+                        <Image
+                          src={pet.rescue_center.avatar_url}
+                          alt=""
+                          width={30}
+                          height={30}
+                          className="h-[30px] w-[30px] shrink-0 rounded-full border-[1.5px] border-white/90 object-cover"
+                        />
+                      )}
+                      <span className="block min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
+                        <span className="block truncate text-[11px] text-background/80">
+                          {t(`detail.${age.unit}`, { ns: 'pets', count: age.count })}
+                        </span>
                       </span>
                     </span>
                   </TransitionLink>
