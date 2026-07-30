@@ -25,6 +25,12 @@
     "cta_pets": "Ver mascotas",
     "cta_register": "Registrarse"
   },
+  "featured": {
+    "title": "Están esperando un hogar",
+    "subtitle": "Algunas de las mascotas disponibles ahora mismo.",
+    "see_all": "Ver todas",
+    "error": "No pudimos cargar las mascotas"
+  },
   "how": {
     "title": "Cómo funciona",
     "subtitle": "Tres pasos para cambiar una vida",

@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowRight, faMagnifyingGlass, faPaw, faTruckFast } from '@fortawesome/free-solid-svg-icons'
 import { Footer } from '@/components/footer'
+import { FeaturedPets } from '@/components/landing/featured-pets'
 import { LogoMarquee } from '@/components/landing/logo-marquee'
 import { TestimonialCarousel, Testimonial } from '@/components/landing/testimonial-carousel'
 
@@ -84,6 +85,8 @@ export function LandingPage() {
 
       {/* Divider */}
       <hr className="text-input"></hr>
+
+      <FeaturedPets />
 
       {/* How It Works */}
       <section className="bg-muted px-4 py-16">

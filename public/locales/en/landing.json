@@ -25,6 +25,12 @@
     "cta_pets": "Browse pets",
     "cta_register": "Sign up"
   },
+  "featured": {
+    "title": "Waiting for a home",
+    "subtitle": "A few of the pets available right now.",
+    "see_all": "See all",
+    "error": "We couldn't load the pets"
+  },
   "how": {
     "title": "How it works",
     "subtitle": "Three steps to change a life",
