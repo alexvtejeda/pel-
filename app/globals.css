@@ -413,3 +413,16 @@
     animation: none;
   }
 }
+
+/* /pets mobile feed. The document — not a nested element — is the scroll
+   container on this route (`pet-grid`'s `overflow-y-auto` never engages under a
+   `min-h-screen` ancestor), so the snap type has to live on the scroller
+   itself. `:has()` scopes it to the frames where the feed is mounted, so no
+   other route inherits snapping. `proximity`, not `mandatory`: mandatory fights
+   the user on variable-height cards and can trap a slow scroll between two
+   snap points. */
+@media (max-width: 639px) {
+  html:has([data-pet-feed]) {
+    scroll-snap-type: y proximity;
+  }
+}
