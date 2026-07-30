@@ -1,7 +1,8 @@
 # Spec: Frontend API Wiring Gaps
 
 **Date:** 2026-07-21
-**Status:** Draft — ready to pick up
+**Status:** ✅ Done (2026-07-30) — all five clusters wired. Only the optional per-method
+coverage pass remains; see the closeout note below.
 **Repos:** `frontend` (pel-) wires against `api` (pelu-api)
 **Contract source of truth:** `api/docs/api/swagger.yaml` (or the live Scalar UI at `http://localhost:2701/docs`)
 
@@ -135,14 +136,39 @@ These pair up: without onboarding there are no applications for admin to review.
 
 ## Tomorrow's checklist
 
-- [ ] Regenerate `make swagger` in `api/`; confirm the 14-gap list still holds.
-- [ ] **P1** Service providers — onboarding client + UI (`service-providers.ts`, guard, forms).
-- [ ] **P1** Service providers — admin review client + UI (extend `admin.ts` + admin dashboard).
-- [ ] **P2** Transport — quote preview, businesses directory, decline action.
-- [ ] **P3** Avatar upload (resolve the two-endpoint question first).
-- [ ] **P3** User-pets edit/delete actions.
-- [ ] **P4** Decide if `/forms/{id}/submissions` is needed.
+- [x] Regenerate `make swagger` in `api/`; confirm the 14-gap list still holds.
+- [x] **P1** Service providers — onboarding client + UI (`service-providers.ts`, guard, forms).
+- [x] **P1** Service providers — admin review client + UI (extend `admin.ts` + admin dashboard).
+- [x] **P2** Transport — quote preview, businesses directory, decline action.
+- [x] **P3** Avatar upload (resolve the two-endpoint question first).
+- [x] **P3** User-pets edit/delete actions.
+- [x] **P4** Decide if `/forms/{id}/submissions` is needed.
 - [ ] Optional: per-method coverage pass (paths wired but missing a method).
+
+## Closeout (2026-07-30)
+
+Each cluster was re-verified against the source before closing this out, not just checked off:
+
+| Cluster | Where it landed |
+|---|---|
+| 1a Service providers — onboarding | `lib/api/service-providers.ts` + `components/service-providers/service-provider-form.tsx` |
+| 1b Service providers — admin review | `lib/api/admin.ts`, covered by `lib/api/__tests__/admin-service-providers.test.ts` |
+| 2 Transport quote / businesses / decline | `lib/api/transport.ts:172` and siblings, covered by `lib/api/__tests__/transport.test.ts` |
+| 3 Avatar | `lib/api/auth.ts:55` |
+| 4 User-pets edit/delete | `lib/api/user-pets.ts:52` (PATCH) and `:66` (DELETE) |
+| 5 Form-scoped submissions | `lib/api/submissions.ts:38` — it *was* needed, so it was built rather than dropped |
+
+**The Cluster 3 open question resolved to `/auth/avatar`.** `POST /auth/profile/photo` has no
+frontend reference and none is wanted — wiring only the canonical endpoint was the right call.
+
+**Cluster 2 was the demand half of the pet-taxi marketplace.** It was wired well before any
+business could opt in: no UI could write the `pet_taxi` service key the backend filters on, so
+`GET /transport/businesses` queried a set that could never return a row. The supply half —
+the opt-in toggle and the pricing fields — shipped on `feature/business-pricing-wiring`.
+
+The one remaining item is the per-method coverage pass flagged in the scope caveat at the top:
+this spec only ever covered paths with *zero* frontend references, so a path counted as "wired"
+could still be missing a specific method.
 
 ## How to re-run the coverage check
 

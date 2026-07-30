@@ -10,19 +10,24 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 import Carousel from '@/components/Carousel'
-import { createBusiness, uploadBusinessPhoto, OperatingHours } from '@/lib/api/businesses'
+import { useTranslation } from 'react-i18next'
+import {
+  createBusiness,
+  uploadBusinessPhoto,
+  BUSINESS_SERVICE_OPTIONS,
+  OperatingHours,
+} from '@/lib/api/businesses'
 import { BackgroundBeams } from '@/components/ui/beams'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { getMethods } from '@/lib/api/mfa'
 
-const SERVICE_OPTIONS = [
-  { key: 'grooming', label: 'Grooming' },
-  { key: 'taxi', label: 'Pet taxi' },
-  { key: 'walking', label: 'Paseo de perros' },
-  { key: 'training', label: 'Entrenamiento' },
-  { key: 'vet', label: 'Veterinaria / Vacunas' },
-  { key: 'other', label: 'Otro' },
-]
+/*
+  Service keys come from BUSINESS_SERVICE_OPTIONS, which mirrors the backend's
+  canonical list. The private list that used to live here wrote `taxi`/`walking`/`vet` —
+  keys the backend now rejects outright, and which the public directory rendered as
+  raw strings. `pet_taxi` is excluded on purpose: the marketplace opt-in needs pricing
+  to mean anything, and a pending business cannot be listed, so it lives in settings.
+*/
 
 const DAYS: { key: keyof OperatingHours; label: string }[] = [
   { key: 'monday', label: 'Lun' },
@@ -83,6 +88,9 @@ function makeDefaultHours(): OperatingHours {
 
 export function BusinessWizard() {
   const router = useRouter()
+  // Only the service labels are translated here; the rest of this wizard is still
+  // hardcoded Spanish, so the hook is deliberately narrow.
+  const { t } = useTranslation('business')
 
   // Required fields
   const [name, setName] = useState('')
@@ -325,18 +333,19 @@ export function BusinessWizard() {
               Servicios <span className="text-destructive">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
-              {SERVICE_OPTIONS.map((svc) => (
+              {BUSINESS_SERVICE_OPTIONS.map((key) => (
                 <button
-                  key={svc.key}
+                  key={key}
                   type="button"
-                  onClick={() => toggleService(svc.key)}
+                  aria-pressed={services.includes(key)}
+                  onClick={() => toggleService(key)}
                   className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${
-                    services.includes(svc.key)
+                    services.includes(key)
                       ? 'bg-pop-550/10 border-pop-550 text-foreground'
                       : 'border-input text-muted-foreground hover:border-border'
                   }`}
                 >
-                  {svc.label}
+                  {t(`service_providers.services.${key}`)}
                 </button>
               ))}
             </div>

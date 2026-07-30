@@ -59,7 +59,22 @@
     "logout": "Log out",
     "delete_account": "Delete account",
     "save": "Save changes",
-    "saved": "Changes saved"
+    "saved": "Changes saved",
+    "pet_taxi_title": "Pet taxi",
+    "pet_taxi_intro": "Turn on pet taxi to receive trip requests with an automatic quote. Members see your estimated price before requesting the trip.",
+    "pet_taxi_optin_label": "Offer pet taxi",
+    "pet_taxi_optin_hint": "You'll appear in the transport listing members browse.",
+    "pet_taxi_base_fee_label": "Base fee (DOP)",
+    "pet_taxi_per_km_label": "Price per kilometer (DOP)",
+    "pet_taxi_per_minute_label": "Price per minute (DOP)",
+    "pet_taxi_fallback_hint": "Leave empty to use the platform's default price.",
+    "pet_taxi_base_fee_required": "Add a base fee to appear in the transport listing.",
+    "pet_taxi_range_error": "Must be an amount between 0 and 50,000 DOP.",
+    "terms_title": "Terms and conditions",
+    "terms_label": "Your terms and conditions",
+    "terms_placeholder": "E.g. Own carrier required. Cancellations 24 hours in advance.",
+    "terms_counter": "{{chars}} / 5000 characters",
+    "terms_too_long": "5000 characters maximum."
   },
   "admin": {
     "type_rescue_center": "Rescue Center",
@@ -148,11 +163,14 @@
     "rejected_body": "Fix the issues noted and resubmit your application with your ID document.",
     "services": {
       "transport": "Transport",
+      "pet_taxi": "Pet taxi",
       "grooming": "Grooming",
       "pet_sitting": "Pet sitting",
       "dog_walking": "Dog walking",
       "pet_boarding": "Boarding",
-      "training": "Training"
+      "training": "Training",
+      "veterinary": "Veterinary",
+      "other": "Other"
     },
     "pet_types": {
       "dog": "Dog",
