@@ -78,6 +78,7 @@ Budget for these in Task 2 — they are not optional cleanup:
 | `components/__tests__/pets/pet-grid-mobile-filters.test.tsx` | 11 | Renders `PetGrid` and drives the mobile popover, which moves out of it entirely. Becomes `pet-filters.test.tsx` in Task 1 and is deleted in Task 2. |
 | `components/__tests__/design-structure.test.tsx` (7, 7b, 8) | 3 | Assert filter-pill classes and `aria-pressed` through `<PetGrid>`. Retarget to `<PetFilterBar>`. |
 | `components/__tests__/pets/pet-grid-states.test.tsx` | 8 | Renders `PetGrid` with the filter props it will no longer accept, and asserts the empty state's clear button that `PetGrid` will no longer own the state for. Prop update. |
+| `components/__tests__/pets/pet-grid-card.test.tsx` | 12 | Its `renderGrid` helper passes the six filter props too. At runtime they are harmlessly ignored, so `vitest` stays green and this looks safe — but `tsc --noEmit` raises TS2322 for excess props on `PetGridProps`, which fails the gate. Swap them for `hasActiveFilters` / `onClearFilters`; no assertion changes. |
 
 `pet-grid-header.test.tsx` and `pets-page-retry.test.tsx` render `PetsPage` with `useMediaQuery` mocked to `true`, so they exercise the desktop branch and keep passing untouched — but see Task 8, which adds a mobile-mocked sibling.
 
