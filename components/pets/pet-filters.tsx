@@ -33,22 +33,24 @@ const FILTERS: { key: FilterKey; icon: typeof faPaw; toParams: PetFilterParams }
   { key: 'nearby', icon: faLocationDot, toParams: { sort: 'proximity' } },
 ]
 
+export interface PetFilterState {
+  activeFilter: FilterKey
+  vaccinatedFilter: boolean
+  castratedFilter: boolean
+  sourceFilter: SourceFilter
+}
+
 /**
  * Counts the dimensions the user has narrowed. Exported because the empty
  * state's "clear filters" escape hatch lives in the grid and the feed, which
  * need the same answer without duplicating the arithmetic.
  */
-export function countActiveFilters(
-  activeFilter: FilterKey,
-  vaccinated: boolean,
-  castrated: boolean,
-  source: SourceFilter,
-): number {
+export function countActiveFilters(f: PetFilterState): number {
   return (
-    (activeFilter !== 'all' ? 1 : 0) +
-    (vaccinated ? 1 : 0) +
-    (castrated ? 1 : 0) +
-    (source !== 'all' ? 1 : 0)
+    (f.activeFilter !== 'all' ? 1 : 0) +
+    (f.vaccinatedFilter ? 1 : 0) +
+    (f.castratedFilter ? 1 : 0) +
+    (f.sourceFilter !== 'all' ? 1 : 0)
   )
 }
 
@@ -83,6 +85,7 @@ export function PetFilterBar({
 }: PetFilterBarProps) {
   const { t } = useTranslation('pets')
   const mobileFiltersRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
 
   // The mobile filter popover is hand-rolled (not Radix), so it needs its own
   // dismiss behaviour. The ref wraps the trigger *and* the popover, so a
@@ -95,7 +98,13 @@ export function PetFilterBar({
       if (!mobileFiltersRef.current?.contains(e.target as Node)) onMobileFiltersOpenChange(false)
     }
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onMobileFiltersOpenChange(false)
+      if (e.key === 'Escape') {
+        onMobileFiltersOpenChange(false)
+        // Escape only — an outside pointerdown means the user just clicked
+        // something else, and stealing focus back to the trigger would yank
+        // it away from whatever they meant to interact with.
+        triggerRef.current?.focus()
+      }
     }
 
     document.addEventListener('pointerdown', onPointerDown)
@@ -106,15 +115,19 @@ export function PetFilterBar({
     }
   }, [mobileFiltersOpen, onMobileFiltersOpenChange])
 
-  const mobileFilterCount = countActiveFilters(
+  const mobileFilterCount = countActiveFilters({
     activeFilter,
     vaccinatedFilter,
     castratedFilter,
     sourceFilter,
-  )
+  })
 
   const handleFilterClick = (f: (typeof FILTERS)[number]) => {
     if (f.key === 'nearby') {
+      if (!navigator.geolocation) {
+        onFilterChange('nearby', f.toParams)
+        return
+      }
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           onFilterChange('nearby', {
@@ -199,8 +212,11 @@ export function PetFilterBar({
       {/* Filter button — mobile only */}
       <div ref={mobileFiltersRef} className="sm:hidden relative px-2 py-3 shrink-0">
         <button
+          ref={triggerRef}
           onClick={() => onMobileFiltersOpenChange(!mobileFiltersOpen)}
           aria-expanded={mobileFiltersOpen}
+          aria-haspopup="dialog"
+          aria-controls="pet-filters-popover"
           className={`focus-ring relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
             mobileFiltersOpen || mobileFilterCount > 0
               ? 'bg-pop-solid text-white'
@@ -217,13 +233,18 @@ export function PetFilterBar({
         </button>
 
         {mobileFiltersOpen && (
-          <div className="absolute z-20 top-full mt-1 left-2 right-2 rounded-2xl bg-card shadow-lg p-4 space-y-3">
+          <div
+            id="pet-filters-popover"
+            role="group"
+            aria-label={t('grid.filters')}
+            className="absolute z-20 top-full mt-1 left-2 right-2 rounded-2xl bg-card shadow-lg p-4 space-y-3"
+          >
             {/* Species */}
             <div>
               <p className="text-xs font-semibold text-muted-foreground mb-1.5">{t('grid.species')}</p>
               <div className="flex flex-wrap gap-1.5">
                 {FILTERS.filter(f => f.key !== 'all' && f.key !== 'nearby').map(f => (
-                  <button key={f.key} onClick={() => { handleFilterClick(f); }}
+                  <button key={f.key} onClick={() => handleFilterClick(f)}
                     aria-pressed={activeFilter === f.key}
                     className={`focus-ring px-3 py-1 rounded-xl text-xs font-medium border transition-colors ${
                       activeFilter === f.key ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'

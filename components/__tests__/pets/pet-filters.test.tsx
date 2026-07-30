@@ -2,7 +2,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { useState } from 'react'
 import { screen, fireEvent, within } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
-import { PetFilterBar } from '@/components/pets/pet-filters'
+import { PetFilterBar, countActiveFilters } from '@/components/pets/pet-filters'
 
 // Anchored, not exact: the trigger's accessible name picks up the active-filter
 // badge count ("Filtros 1") as soon as anything is filtered.
@@ -46,9 +46,9 @@ function trigger() {
   return screen.getByRole('button', { name: FILTERS })
 }
 
-/** The popover is the only place "Especie" appears; walk up to its container. */
+/** The popover carries its own accessible name via `aria-label`. */
 function popover() {
-  return screen.getByText(SPECIES).closest('div.absolute') as HTMLElement
+  return screen.getByRole('group', { name: 'Filtros' })
 }
 
 function openPopover() {
@@ -144,24 +144,53 @@ describe('PetFilterBar mobile popover', () => {
 
     expect(trigger()).toHaveAccessibleName('Filtros 3')
   })
+
+  // The mobile controls working is the entire point of the extraction — this
+  // is the one behaviour every other test in this block only opens or closes
+  // around without ever actually firing.
+  it('fires a popover chip callback', () => {
+    const onVaccinatedChange = vi.fn()
+    renderBar({ onVaccinatedChange })
+    openPopover()
+
+    fireEvent.click(within(popover()).getByRole('button', { name: 'Vacunado' }))
+
+    expect(onVaccinatedChange).toHaveBeenCalledWith(true)
+  })
 })
 
 describe('PetFilterBar desktop pills', () => {
-  it('fills the active pill and announces it as pressed', () => {
-    const { container } = renderBar({ activeFilter: 'dogs' })
+  // `Object.defineProperty` is not a spy, so `vi.restoreAllMocks()` cannot
+  // undo it — without this it would leak the stub onto every later test.
+  const originalGeolocation = Object.getOwnPropertyDescriptor(navigator, 'geolocation')
 
-    const active = container.querySelector('.bg-pop-solid')
-    expect(active).not.toBeNull()
-    expect(active).toHaveAttribute('aria-pressed', 'true')
-    expect(active!.textContent).toBeTruthy()
+  afterEach(() => {
+    if (originalGeolocation) {
+      Object.defineProperty(navigator, 'geolocation', originalGeolocation)
+    } else {
+      delete (navigator as { geolocation?: unknown }).geolocation
+    }
+  })
+
+  it('fills the active pill and announces it as pressed', () => {
+    renderBar({ activeFilter: 'dogs' })
+
+    expect(screen.getByRole('button', { name: 'Perros', pressed: true })).toBeInTheDocument()
   })
 
   it('leaves inactive pills unfilled and unpressed', () => {
-    const { container } = renderBar({ activeFilter: 'dogs' })
+    renderBar({ activeFilter: 'dogs' })
 
-    const inactive = container.querySelectorAll('button.bg-background')
-    expect(inactive.length).toBeGreaterThanOrEqual(5)
-    expect(inactive[0]).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Gatos', pressed: false })).toBeInTheDocument()
+  })
+
+  it('toggles the source filter off when it is already active', () => {
+    const onSourceChange = vi.fn()
+    renderBar({ sourceFilter: 'rc', onSourceChange })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
+
+    expect(onSourceChange).toHaveBeenCalledWith('all')
   })
 
   it('asks for coordinates before applying the nearby filter', () => {
@@ -185,6 +214,38 @@ describe('PetFilterBar desktop pills', () => {
       lat: 18.5,
       lng: -69.9,
     })
+  })
+
+  // The error callback, not the success one, is what most users actually hit.
+  it('falls back to a plain nearby filter when geolocation is denied', () => {
+    const onFilterChange = vi.fn()
+    const getCurrentPosition = vi.fn(
+      (_ok: PositionCallback, err?: PositionErrorCallback) => err?.({} as GeolocationPositionError),
+    )
+    Object.defineProperty(navigator, 'geolocation', {
+      value: { getCurrentPosition },
+      configurable: true,
+    })
+
+    renderBar({ onFilterChange })
+    fireEvent.click(screen.getByRole('button', { name: 'Cercanos' }))
+
+    expect(onFilterChange).toHaveBeenCalledWith('nearby', { sort: 'proximity' })
+  })
+})
+
+describe('countActiveFilters', () => {
+  // A direct test: deleting the castrated term from the implementation left
+  // the rest of the suite green, since nothing exercised the function itself.
+  it('counts every dimension, including castrated', () => {
+    expect(
+      countActiveFilters({
+        activeFilter: 'dogs',
+        vaccinatedFilter: true,
+        castratedFilter: true,
+        sourceFilter: 'rc',
+      }),
+    ).toBe(4)
   })
 })
 
