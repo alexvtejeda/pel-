@@ -230,6 +230,10 @@ describe('PetFilterBar desktop pills', () => {
     renderBar({ onFilterChange })
     fireEvent.click(screen.getByRole('button', { name: 'Cercanos' }))
 
+    // Both the denial path and the no-geolocation-at-all guard emit exactly
+    // this call, so asserting it alone cannot tell them apart. Pinning that the
+    // API was actually reached is what keeps this a test of the error callback.
+    expect(getCurrentPosition).toHaveBeenCalled()
     expect(onFilterChange).toHaveBeenCalledWith('nearby', { sort: 'proximity' })
   })
 })
@@ -246,6 +250,18 @@ describe('countActiveFilters', () => {
         sourceFilter: 'rc',
       }),
     ).toBe(4)
+  })
+
+  // Without this, `return 4` would satisfy the test above.
+  it('counts nothing when no dimension is narrowed', () => {
+    expect(
+      countActiveFilters({
+        activeFilter: 'all',
+        vaccinatedFilter: false,
+        castratedFilter: false,
+        sourceFilter: 'all',
+      }),
+    ).toBe(0)
   })
 })
 

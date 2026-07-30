@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useId, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -86,6 +86,9 @@ export function PetFilterBar({
   const { t } = useTranslation('pets')
   const mobileFiltersRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
+  // Generated, not hardcoded: a second mounted bar would otherwise duplicate the
+  // id and leave `aria-controls` pointing at whichever panel won the race.
+  const popoverId = useId()
 
   // The mobile filter popover is hand-rolled (not Radix), so it needs its own
   // dismiss behaviour. The ref wraps the trigger *and* the popover, so a
@@ -209,14 +212,18 @@ export function PetFilterBar({
         </button>
       </div>
 
-      {/* Filter button — mobile only */}
+      {/* Filter button — mobile only.
+          Deliberately no `aria-haspopup`: this is the APG disclosure pattern,
+          not a dialog. Focus stays on the trigger when the panel opens, so
+          announcing "has dialog popup" would promise a focus move that never
+          comes — and ARIA requires the container's role to match the
+          aria-haspopup value, which `role="group"` cannot satisfy. */}
       <div ref={mobileFiltersRef} className="sm:hidden relative px-2 py-3 shrink-0">
         <button
           ref={triggerRef}
           onClick={() => onMobileFiltersOpenChange(!mobileFiltersOpen)}
           aria-expanded={mobileFiltersOpen}
-          aria-haspopup="dialog"
-          aria-controls="pet-filters-popover"
+          aria-controls={popoverId}
           className={`focus-ring relative flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-xl transition-colors ${
             mobileFiltersOpen || mobileFilterCount > 0
               ? 'bg-pop-solid text-white'
@@ -234,7 +241,7 @@ export function PetFilterBar({
 
         {mobileFiltersOpen && (
           <div
-            id="pet-filters-popover"
+            id={popoverId}
             role="group"
             aria-label={t('grid.filters')}
             className="absolute z-20 top-full mt-1 left-2 right-2 rounded-2xl bg-card shadow-lg p-4 space-y-3"
