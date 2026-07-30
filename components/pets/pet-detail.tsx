@@ -29,6 +29,7 @@ import Carousel from '@/components/Carousel'
 import { VerifiedBadge } from './verified-badge'
 
 function DetailCarousel({ urls }: { urls: string[] }) {
+  const { t } = useTranslation('pets')
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -58,6 +59,7 @@ function DetailCarousel({ urls }: { urls: string[] }) {
           dotsOverlay
           showPauseButton
           flushItems
+          dotLabel={(n, total) => t('feed.photo_position', { n, total })}
           className="relative overflow-hidden w-full h-full"
         />
       )}

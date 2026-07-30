@@ -42,6 +42,12 @@ export interface CarouselProps {
    * captures diagonal gestures that belong to the page scroll.
    */
   dragDirectionLock?: boolean;
+  /**
+   * Accessible name for dot `n` of `total` (1-based). Defaults to a locale-free
+   * "n / total" — this is a UI primitive and must not depend on an i18n
+   * namespace to be usable.
+   */
+  dotLabel?: (n: number, total: number) => string;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -159,6 +165,7 @@ export default function Carousel({
   showPauseButton = false,
   flushItems = false,
   dragDirectionLock = false,
+  dotLabel,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -328,25 +335,32 @@ export default function Carousel({
         ))}
       </motion.div>
       <div className={`flex w-full justify-center ${round || dotsOverlay ? 'absolute z-20 bottom-3 left-1/2 -translate-x-1/2' : ''}`}>
-        <div className={`flex w-37.5 justify-between px-8 ${dotsOverlay ? '' : 'mt-4'}`}>
+        {/* Sized to its content, not a fixed w-37.5, which cramped at 5+ photos. */}
+        <div className={`flex items-center justify-center gap-1 ${dotsOverlay ? '' : 'mt-2'}`}>
           {items.map((_, index) => (
-            <motion.div
+            <button
               key={index}
-              className={`h-2 w-2 rounded-full cursor-pointer transition-colors duration-150 ${
-                activeIndex === index
-                  ? round || dotsOverlay
-                    ? 'bg-background'
-                    : 'bg-foreground'
-                  : round || dotsOverlay
-                    ? 'bg-background/50'
-                    : 'bg-foreground/40'
-              }`}
-              animate={{
-                scale: activeIndex === index ? 1.2 : 1
-              }}
+              type="button"
+              aria-label={dotLabel ? dotLabel(index + 1, items.length) : `${index + 1} / ${items.length}`}
+              aria-current={activeIndex === index}
               onClick={() => setPosition(loop ? index + 1 : index)}
-              transition={{ duration: 0.15 }}
-            />
+              // The visual dot stays 8px; the button's own box is the 44px target.
+              className="focus-ring flex h-11 w-6 items-center justify-center"
+            >
+              <motion.span
+                className={`block h-2 w-2 rounded-full transition-colors duration-150 ${
+                  activeIndex === index
+                    ? round || dotsOverlay
+                      ? 'bg-background'
+                      : 'bg-foreground'
+                    : round || dotsOverlay
+                      ? 'bg-background/50'
+                      : 'bg-foreground/40'
+                }`}
+                animate={{ scale: activeIndex === index ? 1.2 : 1 }}
+                transition={{ duration: 0.15 }}
+              />
+            </button>
           ))}
         </div>
       </div>

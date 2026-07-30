@@ -360,6 +360,10 @@
     "load_error": "We couldn't load this application. Check your connection and try again.",
     "submit_error": "Error submitting application"
   },
+  "feed": {
+    "photo_position": "Photo {{n}} of {{total}}",
+    "publisher_links": "{{name}}'s links"
+  },
   "detail": {
     "adopt": "Adopt",
     "coming_soon": "Coming soon",

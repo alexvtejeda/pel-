@@ -360,6 +360,10 @@
     "load_error": "No pudimos cargar esta solicitud. Revisa tu conexión e inténtalo de nuevo.",
     "submit_error": "Error al enviar solicitud"
   },
+  "feed": {
+    "photo_position": "Foto {{n}} de {{total}}",
+    "publisher_links": "Enlaces de {{name}}"
+  },
   "detail": {
     "adopt": "Adoptar",
     "coming_soon": "Próximamente",
