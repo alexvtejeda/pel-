@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
 import Carousel from '@/components/Carousel'
@@ -40,7 +40,7 @@ describe('Carousel dots', () => {
     expect(screen.getByRole('button', { name: 'Foto 3 de 3' })).toBeInTheDocument()
   })
 
-  it('still moves the track when a dot is activated', () => {
+  it('marks the activated dot as the current one', () => {
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
     const third = screen.getByRole('button', { name: '3 / 3' })
@@ -49,23 +49,59 @@ describe('Carousel dots', () => {
     expect(third).toHaveAttribute('aria-current', 'true')
   })
 
-  // 8x8px is a quarter of the 44px minimum. The visual dot stays 8px; the
-  // button's own box is what carries the target, in both axes.
-  it('gives each dot a 44px hit area', () => {
+  // `aria-current={false}` serializes to aria-current="false", which is a
+  // present-but-negative state rather than an absent one.
+  it('omits aria-current on the dots that are not current', () => {
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
-    const dot = screen.getAllByRole('button')[0].className
-    expect(dot).toContain('h-11')
-    expect(dot).toContain('w-11')
+    expect(screen.getByRole('button', { name: '2 / 3' })).not.toHaveAttribute('aria-current')
+    expect(screen.getByRole('button', { name: '3 / 3' })).not.toHaveAttribute('aria-current')
   })
 
-  // The six call sites that already shipped must not move. `items-end` puts the
-  // dot flush with the button's bottom edge, exactly where the old 8px row sat
-  // inside the same `bottom-3` overlay; `items-center` would raise every dot by
-  // 18px on screens nobody asked to change.
-  it('grows the target upward rather than lifting the dot', () => {
+  // A one-photo carousel used to render a focusable "1 / 1" that moved nothing —
+  // one dead tab stop per pet across a whole grid page.
+  it('renders no dots at all for a single photo', () => {
+    renderWithProviders(<Carousel items={[photo(1)]} baseWidth={300} />)
+
+    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    expect(screen.queryByRole('group')).not.toBeInTheDocument()
+  })
+
+  // The group is what lets a screen-reader user step over a pet's dots instead
+  // of tabbing all of them to reach the next card.
+  it('wraps the dots in a named group so they can be skipped', () => {
+    renderWithProviders(<Carousel items={items} baseWidth={300} dotsGroupLabel="Fotos" />)
+
+    const group = screen.getByRole('group', { name: 'Fotos' })
+    expect(group).toBeInTheDocument()
+    expect(group.querySelectorAll('button')).toHaveLength(3)
+  })
+
+  // jsdom has no layout and Tailwind is not loaded here, so this asserts that
+  // the literals appear — it cannot prove a rendered 44px box. Its job is to
+  // make a change to the hit area deliberate rather than incidental.
+  it('pins the dot button classes that carry the hit area', () => {
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
-    expect(screen.getAllByRole('button')[0].className).toContain('items-end')
+    const dot = screen.getAllByRole('button')[0]
+    // 44x44, and shrink-0 so a narrow card cannot compress it back below that.
+    expect(dot.className).toContain('h-11')
+    expect(dot.className).toContain('w-11')
+    expect(dot.className).toContain('shrink-0')
+  })
+
+  // Same jsdom caveat: this pins the classes, not the hit testing. The row is a
+  // full-width sibling of the drag track, so without these the 44px band
+  // swallowed every pointerdown near the bottom of the photo and the swipe died.
+  it('pins the pointer-events classes that keep the row from eating swipes', () => {
+    renderWithProviders(<Carousel items={items} baseWidth={300} dotsGroupLabel="Fotos" />)
+
+    const row = screen.getByRole('group', { name: 'Fotos' })
+    expect(row.className).toContain('pointer-events-none')
+    expect(row.parentElement?.className).toContain('pointer-events-none')
+
+    for (const dot of screen.getAllByRole('button')) {
+      expect(dot.className).toContain('pointer-events-auto')
+    }
   })
 })

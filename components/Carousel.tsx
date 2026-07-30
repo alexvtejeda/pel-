@@ -48,6 +48,14 @@ export interface CarouselProps {
    * namespace to be usable.
    */
   dotLabel?: (n: number, total: number) => string;
+  /**
+   * Accessible name for the dot row itself, which is a `role="group"` so a
+   * screen-reader user can skip past the dots instead of tabbing every one of
+   * them. Same seam as `dotLabel`: the caller owns the wording, because this is
+   * a UI primitive with no i18n namespace of its own. An unnamed group is not
+   * announced by most screen readers, so callers should pass this.
+   */
+  dotsGroupLabel?: string;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -166,6 +174,7 @@ export default function Carousel({
   flushItems = false,
   dragDirectionLock = false,
   dotLabel,
+  dotsGroupLabel,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -334,43 +343,63 @@ export default function Carousel({
           />
         ))}
       </motion.div>
-      <div className={`flex w-full justify-center ${round || dotsOverlay ? 'absolute z-20 bottom-3 left-1/2 -translate-x-1/2' : ''}`}>
-        {/* Sized to its content, not a fixed w-37.5, which cramped at 5+ photos. */}
-        <div className={`flex items-end justify-center ${dotsOverlay ? '' : 'mt-2'}`}>
-          {items.map((_, index) => (
-            <button
-              key={index}
-              type="button"
-              aria-label={dotLabel ? dotLabel(index + 1, items.length) : `${index + 1} / ${items.length}`}
-              aria-current={activeIndex === index}
-              onClick={() => setPosition(loop ? index + 1 : index)}
-              /* 44x44, and `items-end` is what keeps this invisible on the six
-                 screens that already shipped: the dot sits flush at the button's
-                 bottom edge, so it lands exactly where the old 8px row did while
-                 the target grows upward into the inert overlay band. Centering it
-                 instead would lift every dot 18px. No gap — abutting 44px boxes
-                 give 44px between centres, within a pixel of the old spacing,
-                 and hit areas that never overlap (5 photos = 220px, the ceiling
-                 every uploader enforces). */
-              className="focus-ring flex h-11 w-11 items-end justify-center"
-            >
-              <motion.span
-                className={`block h-2 w-2 rounded-full transition-colors duration-150 ${
-                  activeIndex === index
-                    ? round || dotsOverlay
-                      ? 'bg-background'
-                      : 'bg-foreground'
-                    : round || dotsOverlay
-                      ? 'bg-background/50'
-                      : 'bg-foreground/40'
-                }`}
-                animate={{ scale: activeIndex === index ? 1.2 : 1 }}
-                transition={{ duration: 0.15 }}
-              />
-            </button>
-          ))}
+      {/* One photo needs no dots, and an ungated map would leave a focusable
+          "1 / 1" button that moves nothing on every single-photo card. */}
+      {items.length > 1 && (
+        /* `pointer-events-none` here and on the row, `pointer-events-auto` on
+           each button. The row is a sibling of the drag track and spans the full
+           width, so once the buttons grew to 44px tall it swallowed `pointerdown`
+           across the whole photo from 12px to 56px off the bottom — the band a
+           thumb rests on — and Motion's drag never started. Only the 44x44 boxes
+           should be deaf to the swipe. */
+        <div className={`pointer-events-none flex w-full justify-center ${round || dotsOverlay ? 'absolute z-20 bottom-3 left-1/2 -translate-x-1/2' : ''}`}>
+          {/* Sized to its content, not a fixed w-37.5, which cramped at 5+ photos. */}
+          <div
+            role="group"
+            aria-label={dotsGroupLabel}
+            className={`pointer-events-none flex items-end justify-center ${dotsOverlay ? '' : 'mt-4'}`}
+          >
+            {items.map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                aria-label={dotLabel ? dotLabel(index + 1, items.length) : `${index + 1} / ${items.length}`}
+                aria-current={activeIndex === index ? 'true' : undefined}
+                onClick={() => setPosition(loop ? index + 1 : index)}
+                /* 44x44, `shrink-0` so a narrow card cannot compress the target
+                   back below the minimum. `items-end` pins the dot to the button's
+                   bottom edge, which preserves the old row's vertical placement
+                   exactly — the target grows upward rather than moving the dot.
+                   The horizontal spread did change, deliberately (spec §5): the old
+                   `w-37.5` + `px-8` + `justify-between` held the outer dots at ±39px
+                   from centre for every N, so centres sat 78/39/26/19.5px apart at
+                   2/3/4/5 photos, while abutting 44px boxes give a constant 44px.
+                   The row does not wrap or shrink, so it needs N*44px of width:
+                   fine in the 351px feed card up to 7 dots, but it overflows a
+                   two-column mobile grid card (~163px) from 4 dots on, and the
+                   carousel's own overflow-hidden clips the outer dots. Clients cap
+                   uploads at 5; server-side that is enforced only for member pets
+                   (userpets.maxPhotosPerPet = 5) — rescue-centre pets allow 20. */
+                className="focus-ring pointer-events-auto flex h-11 w-11 shrink-0 items-end justify-center"
+              >
+                <motion.span
+                  className={`block h-2 w-2 rounded-full transition-colors duration-150 ${
+                    activeIndex === index
+                      ? round || dotsOverlay
+                        ? 'bg-background'
+                        : 'bg-foreground'
+                      : round || dotsOverlay
+                        ? 'bg-background/50'
+                        : 'bg-foreground/40'
+                  }`}
+                  animate={{ scale: activeIndex === index ? 1.2 : 1 }}
+                  transition={{ duration: 0.15 }}
+                />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       {showPauseButton && items.length > 1 && (
         <button
           type="button"

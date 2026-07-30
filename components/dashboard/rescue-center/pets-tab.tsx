@@ -61,6 +61,9 @@ type EditPhoto = { id?: string; url: string; file?: File }
 
 
 function CardCarousel({ urls, showPauseButton }: { urls: string[]; showPauseButton?: boolean }) {
+  // `feed.photo_position` lives in the `pets` namespace regardless of the
+  // namespace the surrounding screen uses; every namespace is bundled statically.
+  const { t } = useTranslation('pets')
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -89,6 +92,8 @@ function CardCarousel({ urls, showPauseButton }: { urls: string[]; showPauseButt
           containerPadding={0}
           dotsOverlay
           showPauseButton={showPauseButton}
+          dotLabel={(n, total) => t('feed.photo_position', { n, total })}
+          dotsGroupLabel={t('member.photos_label')}
           className="relative overflow-hidden w-full h-full"
         />
       )}

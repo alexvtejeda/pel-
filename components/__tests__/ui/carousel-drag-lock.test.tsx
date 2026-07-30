@@ -1,8 +1,10 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // The track is a `motion.div`; the prop we care about never reaches the DOM, so
 // capture it at the motion boundary rather than querying rendered attributes.
-const seen: Record<string, unknown>[] = []
+// Every motion element is recorded — the test picks the track out by a marker
+// below, so adding or reshaping motion elements cannot silently repoint it.
+const rendered: Record<string, unknown>[] = []
 vi.mock('motion/react', async () => {
   const actual = await vi.importActual<typeof import('motion/react')>('motion/react')
   return {
@@ -10,7 +12,7 @@ vi.mock('motion/react', async () => {
     motion: new Proxy({} as Record<string, unknown>, {
       get: (_t, tag: string) =>
         function Mock(props: Record<string, unknown>) {
-          if ('drag' in props) seen.push(props)
+          rendered.push({ tag, ...props })
           const { children, className } = props as { children?: React.ReactNode; className?: string }
           return <div className={className}>{children}</div>
         },
@@ -26,20 +28,30 @@ const items = [
   { id: 2, title: '', description: '', icon: null as unknown as React.ReactNode, image: '/b.webp' },
 ]
 
+// `drag` is the marker: the track is the only motion element that takes it.
+// Asserting there is exactly one also catches a second draggable appearing.
+function track(): Record<string, unknown> {
+  const draggable = rendered.filter(props => 'drag' in props)
+  expect(draggable).toHaveLength(1)
+  return draggable[0]
+}
+
 describe('Carousel drag direction lock', () => {
+  beforeEach(() => {
+    rendered.length = 0
+  })
+
   it('is off by default, so the six existing call sites are unchanged', () => {
-    seen.length = 0
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
-    expect(seen[0].dragDirectionLock).toBe(false)
+    expect(track().dragDirectionLock).toBeFalsy()
   })
 
   // Inside the feed's vertical scroll container an unlocked horizontal drag
   // captures diagonal gestures and fights the page scroll.
   it('is passed through to the track when the caller opts in', () => {
-    seen.length = 0
     renderWithProviders(<Carousel items={items} baseWidth={300} dragDirectionLock />)
 
-    expect(seen[0].dragDirectionLock).toBe(true)
+    expect(track().dragDirectionLock).toBe(true)
   })
 })

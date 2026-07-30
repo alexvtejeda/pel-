@@ -8,6 +8,7 @@ import Carousel from '@/components/Carousel'
 import { formatAge } from '@/lib/utils/format-age'
 
 function CardCarousel({ urls, name }: { urls: string[]; name: string }) {
+  const { t } = useTranslation('pets')
   // Start at a plausible card width so the first paint shows a photo instead of
   // an empty box; the ref callback corrects it before the user notices. The
   // measured > 0 check skips an element that has not been laid out yet, which
@@ -43,6 +44,8 @@ function CardCarousel({ urls, name }: { urls: string[]; name: string }) {
         loop={urls.length > 1}
         containerPadding={0}
         dotsOverlay
+        dotLabel={(n, total) => t('feed.photo_position', { n, total })}
+        dotsGroupLabel={t('member.photos_label')}
         className="relative overflow-hidden w-full h-full"
       />
     </div>

@@ -48,6 +48,9 @@ interface PendingPhoto {
 }
 
 function PreviewCarousel({ urls }: { urls: string[] }) {
+  // `feed.photo_position` lives in the `pets` namespace regardless of the
+  // namespace the surrounding screen uses; every namespace is bundled statically.
+  const { t } = useTranslation('pets')
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -71,6 +74,8 @@ function PreviewCarousel({ urls }: { urls: string[] }) {
           loop={urls.length > 1}
           containerPadding={0}
           dotsOverlay
+          dotLabel={(n, total) => t('feed.photo_position', { n, total })}
+          dotsGroupLabel={t('member.photos_label')}
           className="relative overflow-hidden w-full h-full"
         />
       )}

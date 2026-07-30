@@ -32,6 +32,9 @@ interface PendingPhoto {
 }
 
 function CardCarousel({ urls }: { urls: string[] }) {
+  // `feed.photo_position` lives in the `pets` namespace, not this file's `auth`;
+  // every namespace is bundled statically, so the extra hook is free.
+  const { t } = useTranslation('pets')
   const containerRef = useRef<HTMLDivElement>(null)
   const [width, setWidth] = useState(0)
 
@@ -59,6 +62,8 @@ function CardCarousel({ urls }: { urls: string[] }) {
           loop={urls.length > 1}
           containerPadding={0}
           dotsOverlay
+          dotLabel={(n, total) => t('feed.photo_position', { n, total })}
+          dotsGroupLabel={t('member.photos_label')}
           className="relative overflow-hidden w-full h-full"
         />
       )}
