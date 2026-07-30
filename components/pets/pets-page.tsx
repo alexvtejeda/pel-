@@ -12,10 +12,10 @@ import {
   type SourceFilter,
 } from './pet-filters'
 import { PetDetail } from './pet-detail'
+import { PetFeed } from './pet-feed'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { useRouteTransition } from '@/components/transitions/route-transition-context'
 import { Sheet, SheetContent, SheetTitle, SheetDescription } from '@/components/ui/sheet'
-import { Drawer, DrawerContent, DrawerTitle, DrawerDescription } from '@/components/ui/drawer'
 import { Footer } from '@/components/footer'
 
 interface PetsPageProps {
@@ -33,7 +33,16 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   )
   const [error, setError] = useState<string | null>(null)
   const [activeFilter, setActiveFilter] = useState<FilterKey>('all')
-  const useSheet = useMediaQuery('(min-width: 640px)')
+  const isDesktop = useMediaQuery('(min-width: 640px)')
+  // The prerendered HTML is always built with the desktop branch — there is no
+  // `window` on the server — so the feed must not appear until after hydration.
+  // See the HYDRATION CONTRACT in `lib/hooks/use-media-query.ts`: this is the
+  // first consumer that renders *visible* markup for one value and not the
+  // other. The swap is invisible in practice because `loading` starts true and
+  // the fetch runs from an effect, so the first paint is a skeleton either way.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+  const showFeed = mounted && !isDesktop
   const [open, setOpen] = useState(false)
   const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
   const [castratedFilter, setCastratedFilter] = useState(false)
@@ -174,20 +183,35 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
           mobileFiltersOpen={mobileFiltersOpen}
           onMobileFiltersOpenChange={setMobileFiltersOpen}
         />
-        <PetGrid
-          pets={visiblePets}
-          loading={showSkeleton}
-          error={error}
-          selectedId={selected?.id ?? null}
-          hasActiveFilters={hasActiveFilters}
-          onSelect={handleSelect}
-          onClearFilters={handleClearFilters}
-          onRetry={handleRetry}
-        />
+        {showFeed ? (
+          <PetFeed
+            pets={visiblePets}
+            loading={showSkeleton}
+            error={error}
+            hasActiveFilters={hasActiveFilters}
+            onClearFilters={handleClearFilters}
+            onRetry={handleRetry}
+          />
+        ) : (
+          <PetGrid
+            pets={visiblePets}
+            loading={showSkeleton}
+            error={error}
+            selectedId={selected?.id ?? null}
+            hasActiveFilters={hasActiveFilters}
+            onSelect={handleSelect}
+            onClearFilters={handleClearFilters}
+            onRetry={handleRetry}
+          />
+        )}
       </div>
 
-      {/* Desktop: Sheet from right */}
-      {useSheet ? (
+      {/* Desktop: Sheet from right. The mobile Drawer is gone — the feed is
+          terminal, so below 640px there is nothing left to open. `initialSelected`
+          (the /p?slug= deep link) therefore only opens on desktop; that route
+          resolves nothing today anyway, because `short_slug` does not exist in
+          the API. */}
+      {isDesktop && (
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="right" className="p-0 overflow-y-auto">
             <SheetTitle className="sr-only">{selected?.name ?? ''}</SheetTitle>
@@ -195,16 +219,6 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
             {selected && <PetDetail pet={selected} />}
           </SheetContent>
         </Sheet>
-      ) : (
-        <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="max-h-[85vh]">
-            <DrawerTitle className="sr-only">{selected?.name ?? ''}</DrawerTitle>
-            <DrawerDescription className="sr-only">{selected?.description ?? ''}</DrawerDescription>
-            <div className="overflow-y-auto">
-              {selected && <PetDetail pet={selected} />}
-            </div>
-          </DrawerContent>
-        </Drawer>
       )}
       <Footer />
     </div>
