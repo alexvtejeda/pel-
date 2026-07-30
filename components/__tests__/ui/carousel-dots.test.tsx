@@ -50,10 +50,22 @@ describe('Carousel dots', () => {
   })
 
   // 8x8px is a quarter of the 44px minimum. The visual dot stays 8px; the
-  // button's padding is what carries the target.
+  // button's own box is what carries the target, in both axes.
   it('gives each dot a 44px hit area', () => {
     renderWithProviders(<Carousel items={items} baseWidth={300} />)
 
-    expect(screen.getAllByRole('button')[0].className).toContain('h-11')
+    const dot = screen.getAllByRole('button')[0].className
+    expect(dot).toContain('h-11')
+    expect(dot).toContain('w-11')
+  })
+
+  // The six call sites that already shipped must not move. `items-end` puts the
+  // dot flush with the button's bottom edge, exactly where the old 8px row sat
+  // inside the same `bottom-3` overlay; `items-center` would raise every dot by
+  // 18px on screens nobody asked to change.
+  it('grows the target upward rather than lifting the dot', () => {
+    renderWithProviders(<Carousel items={items} baseWidth={300} />)
+
+    expect(screen.getAllByRole('button')[0].className).toContain('items-end')
   })
 })

@@ -336,7 +336,7 @@ export default function Carousel({
       </motion.div>
       <div className={`flex w-full justify-center ${round || dotsOverlay ? 'absolute z-20 bottom-3 left-1/2 -translate-x-1/2' : ''}`}>
         {/* Sized to its content, not a fixed w-37.5, which cramped at 5+ photos. */}
-        <div className={`flex items-center justify-center gap-1 ${dotsOverlay ? '' : 'mt-2'}`}>
+        <div className={`flex items-end justify-center ${dotsOverlay ? '' : 'mt-2'}`}>
           {items.map((_, index) => (
             <button
               key={index}
@@ -344,8 +344,15 @@ export default function Carousel({
               aria-label={dotLabel ? dotLabel(index + 1, items.length) : `${index + 1} / ${items.length}`}
               aria-current={activeIndex === index}
               onClick={() => setPosition(loop ? index + 1 : index)}
-              // The visual dot stays 8px; the button's own box is the 44px target.
-              className="focus-ring flex h-11 w-6 items-center justify-center"
+              /* 44x44, and `items-end` is what keeps this invisible on the six
+                 screens that already shipped: the dot sits flush at the button's
+                 bottom edge, so it lands exactly where the old 8px row did while
+                 the target grows upward into the inert overlay band. Centering it
+                 instead would lift every dot 18px. No gap — abutting 44px boxes
+                 give 44px between centres, within a pixel of the old spacing,
+                 and hit areas that never overlap (5 photos = 220px, the ceiling
+                 every uploader enforces). */
+              className="focus-ring flex h-11 w-11 items-end justify-center"
             >
               <motion.span
                 className={`block h-2 w-2 rounded-full transition-colors duration-150 ${
