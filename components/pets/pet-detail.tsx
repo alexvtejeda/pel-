@@ -26,6 +26,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
 import Carousel from '@/components/Carousel'
+import { VerifiedBadge } from './verified-badge'
 
 function DetailCarousel({ urls }: { urls: string[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -197,40 +198,79 @@ export function PetDetail({ pet }: PetDetailProps) {
           )}
         </dl>
 
-        {/* Rescue Center */}
+        {/* Rescue center. The card's own border separates it from the pet's
+            facts — that is why the rule above it is gone. */}
         {pet.rescue_center && (
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">{t('detail.rescueCenter')}</p>
-            <div className="flex items-center gap-3">
-              {pet.rescue_center.logo_url ? (
+          <div className="rounded-2xl border border-border bg-muted p-3">
+            <div className="flex items-start gap-3">
+              {pet.rescue_center.avatar_url ? (
                 <Image
-                  src={pet.rescue_center.logo_url}
-                  alt={pet.rescue_center.name}
-                  width={40}
-                  height={40}
-                  className="rounded-xl object-cover"
+                  src={pet.rescue_center.avatar_url}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="h-14 w-14 shrink-0 rounded-xl border border-border bg-background object-cover"
                 />
+              ) : pet.rescue_center.logo_url ? (
+                /* `logo_url` is a 4:1 banner (LogoUpload enforces the ratio and
+                   labels it as the adoption-form banner). Contained in the same
+                   56px box — never cropped square, and never sized by the
+                   width/height attributes alone, which Tailwind preflight's
+                   `img { height: auto }` would collapse. */
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background p-1.5">
+                  <Image
+                    src={pet.rescue_center.logo_url}
+                    alt=""
+                    width={56}
+                    height={14}
+                    className="h-auto w-full object-contain"
+                  />
+                </span>
               ) : (
-                <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
-                  <FontAwesomeIcon icon={faPaw} className="text-sm text-muted-foreground" />
-                </div>
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-border bg-background">
+                  <FontAwesomeIcon icon={faPaw} className="text-base text-muted-foreground" />
+                </span>
               )}
-              <span className="font-medium text-sm">{pet.rescue_center.name}</span>
+
+              <div className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-[15px] font-semibold">{pet.rescue_center.name}</span>
+                  <VerifiedBadge className="shrink-0 text-base" />
+                </span>
+                <p className="mt-0.5 text-[11.5px] uppercase tracking-wide text-muted-foreground">
+                  {t('detail.verified_center')}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-4">
-              {pet.rescue_center.website && (
-                <a href={ensureUrl(pet.rescue_center.website)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <FontAwesomeIcon icon={faGlobe} className="text-sm" />
-                  {t('website', { ns: 'common' })}
-                </a>
-              )}
-              {pet.rescue_center.instagram && (
-                <a href={instagramUrl(pet.rescue_center.instagram)} target="_blank" rel="noopener noreferrer" className="focus-ring flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  <FontAwesomeIcon icon={faInstagram} className="text-sm" />
-                  {t('instagram', { ns: 'common' })}
-                </a>
-              )}
-            </div>
+
+            {/* Controls, not 14px anchors crowding the name: each gets its own
+                hit area, and a lone link takes the full width. */}
+            {(pet.rescue_center.website || pet.rescue_center.instagram) && (
+              <div className="mt-3.5 flex gap-2">
+                {pet.rescue_center.website && (
+                  <a
+                    href={ensureUrl(pet.rescue_center.website)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring flex h-[38px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium transition-colors hover:bg-secondary"
+                  >
+                    <FontAwesomeIcon icon={faGlobe} className="text-sm" />
+                    {t('website', { ns: 'common' })}
+                  </a>
+                )}
+                {pet.rescue_center.instagram && (
+                  <a
+                    href={instagramUrl(pet.rescue_center.instagram)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="focus-ring flex h-[38px] flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-background text-sm font-medium transition-colors hover:bg-secondary"
+                  >
+                    <FontAwesomeIcon icon={faInstagram} className="text-sm" />
+                    {t('instagram', { ns: 'common' })}
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -11,7 +11,10 @@ export interface Photo {
 export interface PetRescueCenter {
   id: string
   name: string
+  /** 4:1 banner lockup from `LogoUpload`. Belongs on the adoption-form banner. */
   logo_url?: string
+  /** The owning user's square profile photo — `users.avatar_url` via `rescue_centers.user_id`. */
+  avatar_url?: string
   website?: string
   instagram?: string
 }

@@ -91,3 +91,70 @@ describe('PetDetail facts', () => {
     expect(screen.getByText('Castración')).toBeInTheDocument()
   })
 })
+
+describe('PetDetail rescue-center card', () => {
+  const withCenter = (rc: Record<string, unknown>) =>
+    pet({ rescue_center: { id: 'rc1', name: 'Adoptame RD', ...rc } })
+
+  it('shows the profile photo and marks the centre verified', () => {
+    const { container } = renderWithProviders(
+      <PetDetail pet={withCenter({ avatar_url: 'https://cdn.test/avatar.jpg' })} />,
+    )
+
+    const avatar = container.querySelector('img[src="https://cdn.test/avatar.jpg"]')
+    expect(avatar).not.toBeNull()
+    // The centre's name is right beside it, so the photo is decorative.
+    expect(avatar).toHaveAttribute('alt', '')
+    expect(screen.getByText('Adoptame RD')).toBeInTheDocument()
+    expect(screen.getByText('Centro de rescate verificado')).toBeInTheDocument()
+    expect(
+      screen.getByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toBeInTheDocument()
+  })
+
+  // The fallback is a 1600×400 lockup. Cropping it into a square is exactly the
+  // bug this task exists to kill, so it must stay contained.
+  it('falls back to the logo as a contained lockup, never cropped', () => {
+    const { container } = renderWithProviders(
+      <PetDetail pet={withCenter({ logo_url: 'https://cdn.test/logo.png' })} />,
+    )
+
+    const logo = container.querySelector('img[src="https://cdn.test/logo.png"]')
+    expect(logo).not.toBeNull()
+    expect(logo!.className).toContain('object-contain')
+    expect(logo!.className).not.toContain('object-cover')
+  })
+
+  it('prefers the profile photo over the logo when both exist', () => {
+    const { container } = renderWithProviders(
+      <PetDetail
+        pet={withCenter({
+          avatar_url: 'https://cdn.test/avatar.jpg',
+          logo_url: 'https://cdn.test/logo.png',
+        })}
+      />,
+    )
+
+    expect(container.querySelector('img[src="https://cdn.test/avatar.jpg"]')).not.toBeNull()
+    expect(container.querySelector('img[src="https://cdn.test/logo.png"]')).toBeNull()
+  })
+
+  it('renders only the links the centre actually has', () => {
+    renderWithProviders(<PetDetail pet={withCenter({ website: 'adoptame.do' })} />)
+
+    expect(screen.getByRole('link', { name: 'Sitio web' })).toHaveAttribute(
+      'href',
+      'https://adoptame.do',
+    )
+    expect(screen.queryByRole('link', { name: 'Instagram' })).toBeNull()
+  })
+
+  it('links to Instagram by handle', () => {
+    renderWithProviders(<PetDetail pet={withCenter({ instagram: 'adoptame_rd' })} />)
+
+    expect(screen.getByRole('link', { name: 'Instagram' })).toHaveAttribute(
+      'href',
+      'https://instagram.com/adoptame_rd',
+    )
+  })
+})
