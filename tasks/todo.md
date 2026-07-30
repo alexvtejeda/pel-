@@ -274,3 +274,106 @@ inline-style violation that fails on `main`.
 - **No browser verification.** Every live step in the plan was waived and
   replaced with automated coverage. Still to eyeball: all eight failure paths
   in the plan's Final-verification table.
+
+---
+
+## Plan C execution (2026-07-29/30) — `fix/ui-pass-p0-bugs`
+
+All 8 milestones / 29 tasks of
+`docs/superpowers/plans/2026-07-28-ui-pass-c-route-polish.md` are implemented,
+subagent-driven: one implementer per task or coherent pair, then independent
+spec-compliance and code-quality reviews with fix loops.
+
+Suite went **434/435 → 673/674**. The one failure is still the pre-existing
+`transition-overlay.tsx` inline-style violation that also fails on `main`.
+`npx tsc --noEmit` unchanged at the 2 known pre-existing errors.
+
+### Nine defects found *in the plan's own code*
+
+Each was caught by reproducing the failure, not by reading:
+
+1. **`useMemo` below an early return** (Task 1.1) — hook count drops when
+   `submitted` flips, crashing with "Rendered fewer hooks than expected" on
+   **every successful adoption submit**. Reproduced in a worktree.
+2. **`htmlFor` dangling for `rating` and `file_upload`** (Task 1.2) — a `for`
+   pointing at a nonexistent id leaves the label unannounced *and* silently
+   unclickable. Guarded now by a test walking every `label[for]`.
+3. **The `preview` prop is passed by no call site** (Task 1.1) — its conditional
+   container was dead code, and both dashboard form previews lost their padding
+   and gained a bleeding progress bar. Re-keyed on `isPreview = preview ||
+   !onSubmit`, the file's own existing definition of "cannot submit".
+4. **`onClear` never wired** (Task 1.3) — the plan's Step 3 omits it while its
+   Step 4 asserts the "Quitar archivo" link appears. A wrong file could be
+   replaced but never detached.
+5. **Two sticky elements both at `top-40`** (Task 1.4) — the plan called the
+   collision possible and said to verify in a browser. It is *certain*: chip and
+   form are siblings in a column spanning the whole form, so both pin at 160px.
+   `position: sticky` has no "park below the previous sticky" behaviour.
+6. **`onRetry={() => fetchPets()}`** (Task 2.3) — sends an *unfiltered* request,
+   so a user filtered to "Gatos" gets every pet back while the pill stays lit.
+7. **`<header>` on `/pets` and `/aliados`** (Tasks 2.1, 3.1) — `PetsHeader` is
+   already a `<header>`, so this added a duplicate `banner` landmark.
+8. **Carousel `title` used for alt text** (Task 5.1) — `Carousel.tsx` renders
+   `title` as the alt **and** as a visible black caption bar, so the plan's
+   primary path would have stamped each pet's name across its own photo.
+9. **`h-13` called "not a Tailwind scale value"** (Task 7.2) — it is valid in
+   v4.2; verified against the built CSS. Shrinking the OTP boxes would have been
+   an unmotivated visual change.
+
+### Things the plan didn't know
+
+- **A required `file_upload` field could never be satisfied.** `validate()` only
+  inspected `answers`; file selections live in a separate `files` map. Permanent
+  submission block, and the new progress bar counted it forever unanswered.
+- **The photo DELETE endpoint exists** — `api/internal/userpets/router.go`
+  registers `DELETE /{id}/photos/{photoId}`, undocumented in swagger. So
+  `/mis-mascotas` got real photo removal (staged until save, so Cancel stays
+  non-destructive) instead of the planned "can't remove yet" apology.
+- **The OTP field is a six-box split input.** `autoComplete="one-time-code"`
+  alone would have been decorative: OS autofill bypasses `maxLength`, and
+  `value.slice(-1)` reduced a 6-digit fill to one digit.
+- **Radix `DialogContent` in this repo renders no close button** (unlike
+  upstream shadcn), so deleting the hand-rolled one would have left zero.
+- **Radix `hideOthers()` `aria-hidden`s siblings of portaled content**, so
+  nesting the recovery modal inside `MfaPanel` would have hidden the very
+  progress bar it was meant to complete. Recovery renders inline instead.
+- **`/p?slug=` never opens the detail sheet** — `SlugRedirectPage` passes
+  `initialSelected`, but `PetsPage`'s `open` state initialises `false` and
+  nothing opens it. Pre-existing, out of scope, real.
+
+### Known, unfixed
+
+- **Commit `3e61768` has a misleading message.** Two implementers ran
+  concurrently on disjoint *files* but a shared *git index*; a bare `git commit`
+  swept Task 7.4's MFA changes into Milestone 8's container-width commit. No
+  work was lost and the tree is correct — only the boundary is wrong. Branch is
+  local and unpushed, so a rebase reword is available if wanted. **Lesson: use
+  `git commit -- <pathspec>`, or don't run implementers in parallel.**
+- **Footer contrast is sub-AA and the plan made it worse.** `muted-foreground`
+  on `bg-primary` measures 3.36:1 light / 2.97:1 dark today; the plan's `/70` on
+  the legal rows takes it to 2.18:1 / 2.04:1. Shipped as specified because
+  dropping `/70` still fails 4.5:1 — the real fix is the footer's base token.
+- **The `/adopt` mobile chrome budget.** Banner 160 + sticky chip 74 + progress
+  44 = **278px**, ~50% of an iPhone SE's visible viewport, ~2 fields visible on
+  a 25-question form. Feeds the agreed mobile redesign work.
+- The `top-[calc(14.5rem+2px)]` offset hard-codes /adopt's banner+chip height
+  inside `form-renderer.tsx`; jsdom has no layout, so no test can hold it.
+- `hola@pelurd.com` could not be confirmed as a real inbox, so the footer
+  contact row was dropped rather than shipping a bouncing mailto. `footer.contact`
+  is retained in both locales — re-add the row if the inbox is real.
+- Carried from Plan B and still open: `lib/api/mfa.ts` violates the never-throw
+  convention; `apiClient` has no request timeout so a *hung* request spins
+  forever; `use-mfa-error.ts` is unmemoized; the chat pagination fetch discards
+  its error and permanently disables scroll-up.
+
+### Verification
+
+- `npx vitest run` → **673/674**, the one failure pre-existing.
+- `npx tsc --noEmit` → only the 2 known pre-existing errors.
+- **`bun run build` was NOT run** — it rewrites `.next/`/`out/`, which the
+  Docker prod build on port 3000 serves.
+- **NOTHING was verified in a browser.** Port 3000 serves a stale Docker prod
+  build, and CORS blocks API data on any other port. Every live step across both
+  plans was waived. For a *visual* pass this is the headline gap — highest risk
+  in Milestones 1 (sticky stacking), 3 (DOP price formatting), 5 (modal layout)
+  and 8 (rebalanced hero, 375px carousel height).
