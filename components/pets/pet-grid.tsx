@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faCertificate, faCheck, faHouseChimney, faUser, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faDog, faCat, faMars, faVenus, faLocationDot, faEllipsis, faLink, faGlobe, faSyringe, faScissors, faHouseChimney, faUser, faFilter } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
 import { instagramUrl, ensureUrl } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { PetFilters } from '@/lib/api/pets-public'
 import { ErrorState } from '@/components/ui/error-state'
+import { VerifiedBadge } from './verified-badge'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -392,15 +393,8 @@ export function PetGrid({
 
                   {/* Verified badge — slides left on hover to avoid the menu */}
                   {pet.rescue_center && (
-                    <span
-                      title={t('card.verified_center')}
-                      aria-label={t('card.verified_center')}
-                      role="img"
-                      className="pointer-events-none absolute top-2 right-2 z-10 text-xl transition-transform duration-200 ease-in-out group-hover:-translate-x-8"
-                      style={{ filter: 'drop-shadow(0 2px 4px var(--foreground))' }}
-                    >
-                      <FontAwesomeIcon icon={faCertificate} className="text-pop-550" />
-                      <FontAwesomeIcon icon={faCheck} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-xs text-background" />
+                    <span className="pointer-events-none absolute top-2 right-2 z-10 transition-transform duration-200 ease-in-out group-hover:-translate-x-8">
+                      <VerifiedBadge className="text-xl" onPhoto />
                     </span>
                   )}
 
