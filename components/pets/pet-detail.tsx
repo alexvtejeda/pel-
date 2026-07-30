@@ -223,7 +223,7 @@ export function PetDetail({ pet }: PetDetailProps) {
                     alt=""
                     width={56}
                     height={14}
-                    className="h-auto w-full object-contain"
+                    className="h-auto max-h-full w-full object-contain"
                   />
                 </span>
               ) : (

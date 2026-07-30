@@ -133,6 +133,9 @@ describe('PetDetail rescue-center card', () => {
     // inside it instead of being cropped to a square.
     expect(logo!.parentElement!.className).toContain('h-14')
     expect(logo!.parentElement!.className).toContain('w-14')
+    // Without a max-height the box only constrains width, so a portrait logo
+    // (nothing server-side enforces 4:1) would grow past the 56px box.
+    expect(logo!.className).toContain('max-h-full')
   })
 
   it('prefers the profile photo over the logo when both exist', () => {
@@ -166,5 +169,26 @@ describe('PetDetail rescue-center card', () => {
       'href',
       'https://instagram.com/adoptame_rd',
     )
+  })
+
+  // The commonest state until the API ships `avatar_url`: a centre with no
+  // imagery at all still gets the same 56px box, just with a paw in it.
+  //
+  // A pet photo is supplied here (unlike the other cases in this block) so
+  // the carousel's own "no photos" empty state — which renders its own paw
+  // icon above the fold — can't be mistaken for the centre's placeholder.
+  it('shows the paw placeholder when the centre has no photo at all', () => {
+    const { container } = renderWithProviders(
+      <PetDetail
+        pet={pet({
+          photos: [{ id: 'ph1', url: 'https://cdn.test/photo.jpg', position: 0 }],
+          rescue_center: { id: 'rc1', name: 'Adoptame RD' },
+        })}
+      />,
+    )
+
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.querySelector('[data-icon="paw"]')).not.toBeNull()
+    expect(screen.getByText('Adoptame RD')).toBeInTheDocument()
   })
 })
