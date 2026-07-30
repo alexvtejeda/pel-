@@ -147,4 +147,47 @@ describe('FeaturedPets', () => {
     expect(avatar!.className).toContain('h-[30px]')
     expect(avatar!.className).toContain('w-[30px]')
   })
+
+  // The badge lives inside the <a> here (unlike the grid, where it is a
+  // sibling of a labelled button), so without an explicit label its
+  // aria-label would be absorbed into the link's accessible name.
+  it('keeps the verified badge out of the link name', async () => {
+    mockList.mockResolvedValue({
+      data: [pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } })],
+      error: null,
+    })
+
+    renderStrip()
+
+    expect(await screen.findByRole('link', { name: 'Luna' })).toBeInTheDocument()
+  })
+
+  // Member-published pets carry no author identity on either surface.
+  it('shows no badge and no avatar for member pets', async () => {
+    mockList.mockResolvedValue({ data: [pet('1', 'Luna')], error: null })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    expect(
+      screen.queryByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toBeNull()
+    expect(container.querySelector('img')).toBeNull()
+  })
+
+  it('shows no avatar for a centre that has not uploaded one', async () => {
+    mockList.mockResolvedValue({
+      data: [pet('1', 'Luna', { rescue_center: { id: 'rc1', name: 'Refugio' } })],
+      error: null,
+    })
+
+    const { container } = renderStrip()
+
+    expect(await screen.findByText('Luna')).toBeInTheDocument()
+    // The badge still shows — only the photo is missing.
+    expect(
+      screen.getByRole('img', { name: 'Publicado por un centro de rescate verificado' }),
+    ).toBeInTheDocument()
+    expect(container.querySelector('img')).toBeNull()
+  })
 })

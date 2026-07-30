@@ -107,6 +107,7 @@ export function FeaturedPets() {
                   */}
                   <TransitionLink
                     href="/pets"
+                    aria-label={pet.name}
                     className="focus-ring group relative block aspect-square overflow-hidden rounded-2xl bg-secondary"
                   >
                     {pet.photos.length > 0 ? (
