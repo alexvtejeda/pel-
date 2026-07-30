@@ -105,6 +105,12 @@ describe('PetDetail rescue-center card', () => {
     expect(avatar).not.toBeNull()
     // The centre's name is right beside it, so the photo is decorative.
     expect(avatar).toHaveAttribute('alt', '')
+    // The bug this card replaces: `width`/`height` attributes alone get beaten
+    // by Tailwind preflight's `img { height: auto }`, which collapsed a 4:1
+    // asset to roughly 40×10. The box must come from CSS.
+    expect(avatar!.className).toContain('h-14')
+    expect(avatar!.className).toContain('w-14')
+    expect(avatar!.className).toContain('object-cover')
     expect(screen.getByText('Adoptame RD')).toBeInTheDocument()
     expect(screen.getByText('Centro de rescate verificado')).toBeInTheDocument()
     expect(
@@ -123,6 +129,10 @@ describe('PetDetail rescue-center card', () => {
     expect(logo).not.toBeNull()
     expect(logo!.className).toContain('object-contain')
     expect(logo!.className).not.toContain('object-cover')
+    // The wrapper establishes the 56px box, not the image: the lockup scales
+    // inside it instead of being cropped to a square.
+    expect(logo!.parentElement!.className).toContain('h-14')
+    expect(logo!.parentElement!.className).toContain('w-14')
   })
 
   it('prefers the profile photo over the logo when both exist', () => {
