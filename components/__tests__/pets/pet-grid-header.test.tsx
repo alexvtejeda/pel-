@@ -94,6 +94,7 @@ describe('PetsPage header', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Gatos' }))
     fireEvent.click(screen.getByRole('button', { name: 'Vacunado' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Castrado' }))
     fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
     expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'true')
 
@@ -101,6 +102,7 @@ describe('PetsPage header', () => {
 
     expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: 'Vacunado' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Castrado' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.getByRole('button', { name: 'Centros' })).toHaveAttribute('aria-pressed', 'false')
     expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull()
   })
@@ -122,5 +124,29 @@ describe('PetsPage header', () => {
     expect(screen.getByText('1 mascota buscando hogar')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Ver detalles de Luna' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Ver detalles de Rex' })).toBeNull()
+  })
+
+  // The full round trip: a populated grid driven to zero and back. `visiblePets`
+  // and `handleClearFilters`' `setSourceFilter('all')` only pair up here —
+  // narrowing without reaching zero, or clearing a list that was empty all
+  // along, would each still pass with half of that wiring broken.
+  it('empties the grid with the source filter and brings the pets back on clear', async () => {
+    // Member-published only (no `rescue_center`), so "Centros" hides every card.
+    mockList.mockResolvedValue({ data: [pet('1', 'Rex'), pet('2', 'Luna')], error: null })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('button', { name: 'Ver detalles de Rex' })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Centros' }))
+
+    expect(screen.getByText('No hay mascotas disponibles')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ver detalles de Rex' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Ver detalles de Luna' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Limpiar filtros' }))
+
+    expect(await screen.findByRole('button', { name: 'Ver detalles de Rex' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ver detalles de Luna' })).toBeInTheDocument()
+    expect(screen.queryByText('No hay mascotas disponibles')).toBeNull()
   })
 })
