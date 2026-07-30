@@ -33,6 +33,8 @@ export function SettingsTab() {
   const [savingName, setSavingName] = useState(false)
   const [nameError, setNameError] = useState<string | null>(null)
   const [savedRescue, setSavedRescue] = useState(false)
+  const [savingRescue, setSavingRescue] = useState(false)
+  const [rescueError, setRescueError] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -58,6 +60,7 @@ export function SettingsTab() {
     getMyRescueCenter().then(({ data }) => {
       if (data) {
         setRcId(data.id)
+        setRescueName(data.name)
         setRcLogoUrl(data.logo_url ?? null)
         setRcWebsite(data.website ?? '')
         setRcInstagram(data.instagram ?? '')
@@ -177,7 +180,19 @@ export function SettingsTab() {
     setTimeout(() => setSavedName(false), 2000)
   }
 
-  const handleSaveRescue = () => {
+  const handleSaveRescue = async () => {
+    if (!rcId) return
+    setSavingRescue(true)
+    setRescueError(null)
+
+    const { error } = await updateRescueCenter(rcId, { name: rescueName.trim() })
+
+    setSavingRescue(false)
+    if (error) {
+      setRescueError(error)
+      return
+    }
+
     setSavedRescue(true)
     setTimeout(() => setSavedRescue(false), 2000)
   }
@@ -288,11 +303,13 @@ export function SettingsTab() {
           />
           <button
             onClick={handleSaveRescue}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors"
+            disabled={savingRescue || !rcId}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
           >
-            {savedRescue ? 'Guardado' : 'Guardar'}
+            {savingRescue ? 'Guardando…' : savedRescue ? 'Guardado' : 'Guardar'}
           </button>
         </div>
+        {rescueError && <p className="text-sm text-destructive">{rescueError}</p>}
       </div>
       {/* Website & Instagram */}
       <div className="rounded-2xl border bg-card p-6 space-y-4">

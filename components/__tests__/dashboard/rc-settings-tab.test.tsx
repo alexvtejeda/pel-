@@ -148,3 +148,37 @@ describe('RC settings — display name', () => {
     expect(screen.queryByRole('button', { name: 'Guardado' })).toBeNull()
   })
 })
+
+describe('RC settings — centre name', () => {
+  it('loads the current centre name into the field', async () => {
+    renderWithProviders(<SettingsTab />)
+
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Ej. Rescate Animal Santo Domingo')).toHaveValue('Adóptame RD'),
+    )
+  })
+
+  it('PATCHes the rescue centre when saved', async () => {
+    renderWithProviders(<SettingsTab />)
+
+    const field = screen.getByPlaceholderText('Ej. Rescate Animal Santo Domingo')
+    await waitFor(() => expect(field).toHaveValue('Adóptame RD'))
+
+    fireEvent.change(field, { target: { value: 'Refugio Luna' } })
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar' })[1])
+
+    await waitFor(() => expect(mockUpdateRc).toHaveBeenCalledWith('rc1', { name: 'Refugio Luna' }))
+  })
+
+  it('surfaces the API error instead of showing "Guardado"', async () => {
+    mockUpdateRc.mockResolvedValue({ data: null, error: 'Nombre ya en uso' })
+    renderWithProviders(<SettingsTab />)
+
+    await waitFor(() =>
+      expect(screen.getByPlaceholderText('Ej. Rescate Animal Santo Domingo')).toHaveValue('Adóptame RD'),
+    )
+    fireEvent.click(screen.getAllByRole('button', { name: 'Guardar' })[1])
+
+    expect(await screen.findByText('Nombre ya en uso')).toBeInTheDocument()
+  })
+})
