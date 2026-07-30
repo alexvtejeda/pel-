@@ -8,9 +8,10 @@ vi.mock('@/lib/api/mfa', () => ({
   totpConfirm: vi.fn(),
 }))
 
-import { totpSetup } from '@/lib/api/mfa'
+import { totpSetup, totpConfirm } from '@/lib/api/mfa'
 
 const mockTotpSetup = vi.mocked(totpSetup)
+const mockTotpConfirm = vi.mocked(totpConfirm)
 
 // mockResolvedValue would flush straight past the loading step. A hand-held
 // deferred keeps /totp/setup open so the test observes the in-flight render —
@@ -25,6 +26,18 @@ function deferred<T>() {
 
 function renderSetup(onBack = vi.fn()) {
   renderWithProviders(<MfaTotpSetup onSuccess={vi.fn()} onBack={onBack} />)
+  return onBack
+}
+
+const SECRET = 'JBSWY3DPEHPK3PXP'
+
+/** Drive the happy path as far as the confirm sub-step. */
+async function reachConfirmStep(onBack = vi.fn()) {
+  mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+  renderSetup(onBack)
+
+  fireEvent.click(await screen.findByRole('button', { name: 'Configurar' }))
+  await screen.findByText('Ingresa el código de 6 dígitos de tu app')
   return onBack
 }
 
@@ -111,5 +124,72 @@ describe('MfaTotpSetup — a failed /totp/setup must not trap the user on the sp
     // Exactly two: one on mount, one on retry. More would mean the mount effect
     // is refiring on every render (an unstable startSetup identity).
     expect(mockTotpSetup).toHaveBeenCalledTimes(2)
+  })
+
+  it('draws the back arrow as a Font Awesome icon, never a literal glyph', async () => {
+    mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+    const { container } = renderWithProviders(<MfaTotpSetup onSuccess={vi.fn()} onBack={vi.fn()} />)
+
+    await screen.findByRole('button', { name: 'Atrás' })
+
+    expect(container.querySelector('[data-icon="arrow-left"]')).toBeInTheDocument()
+    expect(container.textContent).not.toContain('←')
+  })
+})
+
+describe('MfaTotpSetup — the confirm sub-step gets back to the QR, not out of setup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('returns to the scan step with the secret intact instead of discarding it', async () => {
+    const onBack = await reachConfirmStep()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atrás' }))
+
+    // Back on the QR, with the same secret: the enrolment was never thrown away.
+    expect(await screen.findByText('Escanea el código QR con tu app de autenticación')).toBeInTheDocument()
+    expect(screen.getByText(SECRET)).toBeInTheDocument()
+    // The outer onBack unmounts the whole screen — the confirm step must not use it.
+    expect(onBack).not.toHaveBeenCalled()
+    // One call, on mount. A second would mean the setup was restarted from scratch.
+    expect(mockTotpSetup).toHaveBeenCalledTimes(1)
+  })
+
+  it('shows exactly one back control on the confirm sub-step', async () => {
+    await reachConfirmStep()
+
+    // The outer back is hidden here on purpose: two controls with the same label
+    // and different destinations is worse than one.
+    expect(screen.getAllByRole('button', { name: 'Atrás' })).toHaveLength(1)
+  })
+
+  it('keeps the outer back on every step that is not confirm', async () => {
+    // A hung request parks the user on the spinner, so loading needs an exit too.
+    const pending = deferred<Awaited<ReturnType<typeof totpSetup>>>()
+    mockTotpSetup.mockReturnValueOnce(pending.promise)
+    const onBack = renderSetup()
+
+    expect(screen.getByRole('status')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Atrás' }))
+
+    expect(onBack).toHaveBeenCalledTimes(1)
+  })
+
+  it('clears a stale verification error when going back to the QR', async () => {
+    mockTotpConfirm.mockResolvedValueOnce({ data: null, error: 'mfa.errors.code_invalid_expired' })
+    await reachConfirmStep()
+
+    const boxes = screen.getAllByRole('textbox')
+    boxes.forEach((box, i) => fireEvent.change(box, { target: { value: String(i + 1) } }))
+
+    const message = await screen.findByText('Código inválido o expirado')
+    expect(message).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Atrás' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Configurar' }))
+
+    // Returning to confirm must not re-show the error from the previous attempt.
+    expect(screen.queryByText('Código inválido o expirado')).not.toBeInTheDocument()
   })
 })

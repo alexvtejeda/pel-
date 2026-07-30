@@ -28,6 +28,12 @@ function renderEnrollment(onComplete = vi.fn(), onSkip?: () => void) {
   return onComplete
 }
 
+function renderPanel(onComplete = vi.fn()) {
+  return renderWithProviders(
+    <MfaEnrollment onComplete={onComplete} breadcrumbItems={BREADCRUMBS} />
+  )
+}
+
 // The pending state lives only between the two awaits inside handleSelectMethod,
 // so mockResolvedValue would flush straight past it. A hand-held deferred lets the
 // test hold the request open and observe the in-flight render.
@@ -215,5 +221,79 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     })
     expect(mockEmailEnable).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: new RegExp(EMAIL) })).not.toBeInTheDocument()
+  })
+})
+
+describe('MfaEnrollment — one panel shell, one step indicator', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('reports the method picker as step 1 of 3', () => {
+    renderEnrollment()
+
+    const bar = screen.getByRole('progressbar', { name: 'Paso 1 de 3' })
+    expect(bar).toHaveAttribute('aria-valuenow', '1')
+    expect(bar).toHaveAttribute('aria-valuemin', '1')
+    expect(bar).toHaveAttribute('aria-valuemax', '3')
+    expect(screen.getByText('Paso 1 de 3 · Elige un método')).toBeInTheDocument()
+  })
+
+  it('advances the indicator to step 2 on the TOTP configure screen', async () => {
+    mockTotpSetup.mockResolvedValueOnce({
+      data: { secret: 'JBSWY3DPEHPK3PXP', qr_uri: 'otpauth://totp/Pelu' },
+      error: null,
+    })
+    renderEnrollment()
+
+    fireEvent.click(methodCard(TOTP))
+
+    const bar = await screen.findByRole('progressbar', { name: 'Paso 2 de 3' })
+    expect(bar).toHaveAttribute('aria-valuenow', '2')
+    expect(screen.getByText('Paso 2 de 3 · Configúralo')).toBeInTheDocument()
+  })
+
+  it('advances the indicator to step 2 on the passkey configure screen', async () => {
+    renderEnrollment()
+
+    fireEvent.click(methodCard(PASSKEY))
+
+    // Both configure screens share one branch now — the passkey one has to
+    // report the same step as TOTP, not fall back to the picker's step 1.
+    const bar = await screen.findByRole('progressbar', { name: 'Paso 2 de 3' })
+    expect(bar).toHaveAttribute('aria-valuenow', '2')
+    // Proves we really are on the passkey screen and not still on the picker.
+    expect(screen.getByRole('button', { name: 'Registrar passkey' })).toBeInTheDocument()
+  })
+
+  it('keeps the forced-dark beams shell on the picker and both configure screens', async () => {
+    // The MFA palette is only legible against the forced-dark wrapper: text-pop-450
+    // on bg-pop-550/20 measures ~10:1 there and 1.29:1 on a light background. The
+    // dedupe must not drop `dark` from any branch.
+    mockTotpSetup.mockResolvedValueOnce({
+      data: { secret: 'JBSWY3DPEHPK3PXP', qr_uri: 'otpauth://totp/Pelu' },
+      error: null,
+    })
+    const { container } = renderPanel()
+
+    expect(container.firstElementChild).toHaveClass('dark')
+
+    fireEvent.click(methodCard(TOTP))
+    await screen.findByRole('progressbar', { name: 'Paso 2 de 3' })
+    expect(container.firstElementChild).toHaveClass('dark')
+  })
+
+  it('hands the recovery codes to the modal, which sits outside the shell', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
+    })
+    // MfaRecoveryModal returns before the panel branches and renders its own
+    // chrome, so the step bar is deliberately absent there.
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   })
 })

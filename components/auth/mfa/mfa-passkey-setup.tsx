@@ -7,6 +7,7 @@ import { faKey } from '@fortawesome/free-solid-svg-icons'
 import { startRegistration } from '@simplewebauthn/browser'
 import * as mfaApi from '@/lib/api/mfa'
 import { Spinner } from '@/components/ui/spinner'
+import { MfaBackButton } from './mfa-back-button'
 import { useMfaError } from './use-mfa-error'
 
 interface MfaPasskeySetupProps {
@@ -51,9 +52,7 @@ export function MfaPasskeySetup({ onSuccess, onBack }: MfaPasskeySetupProps) {
 
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="focus-ring text-sm text-muted-foreground hover:text-foreground">
-        ← {t('mfa.settings.cancel')}
-      </button>
+      <MfaBackButton onClick={onBack} />
 
       <div className="text-center space-y-4">
         <FontAwesomeIcon icon={faKey} className="text-5xl text-pop-550" />

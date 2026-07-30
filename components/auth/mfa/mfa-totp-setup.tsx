@@ -4,10 +4,11 @@ import { useCallback, useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { QRCodeSVG } from 'qrcode.react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCopy, faCheck, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faCopy, faCheck } from '@fortawesome/free-solid-svg-icons'
 import * as mfaApi from '@/lib/api/mfa'
 import { ErrorState } from '@/components/ui/error-state'
 import { Spinner } from '@/components/ui/spinner'
+import { MfaBackButton } from './mfa-back-button'
 import { MfaCodeInput } from './mfa-code-input'
 import { useMfaError } from './use-mfa-error'
 
@@ -78,13 +79,12 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
 
   // The back control sits above the step branches on purpose: `fetch` has no
   // default timeout, so a hung /totp/setup parks the user on the spinner
-  // indefinitely. Every step — loading included — needs a way back.
+  // indefinitely. Every step — loading included — needs a way back. The confirm
+  // sub-step is the exception: it renders its own back, which returns to the QR
+  // instead of discarding the setup, and two back controls would be confusing.
   return (
     <div className="space-y-6">
-      <button onClick={onBack} className="focus-ring flex items-center gap-2 rounded-xl text-sm text-muted-foreground hover:text-foreground">
-        <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-        {t('mfa.enrollment.back')}
-      </button>
+      {step !== 'confirm' && <MfaBackButton onClick={onBack} />}
 
       {step === 'loading' && (
         <div className="text-center py-8">
@@ -120,6 +120,9 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
 
       {step === 'confirm' && (
         <>
+          {/* Back to the QR, not out of the setup: the secret is still valid, so
+              discarding it to re-scan would be a pointless round trip. */}
+          <MfaBackButton onClick={() => { setError(null); setStep('scan') }} />
           <p className="text-sm text-muted-foreground">{t('mfa.enrollment.totp_confirm')}</p>
           <MfaCodeInput onComplete={handleConfirm} disabled={verifying} error={error} />
         </>
