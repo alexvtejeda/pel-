@@ -78,4 +78,16 @@ describe('PetDetail facts', () => {
     expect(screen.queryByText('Vacunado')).toBeNull()
     expect(screen.queryByText('Castrado')).toBeNull()
   })
+
+  // Member-published pets come from `user_pets`, whose `size` column is
+  // nullable — the row must disappear rather than print `size.undefined`.
+  it('drops the size row when the pet has no size', () => {
+    renderWithProviders(<PetDetail pet={pet({ size: undefined })} />)
+
+    expect(screen.queryByText('Tamaño')).toBeNull()
+    expect(screen.queryByText('size.undefined')).toBeNull()
+    // The other two facts still render — only the size row is conditional.
+    expect(screen.getByText('Vacunas')).toBeInTheDocument()
+    expect(screen.getByText('Castración')).toBeInTheDocument()
+  })
 })

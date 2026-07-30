@@ -182,7 +182,10 @@ export function PetDetail({ pet }: PetDetailProps) {
               {pet.castrated ? t('detail.facts.yes') : t('detail.facts.no')}
             </dd>
           </div>
-          {/* Guarded: an absent size would render the raw `size.undefined` key. */}
+          {/* Guarded because member-published pets really can arrive without a
+              size: `user_pets.size` is nullable (API migration 000039), while
+              `pets.size` is NOT NULL DEFAULT 'medium' (000016). Unguarded, the
+              row would render the raw `size.undefined` key. */}
           {pet.size && (
             <div className="flex items-center justify-between gap-3 py-2.5">
               <dt className="flex items-center gap-2 text-muted-foreground">
