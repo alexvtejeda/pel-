@@ -787,36 +787,64 @@ describe('PetFilterBar', () => {
     onMobileFiltersOpenChange: () => {},
   }
 
+  // These are design-system assertions, so they check classes on purpose — but
+  // reach the element by role first. `container.querySelector('.bg-pop-solid')`
+  // matches two nodes (the active pill *and* the mobile trigger, which also goes
+  // solid once a filter is active) and picks the pill only because the desktop
+  // row happens to render first.
   it('7 — active filter pill has bg-pop-solid class', () => {
-    const { container } = renderWithProviders(<PetFilterBar {...defaultProps} />)
-    const activePill = container.querySelector('.bg-pop-solid')
-    expect(activePill).not.toBeNull()
-    expect(activePill!.textContent).toBeTruthy()
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Perros' }).className).toContain('bg-pop-solid')
   })
 
   // The pressed state is announced from the same condition that picks the fill.
   // Asserting both together is what stops them silently drifting apart.
   it('7b — the active pill announces aria-pressed, inactive pills do not', () => {
-    const { container } = renderWithProviders(<PetFilterBar {...defaultProps} />)
-    expect(container.querySelector('.bg-pop-solid')).toHaveAttribute('aria-pressed', 'true')
-    expect(container.querySelector('button.bg-background')).toHaveAttribute('aria-pressed', 'false')
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Perros' })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'false')
   })
 
   it('8 — inactive filter pills have bg-background class', () => {
-    const { container } = renderWithProviders(<PetFilterBar {...defaultProps} />)
-    const inactivePills = container.querySelectorAll('button.bg-background')
-    expect(inactivePills.length).toBeGreaterThanOrEqual(5)
+    renderWithProviders(<PetFilterBar {...defaultProps} />)
+    expect(screen.getByRole('button', { name: 'Gatos' }).className).toContain('bg-background')
   })
 })
 ```
 
-- [ ] **Step 3: Delete the superseded test file**
+- [ ] **Step 3: Replace the one behaviour the deletion actually loses, then delete**
+
+`pet-grid-mobile-filters.test.tsx`'s 11 behaviours were recreated against `PetFilterBar` in Task 1 — verify that first: `npx vitest run components/__tests__/pets/pet-filters.test.tsx` must be green.
+
+But one of them does not survive the move intact. Its "closes when a filter chip clears every filter" test clicked the **real** clear-filters button and the **real** `clearFilters`; Task 1's version can only assert that the component honours a controlled prop, because the button now lives in a sibling. Task 2 is where the real path exists again, so add this to `components/__tests__/pets/pet-grid-header.test.tsx` (which already renders `PetsPage` with the desktop media query mocked) before deleting anything:
+
+```tsx
+  // The clear button lives in the grid's empty state and the popover lives in
+  // the filter bar — two components either side of `pets-page`. This is the
+  // only test that exercises the whole path rather than one half of it.
+  it('clears every filter dimension from the empty state', async () => {
+    mockList.mockResolvedValue({ data: [], error: null })
+
+    renderWithProviders(<PetsPage />)
+    await screen.findByRole('heading', { level: 1 })
+
+    fireEvent.click(screen.getByRole('button', { name: 'Gatos' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Vacunado' }))
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'true')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Limpiar filtros' }))
+
+    expect(screen.getByRole('button', { name: 'Gatos' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.getByRole('button', { name: 'Vacunado' })).toHaveAttribute('aria-pressed', 'false')
+    expect(screen.queryByRole('button', { name: 'Limpiar filtros' })).toBeNull()
+  })
+```
+
+That test needs `fireEvent` — add it to the `@testing-library/react` import at the top of the file. Then:
 
 ```bash
 git rm components/__tests__/pets/pet-grid-mobile-filters.test.tsx
 ```
-
-Its 11 behaviours were recreated against `PetFilterBar` in Task 1 — verify that before deleting: `npx vitest run components/__tests__/pets/pet-filters.test.tsx` must be green.
 
 - [ ] **Step 4: Run the tests to verify they fail**
 
@@ -946,7 +974,7 @@ Add the derivation and the clear handler after `handleSelect`:
         : sortedPets.filter(p => !p.rescue_center)
 
   const hasActiveFilters =
-    countActiveFilters(activeFilter, vaccinatedFilter, castratedFilter, sourceFilter) > 0
+    countActiveFilters({ activeFilter, vaccinatedFilter, castratedFilter, sourceFilter }) > 0
 
   // Step for step what `clearFilters` did inside the grid (pet-grid.tsx:101-107),
   // including going through `handleFilterChange` rather than `fetchPets` — that
@@ -989,7 +1017,10 @@ Then render the bar between the heading block (which ends at line 114) and `<Pet
         />
 ```
 
-Note the count line at `pets-page.tsx:111-113` announces `pets.length`. Change it to `visiblePets.length` — today the announced count and the rendered count already disagree whenever the source filter is on, because the grid filtered after the page counted. This lift is what makes fixing it free.
+Two details that are easy to get wrong here:
+
+- **`onMobileFiltersOpenChange` gets the raw setter, never an inline lambda.** It is a dependency of the bar's dismiss effect, so a fresh identity on every render would tear down and re-add two document listeners on every fetch. `setMobileFiltersOpen` from `useState` is stable; anything else needs `useCallback`. Same goes for `onSourceChange`.
+- **The count line at `pets-page.tsx:111-113` announces `pets.length`.** Change it to `visiblePets.length`. Today the announced count and the rendered count already disagree whenever the source filter is on, because the grid filtered after the page had counted. This lift is what makes fixing it free.
 
 - [ ] **Step 7: Run the tests to verify they pass**
 
@@ -1006,6 +1037,7 @@ At 1010px and at 375px, confirm: the filter row/button sits exactly where it did
 git add components/pets/pets-page.tsx components/pets/pet-grid.tsx \
   components/__tests__/design-structure.test.tsx \
   components/__tests__/pets/pet-grid-states.test.tsx \
+  components/__tests__/pets/pet-grid-header.test.tsx \
   components/__tests__/pets/pet-grid-mobile-filters.test.tsx
 git commit -m "refactor(pets): lift the filter state out of the grid"
 ```
