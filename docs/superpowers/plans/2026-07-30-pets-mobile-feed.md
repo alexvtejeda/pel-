@@ -269,6 +269,10 @@ describe('PetFilterBar mobile popover', () => {
     expect(screen.queryByText(SPECIES)).toBeNull()
   })
 
+  // The count badge is a bare <span> straight after the label with no text node
+  // between them, so the accessible name runs the two together — "Filtros3".
+  // `ml-1` is visual margin and does not enter the accname algorithm. Step 5
+  // fixes that; this asserts the fixed behaviour, so it fails until then.
   it('counts every active dimension in the trigger badge', () => {
     renderBar({ activeFilter: 'dogs', vaccinatedFilter: true, sourceFilter: 'rc' })
 
@@ -682,22 +686,46 @@ export function PetFilterBar({
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [ ] **Step 4: Run the tests — 14 pass, 1 fails on purpose**
 
 Run: `npx vitest run components/__tests__/pets/pet-filters.test.tsx`
-Expected: PASS — 15 tests.
+Expected: **14 passed, 1 failed.** The failure is `counts every active dimension in the trigger badge`, reporting `Received: "Filtros3"`. That is not a transcription error — it is today's real behaviour, inherited byte-for-byte from `pet-grid.tsx:225-232`, and the next step is what fixes it.
 
-- [ ] **Step 5: Confirm nothing else moved**
+- [ ] **Step 5: Give the count badge a space, in its own commit**
 
-Run: `npx vitest run components/__tests__/pets components/__tests__/design-structure.test.tsx components/__tests__/design-system.test.ts`
-Expected: only the pre-existing rule-10 failure (5 violations). `pet-grid.tsx` is untouched, so every grid test still passes.
-
-- [ ] **Step 6: Commit**
+The extraction above is a pure move, and it stays that way — commit it first so a reviewer can diff it as one:
 
 ```bash
 git add components/pets/pet-filters.tsx components/__tests__/pets/pet-filters.test.tsx
 git commit -m "refactor(pets): extract the filter bar so the feed can reuse it"
 ```
+
+Then fix the accessible name. In `components/pets/pet-filters.tsx`, in the mobile trigger, put a text node between the label and the badge:
+
+```tsx
+          <FontAwesomeIcon icon={faFilter} className="text-xs" />
+          {t('grid.filters')}{' '}
+          {mobileFilterCount > 0 && (
+```
+
+`ml-1` on the badge is visual margin; the accessible-name algorithm concatenates content and ignores CSS, so without an explicit text node a screen reader announces "Filtros3". The bug is pre-existing — the old `pet-grid-mobile-filters.test.tsx` only ever matched the anchored regex `/^Filtros/`, so nothing caught it.
+
+Run: `npx vitest run components/__tests__/pets/pet-filters.test.tsx`
+Expected: PASS — 15 tests.
+
+- [ ] **Step 6: Confirm nothing else moved**
+
+Run: `npx vitest run components/__tests__/pets components/__tests__/design-structure.test.tsx components/__tests__/design-system.test.ts`
+Expected: only the pre-existing rule-10 failure (5 violations). `pet-grid.tsx` is untouched, so every grid test still passes.
+
+- [ ] **Step 7: Commit the fix**
+
+```bash
+git add components/pets/pet-filters.tsx
+git commit -m "fix(pets): put a space between the filter label and its count"
+```
+
+The same one-character bug still sits in `pet-grid.tsx:229`, where it is unreachable once Task 2 deletes that markup. Do not fix it there.
 
 ---
 
