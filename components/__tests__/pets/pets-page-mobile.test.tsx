@@ -6,7 +6,10 @@ vi.mock('@/lib/api/metrics', () => ({ trackPetEvent: vi.fn() }))
 vi.mock('@/lib/contexts/auth-context', () => ({
   useAuth: () => ({ user: null, loading: false }),
 }))
-vi.mock('@/lib/hooks/use-media-query', () => ({ useMediaQuery: () => false }))
+// Mutable so one test can model a resize across the breakpoint. Defaults to
+// mobile, so every other test in this file reads as a plain `() => false`.
+const media = vi.hoisted(() => ({ isDesktop: false }))
+vi.mock('@/lib/hooks/use-media-query', () => ({ useMediaQuery: () => media.isDesktop }))
 vi.mock('@/components/transitions/route-transition-context', () => ({
   useRouteTransition: () => ({ status: 'idle', type: null }),
 }))
@@ -32,7 +35,10 @@ const pet = (id: string, name: string) =>
     rescue_center: { id: 'rc1', name: 'Adoptame RD' },
   }) as never
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  media.isDesktop = false
+})
 
 describe('PetsPage below 640px', () => {
   it('renders the feed, one post per pet', async () => {
@@ -69,5 +75,28 @@ describe('PetsPage below 640px', () => {
     fireEvent.click(within(popover).getByRole('button', { name: 'Gatos' }))
 
     expect(mockList).toHaveBeenLastCalledWith(expect.objectContaining({ species: 'cat' }))
+  })
+})
+
+describe('PetsPage across the breakpoint', () => {
+  // Removing the Drawer left the Sheet with nothing to hand off to. Narrowing
+  // unmounts it without closing it, so `open` stayed true and widening again
+  // re-opened it with no user action — a dialog appearing out of a resize.
+  it('does not re-open the sheet when the viewport returns to desktop', async () => {
+    media.isDesktop = true
+    mockList.mockResolvedValue({ data: [pet('1', 'Luna')], error: null })
+
+    const { rerender } = renderWithProviders(<PetsPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Ver detalles de Luna' }))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    media.isDesktop = false
+    rerender(<PetsPage />)
+    expect(screen.queryByRole('dialog')).toBeNull()
+
+    media.isDesktop = true
+    rerender(<PetsPage />)
+    expect(screen.queryByRole('dialog')).toBeNull()
   })
 })

@@ -44,6 +44,14 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
   useEffect(() => setMounted(true), [])
   const showFeed = mounted && !isDesktop
   const [open, setOpen] = useState(false)
+
+  // Narrowing past 640px unmounts the Sheet without closing it, so `open` would
+  // still be true when the viewport widens again and the Sheet would reappear
+  // on its own with no user action. The Drawer used to catch that hand-off;
+  // the feed is terminal and has nowhere to put a selection, so drop it.
+  useEffect(() => {
+    if (!isDesktop) setOpen(false)
+  }, [isDesktop])
   const [vaccinatedFilter, setVaccinatedFilter] = useState(false)
   const [castratedFilter, setCastratedFilter] = useState(false)
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all')
