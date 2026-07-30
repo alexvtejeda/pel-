@@ -69,6 +69,19 @@ describe('PetFeedCard photos', () => {
 
     expect(screen.queryByRole('button', { name: /Foto/ })).toBeNull()
   })
+
+  // …but it still shows the pet. The unmeasured frame is the first one the user
+  // sees, and falling through to the paw would flash an empty box over a pet
+  // that has photos, then pop a carousel in on top of it.
+  it('shows the first photo while the width is still unmeasured', () => {
+    const { container } = renderWithProviders(
+      <PetFeedCard pet={pet({ photos: [photo('a'), photo('b')] })} photoWidth={0} />,
+    )
+
+    const img = container.querySelector('img')
+    expect(img).not.toBeNull()
+    expect(img).toHaveAttribute('src', '/a.webp')
+  })
 })
 
 describe('PetFeedCard publisher', () => {

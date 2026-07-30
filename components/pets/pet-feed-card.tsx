@@ -126,7 +126,13 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
             dotLabel={(n, total) => t('feed.photo_position', { n, total })}
             className="relative h-full w-full overflow-hidden"
           />
-        ) : pet.photos.length === 1 ? (
+        ) : pet.photos.length > 0 ? (
+          /* `> 0`, not `=== 1`. A multi-photo pet lands here too until the feed
+             reports its measured width, and this is the frame the user actually
+             sees first. Falling through to the paw placeholder instead would
+             flash an empty box over a pet that has photos, then pop a carousel
+             in — worse than showing the first photo and gaining dots a moment
+             later. */
           <Image
             src={pet.photos[0].url}
             alt=""
