@@ -36,6 +36,12 @@ export interface CarouselProps {
    * the rounded slide lets the panel's background show through the corners.
    */
   flushItems?: boolean;
+  /**
+   * Commits a drag to the axis it starts on. Opt-in: only matters inside a
+   * vertical scroll container (the mobile feed), where an unlocked `drag="x"`
+   * captures diagonal gestures that belong to the page scroll.
+   */
+  dragDirectionLock?: boolean;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -152,6 +158,7 @@ export default function Carousel({
   dotsOverlay = false,
   showPauseButton = false,
   flushItems = false,
+  dragDirectionLock = false,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -291,6 +298,7 @@ export default function Carousel({
       <motion.div
         className="flex"
         drag={isAnimating ? false : 'x'}
+        dragDirectionLock={dragDirectionLock}
         {...dragProps}
         style={{
           width: itemWidth,
