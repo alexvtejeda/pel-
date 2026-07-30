@@ -139,7 +139,7 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     expect(onComplete).not.toHaveBeenCalled()
   })
 
-  it('advances to the recovery codes on success instead of toasting', async () => {
+  it('advances to the recovery codes on success instead of erroring', async () => {
     mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111', 'BBBB-2222'] }, error: null })
     const onComplete = renderEnrollment()
 
@@ -221,6 +221,64 @@ describe('MfaEnrollment — email OTP must not fail silently', () => {
     })
     expect(mockEmailEnable).not.toHaveBeenCalled()
     expect(screen.queryByRole('button', { name: new RegExp(EMAIL) })).not.toBeInTheDocument()
+  })
+})
+
+describe('MfaEnrollment — the method is confirmed out loud', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('confirms the method before showing the recovery codes', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('¡Método configurado!')
+    })
+    expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
+  })
+
+  it('confirms the method on the branch that has no codes to show', async () => {
+    // This branch redirects straight out of the flow, so the toast is the only
+    // thing that tells the user the method was actually enabled.
+    mockEmailEnable.mockResolvedValueOnce({ data: {}, error: null })
+    const onComplete = renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(onComplete).toHaveBeenCalledTimes(1)
+    })
+    expect(toast.success).toHaveBeenCalledWith('¡Método configurado!')
+  })
+
+  it('stays quiet when the enable fails', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: null, error: 'mfa.errors.email_enable' })
+    renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled()
+    })
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('stays quiet when the enable rejects outright', async () => {
+    mockEmailEnable.mockRejectedValueOnce(new TypeError('Failed to fetch'))
+    renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalled()
+    })
+    // handleSuccess sits after the catch's return, so the success toast must not
+    // fire alongside the failure one.
+    expect(toast.success).not.toHaveBeenCalled()
   })
 })
 

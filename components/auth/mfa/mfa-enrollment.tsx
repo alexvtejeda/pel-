@@ -35,6 +35,10 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
   ]
 
   const handleSuccess = (codes?: string[]) => {
+    // The method is live the moment this runs, whichever branch follows. Without
+    // this the only acknowledgement was the screen changing — and on the
+    // no-codes branch it changed straight to a different page.
+    toast.success(t('mfa.enrollment.success'))
     if (codes && codes.length > 0) {
       setRecoveryCodes(codes)
     } else {

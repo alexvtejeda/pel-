@@ -54,7 +54,9 @@ export function AliadosPage() {
 
   return (
     <div data-route="aliados" className="flex flex-col min-h-screen bg-muted">
-      <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
+      {/* max-w-6xl, matching / and /pets: bare `container` runs to 1400px at
+          the top breakpoint, so the content column jumped between routes. */}
+      <div className="container mx-auto max-w-6xl flex-1 flex flex-col sm:px-4 sm:pb-0">
         <ProviderGrid
           providers={providers}
           loading={loading || holdSkeleton}

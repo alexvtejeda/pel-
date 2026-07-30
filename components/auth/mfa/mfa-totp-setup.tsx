@@ -60,9 +60,16 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
   useEffect(() => { startSetup() }, [startSetup])
 
   const handleCopySecret = async () => {
-    await navigator.clipboard.writeText(secret)
-    setCopiedSecret(true)
-    setTimeout(() => setCopiedSecret(false), 2000)
+    try {
+      // navigator.clipboard is undefined on insecure origins, where this used to
+      // reject into an unhandled rejection. The secret stays on screen either
+      // way, so a failed copy is silent — but the tick must not appear.
+      await navigator.clipboard.writeText(secret)
+      setCopiedSecret(true)
+      setTimeout(() => setCopiedSecret(false), 2000)
+    } catch {
+      /* the key is visible above and can be typed by hand */
+    }
   }
 
   const handleConfirm = async (code: string) => {
@@ -98,7 +105,11 @@ export function MfaTotpSetup({ onSuccess, onBack }: MfaTotpSetupProps) {
         <>
           <p className="text-sm text-muted-foreground">{t('mfa.enrollment.totp_scan')}</p>
           <div className="flex justify-center p-4 bg-white rounded-xl">
-            <QRCodeSVG value={qrUri} size={200} />
+            {/* qrcode.react already marks the svg role="img"; without a title it
+                is an image with no accessible name at all. It names the image
+                rather than repeating totp_scan above it, which a screen reader
+                would then read out twice. */}
+            <QRCodeSVG value={qrUri} size={200} title={t('mfa.enrollment.totp_qr_alt')} />
           </div>
           <div className="space-y-2">
             <p className="text-xs text-muted-foreground">{t('mfa.enrollment.totp_manual')}</p>

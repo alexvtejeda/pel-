@@ -137,6 +137,72 @@ describe('MfaTotpSetup — a failed /totp/setup must not trap the user on the sp
   })
 })
 
+describe('MfaTotpSetup — the scan step has to be usable without sight or a clipboard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('gives the QR code an accessible name', async () => {
+    mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+    renderSetup()
+
+    // qrcode.react marks the svg role="img"; it was an image with no name at all
+    // until the title landed, so a screen reader announced nothing here.
+    expect(
+      await screen.findByRole('img', { name: 'Código QR para configurar tu app de autenticación' })
+    ).toBeInTheDocument()
+  })
+
+  it('names the QR without echoing the instruction printed above it', async () => {
+    mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+    renderSetup()
+
+    // Reusing mfa.enrollment.totp_scan as the title would have the same sentence
+    // announced twice in a row — once as text, once as the image's name.
+    expect(
+      await screen.findAllByText('Escanea el código QR con tu app de autenticación')
+    ).toHaveLength(1)
+  })
+
+  it('confirms a copied secret when the clipboard is available', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
+    mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+
+    try {
+      const { container } = renderWithProviders(<MfaTotpSetup onSuccess={vi.fn()} onBack={vi.fn()} />)
+      fireEvent.click(await screen.findByRole('button', { name: 'Copiar' }))
+
+      await waitFor(() => {
+        expect(writeText).toHaveBeenCalledWith(SECRET)
+      })
+      await waitFor(() => {
+        expect(container.querySelector('[data-icon="check"]')).toBeInTheDocument()
+      })
+    } finally {
+      Reflect.deleteProperty(navigator, 'clipboard')
+    }
+  })
+
+  it('does not reject or claim success when the clipboard API is missing', async () => {
+    // navigator.clipboard is undefined on insecure origins — a LAN IP over plain
+    // http, for instance. The unguarded call rejected into an unhandled rejection.
+    expect(navigator.clipboard).toBeUndefined()
+    mockTotpSetup.mockResolvedValueOnce({ data: { secret: SECRET, qr_uri: 'otpauth://totp/Pelu' }, error: null })
+    const { container } = renderWithProviders(<MfaTotpSetup onSuccess={vi.fn()} onBack={vi.fn()} />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Copiar' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(SECRET)).toBeInTheDocument()
+    })
+    // Still the copy icon: a tick would tell the user the secret is on their
+    // clipboard when it never got there.
+    expect(container.querySelector('[data-icon="copy"]')).toBeInTheDocument()
+    expect(container.querySelector('[data-icon="check"]')).not.toBeInTheDocument()
+  })
+})
+
 describe('MfaTotpSetup — the confirm sub-step gets back to the QR, not out of setup', () => {
   beforeEach(() => {
     vi.clearAllMocks()

@@ -100,7 +100,9 @@ export function PetsPage({ initialSelected = null }: PetsPageProps) {
 
   return (
     <div data-route="pets" className="flex flex-col min-h-screen bg-muted">
-      <div className="container mx-auto flex-1 flex flex-col sm:px-4 sm:pb-0">
+      {/* max-w-6xl, matching / and /aliados: bare `container` runs to 1400px at
+          the top breakpoint, so the content column jumped between routes. */}
+      <div className="container mx-auto max-w-6xl flex-1 flex flex-col sm:px-4 sm:pb-0">
         {/* A <div>, not a <header>: the public layout's PetsHeader already owns the banner landmark. */}
         <div className="px-4 pt-6 pb-2 sm:px-2">
           <h1 className="text-2xl font-bold sm:text-3xl">{t('grid.title')}</h1>
