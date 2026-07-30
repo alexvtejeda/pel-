@@ -125,6 +125,10 @@
 
   --inset-shadow-decoration: inset 1px 1px 1px var(--color-pop-450);
 
+  /* Feed post card. Three layers so the card lifts off the muted page without a
+     single hard edge — one contact shadow, one mid, one wide ambient. */
+  --shadow-post: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.04);
+
   --animate-marquee: marquee 25s linear infinite;
 
   @keyframes marquee {
