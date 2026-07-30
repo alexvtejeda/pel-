@@ -10,7 +10,7 @@ import { Spinner } from '@/components/ui/spinner'
 import { OnboardingNav } from '@/components/auth/onboarding/onboarding-nav'
 import { MfaTotpSetup } from './mfa-totp-setup'
 import { MfaPasskeySetup } from './mfa-passkey-setup'
-import { MfaRecoveryModal } from './mfa-recovery-modal'
+import { MfaRecoveryCodes } from './mfa-recovery-modal'
 import { useMfaError } from './use-mfa-error'
 import * as mfaApi from '@/lib/api/mfa'
 import { MfaMethod } from '@/lib/types/user'
@@ -74,8 +74,22 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
     handleSuccess(codes)
   }
 
+  // Saving the codes is the last step of the flow, not an interruption of it, so
+  // it renders in the same shell as the other two rather than as a modal on top
+  // of nothing. That keeps the forced-dark theming and finally lights up the
+  // third segment of the step bar, which had no screen to describe until now.
   if (recoveryCodes) {
-    return <MfaRecoveryModal codes={recoveryCodes} onClose={onComplete} />
+    return (
+      <MfaPanel breadcrumbItems={breadcrumbItems} step={3}>
+        <div className="w-full bg-background/90 backdrop-blur-xl rounded-2xl p-8 space-y-4 inset-shadow-[1px_1px_1px_var(--color-input)]">
+          <div className="space-y-1.5">
+            <h1 className="text-lg font-semibold text-foreground">{t('mfa.recovery.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('mfa.recovery.subtitle')}</p>
+          </div>
+          <MfaRecoveryCodes codes={recoveryCodes} onConfirm={onComplete} />
+        </div>
+      </MfaPanel>
+    )
   }
 
   // Both configure screens sit in the same card inside the same shell, so they
@@ -161,8 +175,6 @@ interface MfaPanelProps {
  */
 function MfaPanel({ breadcrumbItems, step, children }: MfaPanelProps) {
   const { t } = useTranslation('auth')
-  // Step 3 is the recovery codes, which MfaRecoveryModal renders outside this
-  // shell — the label is kept so the bar describes all three steps.
   const labels = [
     t('mfa.enrollment.step_choose'),
     t('mfa.enrollment.step_configure'),

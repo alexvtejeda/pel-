@@ -283,17 +283,47 @@ describe('MfaEnrollment — one panel shell, one step indicator', () => {
     expect(container.firstElementChild).toHaveClass('dark')
   })
 
-  it('hands the recovery codes to the modal, which sits outside the shell', async () => {
+  it('advances the indicator to step 3 on the recovery codes', async () => {
     mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
     renderEnrollment()
 
     fireEvent.click(methodCard(EMAIL))
 
-    await waitFor(() => {
-      expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
-    })
-    // MfaRecoveryModal returns before the panel branches and renders its own
-    // chrome, so the step bar is deliberately absent there.
-    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+    // Saving the codes is the third step, not an epilogue outside the flow: the
+    // bar used to stop at 2 because the modal returned before the panel branches.
+    const bar = await screen.findByRole('progressbar', { name: 'Paso 3 de 3' })
+    expect(bar).toHaveAttribute('aria-valuenow', '3')
+    expect(screen.getByText('Paso 3 de 3 · Guarda tus códigos')).toBeInTheDocument()
+    expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
+  })
+
+  it('keeps the forced-dark shell on the recovery codes too', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    const { container } = renderPanel()
+
+    fireEvent.click(methodCard(EMAIL))
+
+    await screen.findByRole('progressbar', { name: 'Paso 3 de 3' })
+    // The old modal rendered outside the wrapper, so the last screen of a dark
+    // flow came up in the light theme.
+    expect(container.firstElementChild).toHaveClass('dark')
+  })
+
+  it('does not finish enrollment until the codes are acknowledged', async () => {
+    mockEmailEnable.mockResolvedValueOnce({ data: { recovery_codes: ['AAAA-1111'] }, error: null })
+    const onComplete = renderEnrollment()
+
+    fireEvent.click(methodCard(EMAIL))
+    await screen.findByText('AAAA-1111')
+
+    // Nothing on this screen — Escape included — hands over before the tick.
+    fireEvent.keyDown(document, { key: 'Escape' })
+    fireEvent.click(screen.getByRole('button', { name: 'Entendido' }))
+    expect(onComplete).not.toHaveBeenCalled()
+    expect(screen.getByText('AAAA-1111')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Ya guardé mis códigos en un lugar seguro' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Entendido' }))
+    expect(onComplete).toHaveBeenCalledTimes(1)
   })
 })
