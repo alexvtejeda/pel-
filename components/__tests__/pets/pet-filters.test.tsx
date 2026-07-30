@@ -134,6 +134,11 @@ describe('PetFilterBar mobile popover', () => {
     expect(screen.queryByText(SPECIES)).toBeNull()
   })
 
+  // The space in "Filtros 3" is load-bearing, and it is why this asserts the
+  // whole name rather than just the count. The badge is a bare <span> straight
+  // after the label, so without an explicit text node between them the
+  // accessible name runs together as "Filtros3" — `ml-1` is visual margin and
+  // never reaches the accname algorithm. The grid read that way for months.
   it('counts every active dimension in the trigger badge', () => {
     renderBar({ activeFilter: 'dogs', vaccinatedFilter: true, sourceFilter: 'rc' })
 
