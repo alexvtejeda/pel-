@@ -59,7 +59,22 @@
     "logout": "Cerrar sesión",
     "delete_account": "Eliminar cuenta",
     "save": "Guardar cambios",
-    "saved": "Cambios guardados"
+    "saved": "Cambios guardados",
+    "pet_taxi_title": "Pet-taxi",
+    "pet_taxi_intro": "Activa el pet-taxi para recibir solicitudes de viaje con cotización automática. Los miembros verán tu precio estimado antes de pedirte el viaje.",
+    "pet_taxi_optin_label": "Ofrecer pet-taxi",
+    "pet_taxi_optin_hint": "Aparecerás en el listado de transporte que ven los miembros.",
+    "pet_taxi_base_fee_label": "Tarifa base (DOP)",
+    "pet_taxi_per_km_label": "Precio por kilómetro (DOP)",
+    "pet_taxi_per_minute_label": "Precio por minuto (DOP)",
+    "pet_taxi_fallback_hint": "Déjalo vacío para usar el precio por defecto de la plataforma.",
+    "pet_taxi_base_fee_required": "Agrega una tarifa base para aparecer en el listado de transporte.",
+    "pet_taxi_range_error": "Debe ser un monto entre 0 y 50,000 DOP.",
+    "terms_title": "Términos y condiciones",
+    "terms_label": "Tus términos y condiciones",
+    "terms_placeholder": "Ej. Se requiere transportín propio. Cancelaciones con 24 horas de anticipación.",
+    "terms_counter": "{{chars}} / 5000 caracteres",
+    "terms_too_long": "Máximo 5000 caracteres."
   },
   "admin": {
     "type_rescue_center": "Centro de Rescate",
@@ -148,11 +163,14 @@
     "rejected_body": "Corrige lo indicado y vuelve a enviar tu solicitud con tu documento de identidad.",
     "services": {
       "transport": "Transporte",
+      "pet_taxi": "Pet-taxi",
       "grooming": "Peluquería",
       "pet_sitting": "Cuidado de mascotas",
       "dog_walking": "Paseo de perros",
       "pet_boarding": "Hospedaje",
-      "training": "Entrenamiento"
+      "training": "Entrenamiento",
+      "veterinary": "Veterinaria",
+      "other": "Otro"
     },
     "pet_types": {
       "dog": "Perro",

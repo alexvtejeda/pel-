@@ -18,6 +18,44 @@ export interface OperatingHours {
   sunday?: DayHours
 }
 
+/**
+ * Canonical business service keys — keep in sync with internal/business/services.go,
+ * which rejects anything outside this list on both POST and PATCH.
+ *
+ * Deliberately NOT the same list as SERVICE_TYPES in ./service-providers. That one is
+ * the *service provider* contract (validated by internal/serviceproviders/repository.go)
+ * and carries no veterinary/other/pet_taxi — offering those in the provider form would
+ * produce a checkbox the provider endpoint 400s on. Businesses validate against a superset.
+ */
+export const BUSINESS_SERVICE_TYPES = [
+  'transport',
+  'pet_taxi',
+  'grooming',
+  'pet_sitting',
+  'dog_walking',
+  'pet_boarding',
+  'training',
+  'veterinary',
+  'other',
+] as const
+
+export type BusinessServiceType = (typeof BUSINESS_SERVICE_TYPES)[number]
+
+/** The pet-taxi marketplace opt-in key. See PET_TAXI_SERVICE's note below. */
+export const PET_TAXI_SERVICE: BusinessServiceType = 'pet_taxi'
+
+/**
+ * The keys offered as ordinary service checkboxes.
+ *
+ * `pet_taxi` is excluded on purpose: `transport` is the directory tag ("I move pets"),
+ * while `pet_taxi` means "priced, quote-driven, accepts targeted trips". The backend
+ * lists a business in the marketplace only when it carries `pet_taxi` *and* a non-NULL
+ * taxi_base_fee, so it belongs with the pricing fields, not among the plain tags.
+ */
+export const BUSINESS_SERVICE_OPTIONS = BUSINESS_SERVICE_TYPES.filter(
+  (s) => s !== PET_TAXI_SERVICE,
+)
+
 export interface Business {
   id: string
   user_id: string
@@ -32,6 +70,15 @@ export interface Business {
   operating_hours?: OperatingHours
   cover_photo_url?: string
   price?: number | null
+  /**
+   * Pet-taxi pricing overrides, in DOP. Serialized `omitempty`, so an absent field
+   * means NULL — "use the platform QUOTE_DEFAULT_* fallback" — which is distinct
+   * from an explicit 0.
+   */
+  taxi_base_fee?: number | null
+  taxi_per_km?: number | null
+  taxi_per_minute?: number | null
+  terms_and_conditions?: string | null
   status: string
   rejection_reason?: string
 }
@@ -67,8 +114,24 @@ export async function getMyBusiness(): Promise<{ data: Business | null; error: s
   return { data: json, error: null }
 }
 
+/**
+ * Partial update payload. Omitted fields are left untouched by the backend.
+ *
+ * Note the backend applies every column with `COALESCE($n, column)`, so sending an
+ * explicit `null` is a no-op, not a clear — there is no way to unset a fee once
+ * written. Opting back out of the marketplace is done by dropping `pet_taxi` from
+ * `services`, which de-lists the business regardless of what the fees still hold.
+ */
+export interface UpdateBusinessInput extends Partial<CreateBusinessInput> {
+  price?: number | null
+  taxi_base_fee?: number
+  taxi_per_km?: number
+  taxi_per_minute?: number
+  terms_and_conditions?: string
+}
+
 export async function updateBusiness(
-  data: Partial<CreateBusinessInput & { price: number | null }>,
+  data: UpdateBusinessInput,
 ): Promise<{ data: Business | null; error: string | null }> {
   try {
     const res = await apiClient('/api/v1/businesses/me', {
