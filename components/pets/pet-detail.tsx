@@ -53,6 +53,7 @@ function DetailCarousel({ urls }: { urls: string[] }) {
           containerPadding={0}
           dotsOverlay
           showPauseButton
+          flushItems
           className="relative overflow-hidden w-full h-full"
         />
       )}

@@ -30,6 +30,12 @@ export interface CarouselProps {
   containerPadding?: number;
   dotsOverlay?: boolean;
   showPauseButton?: boolean;
+  /**
+   * Drops the per-slide `rounded-xl`. Opt-in: the detail sheet is the only
+   * caller whose carousel sits flush against a square-cornered panel, where
+   * the rounded slide lets the panel's background show through the corners.
+   */
+  flushItems?: boolean;
 }
 
 const DEFAULT_ITEMS: CarouselItem[] = [
@@ -78,9 +84,10 @@ interface CarouselItemProps {
   trackItemOffset: number;
   x: any;
   transition: any;
+  flushItems: boolean;
 }
 
-function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, transition }: CarouselItemProps) {
+function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, transition, flushItems }: CarouselItemProps) {
   const range = [-(index + 1) * trackItemOffset, -index * trackItemOffset, -(index - 1) * trackItemOffset];
   const outputRange = [90, 0, -90];
   const rotateY = useTransform(x, range, outputRange, { clamp: false });
@@ -89,7 +96,7 @@ function CarouselItem({ item, index, itemWidth, round, trackItemOffset, x, trans
     return (
       <motion.div
         key={`${item?.id ?? index}-${index}`}
-        className="relative shrink-0 overflow-hidden rounded-xl cursor-grab active:cursor-grabbing"
+        className={`relative shrink-0 overflow-hidden ${flushItems ? '' : 'rounded-xl'} cursor-grab active:cursor-grabbing`}
         style={{ width: itemWidth, height: itemWidth, rotateY }}
         transition={transition}
       >
@@ -144,6 +151,7 @@ export default function Carousel({
   containerPadding = 16,
   dotsOverlay = false,
   showPauseButton = false,
+  flushItems = false,
 }: CarouselProps): JSX.Element {
   const itemWidth = baseWidth - containerPadding * 2;
   const trackItemOffset = itemWidth + GAP;
@@ -307,6 +315,7 @@ export default function Carousel({
             trackItemOffset={trackItemOffset}
             x={x}
             transition={effectiveTransition}
+            flushItems={flushItems}
           />
         ))}
       </motion.div>
