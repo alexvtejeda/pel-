@@ -1,379 +1,245 @@
-# UI Improvement Pass — Audit + Spec (2026-07-28)
+# Center the registration-flow cards at any viewport (2026-07-31)
 
-Goal: use ui-ux-pro-max design intelligence to propose improvements for the
-in-scope pelurd.com routes, then write a spec to `docs/superpowers/specs/`
-for Opus 5 to execute. **No implementation in this session.**
+Goal: the card on `/auth/role-selection` and `/auth/mfa/enrollment` sits centred
+in the space below the nav at every screen size, and content taller than that
+space scrolls instead of being clipped.
 
-In-scope routes (from memory `pelurd-ui-audit-scope`):
-`/`, `/pets`, `/aliados`, `/adopt?id=<uuid>`, `/chat`, `/mis-mascotas`,
-`/servicios`, `/auth/mfa/enrollment`. Deferred: dashboards, `/about`.
+## The bug
+
+Both shells center with `items-center` / `justify-center` on a wrapper that has
+**auto height**. There is no free space to distribute, so the class is a no-op
+and the card lands directly under the nav. Measured in Chrome against the
+running build:
+
+| viewport  | nav  | card h | gap above | gap below | result                          |
+|-----------|------|--------|-----------|-----------|---------------------------------|
+| 1920×1080 | 73.9 | 684    | 16        | 306.1     | 145px too high                  |
+| 1440×900  | 73.9 | 684    | 16        | 126.1     | 55px too high                   |
+| 1024×758  | 73.9 | 684    | 16        | −15.9     | 32px clipped, cannot scroll     |
+| 844×390   | 73.9 | 684    | 16        | −383.9    | 400px clipped, Continuar unreachable |
+| 390×844   | 73.9 | 1100   | 16        | —         | 362px clipped, cannot scroll    |
+
+The gap above is exactly 16px (the `p-4`) at every size — proof the centering
+classes do nothing. `overflow-hidden` on the root turns the overflow into
+*unreachable* content rather than a scrollbar.
+
+## The fix
+
+Root becomes a flex column; the content row takes `flex-1`, which resolves to
+`100dvh − navHeight` at runtime. No hardcoded nav height: the nav measures
+**73.9px**, not the 72px its classes suggest (the breadcrumb line box is 33.9px,
+not the Logo's 32px), so any magic number would already be ~2px wrong.
+
+Flex items default to `min-height: auto`, so the row floors at content height —
+it centers when there is room and grows-and-scrolls when there is not.
 
 ## Todo
 
-- [x] Generate design system recommendation via ui-ux-pro-max search.py
-- [x] Supplementary domain searches (product, landing, ux)
-- [x] Map current code/UI of all 8 in-scope routes (Explore agents — all 3
-      reports in)
-- [x] Drive live site: captured desktop screenshots of /pets, /aliados,
-      /servicios, /mis-mascotas, /chat, /auth/mfa/enrollment, /adopt?id=…;
-      mobile (375px) of / and /pets. Saved in .playwright-mcp/audit-*.jpeg
-- [x] Fold in known bugs from memory (banner crop on /adopt, locale-driven
-      mixed language, "72 Months" age formatting)
-- [x] Write spec: docs/superpowers/specs/2026-07-28-ui-improvement-pass-design.md
-- [x] Review section below
+- [x] `role-selection.tsx:111` — root to `flex min-h-dvh flex-col overflow-x-clip`
+- [x] `role-selection.tsx:120` — wrapper to `flex flex-1 items-center justify-center p-4`
+- [x] `role-selection.tsx:121` — `p-16` → `p-6 sm:p-10 lg:p-16` (at 390px the
+      description column collapses to ~90px, wrapping to 6–7 lines)
+- [x] `onboarding-nav.tsx:40` — add `shrink-0`
+- [x] `mfa-enrollment.tsx:201` — root to `flex min-h-dvh flex-col overflow-x-clip`
+- [x] `mfa-enrollment.tsx:205` — wrapper to `flex flex-1 items-center justify-center p-4`;
+      drop `overflow-y-clip` and the no-op `border-border`
+- [x] `mfa-enrollment.tsx:206` — responsive padding, drop duplicate `border-border`
+- [x] Verify all three enrollment step heights (shell rebuilt in-browser; the
+      route itself redirects to /auth/login without local credentials)
+- [x] Re-measure viewports: `gapAbove == gapBelow`
+- [x] `npx tsc --noEmit` — only the 2 known pre-existing errors
+- [x] `npx vitest run` — 776/777, the one failure pre-existing (transition-overlay.tsx)
 
-## Notes so far
+## Out of scope
 
-- ui-ux-pro-max palette/font suggestions would be a rebrand — rejected.
-  Keep existing OKLCH brand tokens + Inter/Source Sans 3/Manrope.
-- Take instead: warm community landing pattern (social proof before CTA,
-  3-5 testimonials with photo+name+role), Accessible & Ethical style
-  (focus rings, WCAG contrast, reduced motion), empty/loading/hover/active
-  state discipline, skeletons >300ms, submit feedback on all forms.
-
-## Round 2 (same day): decisions + additions
-
-- [x] Alex decided all 5 spec questions (Q1a, Q2a, Q3c, Q4 yes, Q5 keep) —
-      folded into the frontend spec (§2 now records decisions)
-- [x] Added §3.2.1 `PeluLoadingLogo` — assembling-paw loading animation
-      ported from `pelu/decks/tesis/index.html:361-377` + `:96-109`
-- [x] Added locale default + ES/EN switcher work to §3.7 (Q1)
-- [x] Landing §4 / aliados §6 updated for Q2/Q3
-- [x] Backend audit for Contactar (Explore agent over pelu/api)
-- [x] Wrote cross-repo spec:
-      `pelu/docs/superpowers/specs/2026-07-28-aliados-contactar-chat-design.md`
-      (at pelu/ root — spans both repos; includes §6 delegation table)
-
-## Round 3 (2026-07-28): implementation plans written
-
-Spec → plans via the `writing-plans` skill. Split into **3 plan documents by
-milestone** (Alex's choice) so each ships working software on its own and each
-fits in a fresh execution session:
-
-- [x] `docs/superpowers/plans/2026-07-28-ui-pass-a-foundations.md` — §3.1–3.10.
-      18 tasks: primitives, PeluLoadingLogo, ErrorState, tokens, focus recipe,
-      locale default + ES/EN switcher, i18n cleanup, age formatter.
-- [x] `docs/superpowers/plans/2026-07-28-ui-pass-b-p0-bugs.md` — §7/8/9/11 P0.
-      10 tasks: adopt banner + load + submit outcomes, chat/mis-mascotas
-      error≠empty, MFA spinner trap + silent email failure + unguarded route.
-- [x] `docs/superpowers/plans/2026-07-28-ui-pass-c-route-polish.md` — §4/5/6/10
-      plus the P1/P2 remainder of §7/8/9/11. 8 milestones, 29 tasks.
-
-**No code changed.** Plans only.
-
-### Findings that corrected the spec while grounding the plans
-
-1. **§3.5 contrast — the spec guessed `pop-700`/`pop-750`; measured answer is
-   `pop-800`.** WCAG vs white: pop-750 = 4.36:1 (fails), **pop-800 = 5.54:1
-   (passes)**, pop-550 = 2.27:1. Plan A adds a `--color-pop-solid` alias.
-2. **§7 "no `.catch` → infinite spinner" is not the real failure.**
-   `lib/api/pets-public.ts` never rejects — it returns
-   `{data: null, error: 'Error de conexión'}`. So a network outage is
-   indistinguishable from a 404 and `/adopt` **silently redirects to /pets**.
-   Plan B branches on `error` before deciding to redirect.
-3. **§6 "translate badges through `aliados.filters.*`" — those keys don't match
-   the data.** Filters are `walking`/`sitting`; providers actually store
-   `dog_walking`/`pet_sitting`, and `pet_boarding` has no filter at all. Plan C
-   rebuilds the list from `SERVICE_TYPES` and labels from
-   `service_providers.services.*` (exact match).
-4. **Blast-radius scoping.** `bg-pop-550` appears in 33 files and raw
-   amber/green/yellow in 26 — mostly dashboards, which are out of scope. Both
-   migrations are scoped to the audited files, with **scoped** guard tests
-   rather than global bans that would fail on untouched code.
-5. `components/__tests__/design-structure.test.tsx:111` asserts the active pets
-   filter pill has `.bg-pop-550` — it breaks when §3.5 lands. Plan A updates it.
+- The three onboarding wizards — scrolling multi-step layouts, centering is not
+  the goal there.
+- Equal-height role cards (`grid-rows-3`) — aesthetic call, not raised.
 
 ## Review
 
-**No code was changed in this session** — the deliverable is the spec at
-`docs/superpowers/specs/2026-07-28-ui-improvement-pass-design.md`, ready for
-Opus 5 to turn into an execution plan.
+### What changed
 
-Evidence gathered:
-- Live prod captures (desktop 1440 + mobile 375) of all in-scope routes →
-  `.playwright-mcp/audit-*.jpeg`
-- Line-level code audits of all 8 routes (3 parallel Explore agents)
-- ui-ux-pro-max design-system + domain searches (rebrand suggestions
-  rejected; state/a11y/motion discipline adopted)
+Three files, class strings only — no logic touched.
 
-Headline findings (full detail in the spec):
-- P0 bugs: /adopt banner crop root cause (indefinite parent height →
-  `h-full` = auto), /adopt load with no `.catch` (infinite spinner),
-  success+error shown together after partial submit, MFA TOTP setup failure
-  traps user on a spinner, email OTP fails silently, MFA route unguarded,
-  chat/mis-mascotas render API failures as *empty* states, "72 Months" age.
-- Systemic: zero `focus-visible`/`aria-pressed` anywhere, 3 spinner idioms,
-  card radius violations incl. shared ui primitives, non-token colors
-  (amber/green/rgba), hardcoded es-DO locale + ~30 hardcoded strings,
-  white-on-pop-550 contrast failures, mobile bottom nav covers footer.
-- 5 open product questions for Alex flagged in spec §2 (locale detection,
-  placeholder logos, aliados Contactar, primitive radius blast-radius, MFA
-  forced dark).
+- `role-selection.tsx` — root is now a flex column (`flex min-h-dvh flex-col
+  overflow-x-clip`); the content wrapper is `flex flex-1 items-center
+  justify-center p-4`; card padding is responsive.
+- `onboarding-nav.tsx` — `shrink-0` on the `<nav>`.
+- `mfa-enrollment.tsx` (`MfaPanel`, the shell all three steps render through) —
+  same pattern; dropped `overflow-y-clip` and two no-op `border-border`.
 
----
+`flex-1` resolves to `100dvh − navHeight` at runtime, so nothing hardcodes the
+nav. That matters: the nav measures **73.9px**, not the 72px its classes imply.
 
-## Plan A execution (2026-07-28) — `feat/ui-pass-foundations`
+### Measured after (live code, reloaded)
 
-All 18 tasks of `docs/superpowers/plans/2026-07-28-ui-pass-a-foundations.md`
-are implemented. 26 commits, 73 files, +1182/-249. Executed subagent-driven:
-one implementer per task, then a spec-compliance review, then a code-quality
-review. Every spec review passed; every quality review returned APPROVED
-except one, which is recorded below.
+| viewport  | gap above | gap below | centered |
+|-----------|-----------|-----------|----------|
+| 1920×1080 | 161       | 161.1     | yes      |
+| 1440×900  | 71        | 71.1      | yes      |
 
-### What shipped
+MfaPanel shell, 390×844: short card 251/251.1 centered, medium 101/101.1
+centered, oversized correctly stops centering and scrolls 510px.
 
-- **Primitives** — `formatAge()`, `Spinner`, `PeluLoadingLogo` (the
-  assembling paw, ported from the thesis deck), `ErrorState`,
-  `LanguageSwitcher`. Button/Card/AlertDialog radii pinned to house values
-  with guard tests.
-- **Theme** — `focus-ring` utility, `success`/`warning` token families with
-  dark-mode values, `--color-pop-solid` (pop-800, 5.54:1 on white).
-- **Accessibility** — focus rings across every audited route (there were
-  zero before), `aria-pressed` on 12 toggles, accessible names on every
-  icon-only button, `prefers-reduced-motion` honored on the landing page.
-- **i18n** — Spanish by default (the `navigator.language` sniff is gone),
-  ES/EN switcher in header + footer, ~30 hardcoded strings translated, and
-  `lib/api/mfa.ts`'s 14 Spanish error literals turned into keys.
-- **Layout** — footer clears the 56px mobile bottom nav.
+Mobile 390px on role-selection: content width 215→295px, description column
+~90→143px, wraps 6/4/7→4/3/4 lines, card height 1100→812, overflow 362→74px.
 
-### Corrections made during execution
+### Correction to the original diagnosis
 
-1. **Task 18's token was wrong.** `var(--color-border)` was specified as the
-   chat divider's shadow, but in dark mode `--border` (L20%) is *lighter*
-   than `--background` (L11%), so it rendered as a light rim, not a shadow.
-   No surface token in this palette is darker than the dark background.
-   Added a purpose-built `--shadow-divider` (black 6% light / 50% dark).
-2. **A latent MFA regression.** The new key `mfa.errors.code_invalid_expired`
-   contains the substring `expired`, which `mfa-verify.tsx` uses to trigger a
-   forced re-login. Unguarded, every wrong code on the fallback path would
-   have logged the user out. Gated behind `isMfaErrorKey()`.
-3. **Task 16 scope extended by 3 files.** Three dashboard settings tabs
-   render `deleteTotp`/`deleteWebauthn`/`deleteEmail` errors directly. Left
-   alone they would have displayed the literal text `mfa.errors.delete_totp`.
-4. **The language switcher failed WCAG 2.5.3.** `aria-label="Español"`
-   replaced the visible "ES" as the accessible name, so voice control could
-   not target it. The visible text is now the name; the full language name
-   is the description.
+The first pass reported "the page cannot scroll, Continuar is unreachable at
+1024×758 and below". **That was wrong** — a measurement artifact. The app sets
+`scroll-behavior: smooth`, so `window.scrollTo(0, N)` followed by a synchronous
+`scrollTop` read always returns 0. Re-measured with `behavior: 'instant'`, the
+original scrolled fine (`maxScroll: 400`, button reachable).
 
-### Known, unfixed, out of scope
+Consequence: `overflow-hidden` → `overflow-x-clip` fixes **no live bug**. A root
+with only a `min-height` grows to fit its content, so it never clipped. The
+change is kept as defensive hygiene (it cannot trap vertical overflow if a fixed
+height is ever introduced), not as a fix. The real bug was always just the
+centering, which is what was asked about.
 
-- `components/__tests__/design-system.test.ts` test 10 fails on inline
-  `style={{}}` in `components/transitions/transition-overlay.tsx`. This
-  predates the branch (it fails on `main`) and that file is out of scope.
-- **`bun run lint` is broken repo-wide.** `next lint` was removed in Next 16
-  and there is no `eslint.config.*`. Nothing in this plan can run lint;
-  `npx tsc --noEmit` was used as the type gate instead. Worth its own task.
-- `roles.adopter` is a dead key (`UserRole` has no `adopter`); `time.just_now`
-  and the new `time.now` are near-synonyms that now coexist.
-- Deferred to Plans B/C as the plan intended: wiring `ErrorState` into each
-  route, and the `emailEnable()` toast in `mfa-enrollment.tsx`.
+## Follow-up: animate the card height between enrollment steps
 
-### Verification
+- [x] `AnimatedHeight` in `mfa-enrollment.tsx` — wraps `MfaPanel`'s children
+- [x] Guard for jsdom's missing ResizeObserver
+- [x] Verified on the real route (registered a local throwaway account)
 
-- `npx vitest run` → **390/391**, the one failure being the pre-existing
-  `transition-overlay` violation above. 30 new tests added, including a
-  regression test for correction 2 that was proven to fail when the
-  `isMfaErrorKey` guard is removed.
-- `bun run build` → succeeds, all 25 routes prerendered.
-- Compiled CSS confirmed to carry `focus-ring`, `--color-pop-solid`,
-  `--shadow-divider` (light + dark), the status tokens, and the
-  reduced-motion guards. Static export renders `<html lang="es">`.
-- **The browser sweep was NOT done** — no browser tooling was available in
-  this session. Still to eyeball at 1440px and 375px, in both themes: the
-  `PeluLoadingLogo` assembly, the darker `pop-solid` CTAs, keyboard focus
-  rings, the chat divider shadow, and the footer above the mobile nav.
+`height: auto` is not interpolable, so a CSS transition cannot do this. Used the
+same idiom `components/Stepper.tsx` already uses — measure the content, animate
+an explicit height with a `motion.div` spring. Stepper itself is not reusable
+here for the reason already noted in the `MfaPanel` docstring (it owns its own
+next/back buttons).
 
----
+Three details worth keeping:
 
-## Plan B execution (2026-07-29) — `fix/ui-pass-p0-bugs`
+- **`initial={false}`** — on first paint `height` is still undefined; animating
+  in from 0 would make every mount look like a step change.
+- **`overflow: hidden` only while animating.** Left on permanently it clips what
+  deliberately paints outside the content box: the method buttons' `shadow-post`
+  (32px blur) and `focus-ring`'s `outline` (2px at 2px offset) — the latter is a
+  keyboard-accessibility regression, not just cosmetic.
+- **ResizeObserver, not a step-keyed effect.** It also catches height changes the
+  step swap does not cause. Measured proof below: the TOTP step first renders
+  short, then grows when the QR code resolves, and the wrapper re-targets.
 
-Tasks 1–3 (`/adopt`) had landed in an earlier session. This session executed
-**Tasks 4–10**, subagent-driven: one implementer per task, then an independent
-spec-compliance review, then a code-quality review, with fix loops.
+Measured on `/auth/mfa/enrollment` at 1440×900:
 
-**11 commits**, `8290d1a` → `44aae51`. Suite went **398/399 → 434/435** (+36
-tests); the one failure is the same pre-existing `transition-overlay.tsx`
-inline-style violation that fails on `main`.
+| transition | height | frames | duration | overflow |
+|---|---|---|---|---|
+| step 1 → 2 (TOTP) | 451 → 378 → 544 | 19 | 463ms | hidden during, visible at rest |
+| step 1 → 3 (email → recovery codes) | 451 → 500 | 12 | ~440ms | hidden during, visible at rest |
 
-### What shipped
+Card stays centred throughout — 85 / 85.1 on the recovery step.
 
-- **`/chat`** — the conversation list and message thread both discarded the
-  fetch error, so an outage rendered as "you have no conversations" / an empty
-  thread. Both now branch `loading → error → empty` with `ErrorState` + retry.
-  The no-selection panel stopped reusing `chat.empty`.
-- **`/mis-mascotas`** — same class of bug; a failed fetch invited you to add
-  your first pet. Now an error state with retry, and the add-pet button stays
-  reachable through the failure.
-- **MFA** — the TOTP setup spinner trap, the silent email-OTP failure, and the
-  unguarded enrollment route are all fixed.
+### Regression caught and fixed
 
-### Four defects found *in the plan itself* while executing it
+The first version threw `ReferenceError: ResizeObserver is not defined` in
+jsdom, taking the suite from 1 failure to **25**. Fixed with the guard
+`components/pets/pet-feed.tsx:44` already uses. Leaving `height` undefined is
+the correct degradation: `offsetHeight` is 0 in a layout-less environment, and
+committing that would collapse the card. Back to 776/777.
 
-1. **Task 8's `useCallback(..., [resolveError])` is an infinite refetch loop.**
-   `useMfaError()` returns an unmemoized closure, so `startSetup`'s identity
-   changes every render and the effect re-fires forever. Reproduced: `act()`
-   times out at 5000ms with the plan's literal code. Fixed with a latest-ref;
-   a language-switch probe (ES→EN→retry) confirms no stale closure.
-2. **`totpSetup()` rejects — the plan's `startSetup` had no `.catch`.**
-   `lib/api/client.ts` awaits raw `fetch` unguarded and `lib/api/mfa.ts` does
-   `await res.json()` unguarded, so an unreachable API throws. Without the
-   added `.catch`, the exact trap the task exists to remove survives.
-3. **Task 10's literal 3-line layout breaks the forced-MFA path.**
-   `ProtectedRoute` renders its *own* `<MfaEnrollment>` whose `onComplete`
-   **logs the user out**, short-circuiting `children`. Wrapping the route
-   naively would have logged RC/business users out on successful enrollment
-   and made the route's `?mfa=1` contract dead code. Fixed with an opt-in
-   `allowMfaSetupPending` prop (default `false`; all 8 existing call sites
-   verified unchanged; auth and role gating both still precede the MFA branch).
-4. **Task 5's replacement dropped a race guard.** The plan removed the
-   `cancelled` flag, but `loadMessages` depends on `conversation.id`, so a slow
-   response for conversation A could paint into B. Replaced with a request
-   token — then extended to the pagination path, which the token initially
-   missed and which could prepend A's history into B's thread.
+## Follow-up 2: MfaPanel must never overflow the page
 
-### Corrections made during review
+- [x] Reproduced: step 3 overflowed the page by **106px at 1280×720**
+- [x] Root becomes `h-dvh` (was `min-h-dvh`), panel `max-h-full`, content area scrolls
+- [x] Verified across 4 viewports + step 1
 
-- The conversation-list retry test would have **passed against a retry that
-  never refetched** (it resolved with `[]`, which the empty state already
-  renders). Hardened to resolve with real data; deliberate-break check confirms
-  it now fails against a no-op retry.
-- Locking the MFA skip button required hoisting `handleSuccess` out of the
-  `try` — which, without an added `return` in the `catch`, would have made a
-  **network failure complete enrollment**. Pinned with an assertion.
+The panel is now capped at the viewport and the content area scrolls inside it,
+so the page itself can never scroll.
 
-### Known, unfixed, out of scope — follow-ups worth their own tasks
+**The non-obvious part.** The first attempt (`max-h-full` + `min-h-0`) did
+nothing — still 106px of page overflow. A percentage `max-height` resolves
+against a *definite* parent height, and `min-h-dvh` is not definite, so the cap
+silently computed to `none`. Changing the root to `h-dvh` is what makes it bite,
+and a definite root height is the invariant itself.
 
-- **`lib/api/mfa.ts` violates the never-throw API convention.** Every function
-  can reject; 15 of 18 other `lib/api/` modules use try/catch. `pets.ts` is the
-  documented exception — `mfa.ts` is an undocumented second one, and every MFA
-  screen inherits the trap. The local `.catch`es are a stopgap.
-- **`apiClient` sets no timeout / `AbortSignal`.** A *hung* request still spins
-  forever; the `.catch` branches only cover rejection.
-- **`use-mfa-error.ts` is unmemoized** — the footgun behind defect 1, still
-  live for the next caller who puts it in a dep array.
-- `chat-conversation-list`'s new empty-state copy is member-framed but the
-  component is shared with the RC dashboard chat tab.
-- The chat pagination fetch still discards its error and sets `hasMore = false`,
-  permanently disabling scroll-up after one transient failure.
-- `login()` never sets `mfaSetupRequired`; `MfaRecoveryModal` renders without
-  the forced `dark` wrapper; the MFA role list omits admins whose underlying
-  role is `member`.
-- `mfa-passkey-setup.tsx:55` still has the literal `←` + misused
-  `mfa.settings.cancel` — folded into Plan C Milestone 7.
+`min-h-0` on the centring wrapper is also load-bearing: without it `flex-1`
+grows to its content and `max-h-full` would resolve against that grown height.
 
-### Verification
+| viewport  | page overflow | panel fits | internal scroll |
+|-----------|---------------|------------|-----------------|
+| 1920×1080 | 0             | yes        | 0 — centred 143/143.1 |
+| 1280×720  | **0** (was 106) | yes      | 106             |
+| 390×844   | 0             | yes        | 6               |
+| 844×390   | 0             | yes        | 388, confirm button reachable |
 
-- `npx vitest run` → **434/435**, the one failure pre-existing.
-- `npx tsc --noEmit` → only the 2 known pre-existing `transition-link.test.tsx`
-  errors.
-- **`bun run build` was deliberately NOT run** — it rewrites `.next/`/`out/`,
-  which the Docker prod build on port 3000 serves. Static-export risk on the
-  new layout was judged nil against `app/transporte`, a shipped structural
-  twin (client page with `useSearchParams` in `<Suspense>` under a
-  `ProtectedRoute` layout).
-- **No browser verification.** Every live step in the plan was waived and
-  replaced with automated coverage. Still to eyeball: all eight failure paths
-  in the plan's Final-verification table.
+Centring is unchanged when the content fits; the cap only engages when it does
+not. The scroll area carries `-mx-2 px-2` so `focus-ring`'s outline keeps 8px of
+bleed inside the scroll box (it needs 4) — a bare scroll container would clip it.
 
----
+### Open: the nested padding is why it scrolls this early
 
-## Plan C execution (2026-07-29/30) — `fix/ui-pass-p0-bugs`
+Step 3 pays **256px of vertical padding before any content**: the panel's
+`lg:p-16` (64px top + bottom) plus the recovery card's own `p-16` nested inside
+it. That is the whole reason a 720px-tall laptop needs to scroll at all —
+reclaiming ~106px would remove it. Not changed, because the inner `p-16` looks
+like a deliberate choice. Options: inner `p-16`→`p-8` (64px) plus panel
+`lg:p-16`→`lg:p-10` (48px) = 112px, enough to clear it.
 
-All 8 milestones / 29 tasks of
-`docs/superpowers/plans/2026-07-28-ui-pass-c-route-polish.md` are implemented,
-subagent-driven: one implementer per task or coherent pair, then independent
-spec-compliance and code-quality reviews with fix loops.
+## Follow-up 3: logo loader during the registration flow's async work
 
-Suite went **434/435 → 673/674**. The one failure is still the pre-existing
-`transition-overlay.tsx` inline-style violation that also fails on `main`.
-`npx tsc --noEmit` unchanged at the 2 known pre-existing errors.
+Decided with the user: **only** while the real awaits run (not route changes,
+not intra-wizard steps, not `/adopt`), and a **new centered logo loader**
+(dimmed backdrop, pulsing mark, loops until the await resolves).
 
-### Nine defects found *in the plan's own code*
+### Todo
 
-Each was caught by reproducing the failure, not by reading:
+- [x] `components/logo-loader.tsx` — fixed dimmed overlay, centered pulsing mark
+- [x] `app/globals.css` — `--animate-logo-pulse` + `@keyframes`, next to `--animate-marquee`
+- [x] `common.json` es/en — new `saving` key
+- [x] Wire `role-selection.tsx` (`loading`) — covers `setRole`
+- [x] Wire `member-wizard.tsx` (`submitting`) — profile PATCH + `createUserPets`
+- [x] Wire `rescue-center-wizard.tsx` (`submitting`, `petSubmitting`) — `createRescueCenter`,
+      `createPet` + `uploadPhotos`, `getMethods`
+- [x] Wire `business-wizard.tsx` (`submitting`) — `createBusiness`, `uploadBusinessPhoto`, `getMethods`
+- [x] Verified in the browser against a throttled API
+- [x] `npx tsc --noEmit` (2 pre-existing) + `npx vitest run` (776/777) at baseline
 
-1. **`useMemo` below an early return** (Task 1.1) — hook count drops when
-   `submitted` flips, crashing with "Rendered fewer hooks than expected" on
-   **every successful adoption submit**. Reproduced in a worktree.
-2. **`htmlFor` dangling for `rating` and `file_upload`** (Task 1.2) — a `for`
-   pointing at a nonexistent id leaves the label unannounced *and* silently
-   unclickable. Guarded now by a test walking every `label[for]`.
-3. **The `preview` prop is passed by no call site** (Task 1.1) — its conditional
-   container was dead code, and both dashboard form previews lost their padding
-   and gained a bleeding progress bar. Re-keyed on `isPreview = preview ||
-   !onSubmit`, the file's own existing definition of "cannot submit".
-4. **`onClear` never wired** (Task 1.3) — the plan's Step 3 omits it while its
-   Step 4 asserts the "Quitar archivo" link appears. A wrong file could be
-   replaced but never detached.
-5. **Two sticky elements both at `top-40`** (Task 1.4) — the plan called the
-   collision possible and said to verify in a browser. It is *certain*: chip and
-   form are siblings in a column spanning the whole form, so both pin at 160px.
-   `position: sticky` has no "park below the previous sticky" behaviour.
-6. **`onRetry={() => fetchPets()}`** (Task 2.3) — sends an *unfiltered* request,
-   so a user filtered to "Gatos" gets every pet back while the pill stays lit.
-7. **`<header>` on `/pets` and `/aliados`** (Tasks 2.1, 3.1) — `PetsHeader` is
-   already a `<header>`, so this added a duplicate `banner` landmark.
-8. **Carousel `title` used for alt text** (Task 5.1) — `Carousel.tsx` renders
-   `title` as the alt **and** as a visible black caption bar, so the plan's
-   primary path would have stamped each pet's name across its own photo.
-9. **`h-13` called "not a Tailwind scale value"** (Task 7.2) — it is valid in
-   v4.2; verified against the built CSS. Shrinking the OTP boxes would have been
-   an unmotivated visual change.
+### Measured
 
-### Things the plan didn't know
+Throttling `/auth/role` by 1800ms on a real submit: the loader appeared on
+click, stayed **2068ms**, ran `logo-pulse` at `1.6s`, announced "Guardando…",
+sat at `z-index: 50`, and cleared only once `/auth/onboarding/member` painted.
 
-- **A required `file_upload` field could never be satisfied.** `validate()` only
-  inspected `answers`; file selections live in a separate `files` map. Permanent
-  submission block, and the new progress bar counted it forever unanswered.
-- **The photo DELETE endpoint exists** — `api/internal/userpets/router.go`
-  registers `DELETE /{id}/photos/{photoId}`, undocumented in swagger. So
-  `/mis-mascotas` got real photo removal (staged until save, so Cancel stays
-  non-destructive) instead of the planned "can't remove yet" apology.
-- **The OTP field is a six-box split input.** `autoComplete="one-time-code"`
-  alone would have been decorative: OS autofill bypasses `maxLength`, and
-  `value.slice(-1)` reduced a 6-digit fill to one digit.
-- **Radix `DialogContent` in this repo renders no close button** (unlike
-  upstream shadcn), so deleting the hand-rolled one would have left zero.
-- **Radix `hideOthers()` `aria-hidden`s siblings of portaled content**, so
-  nesting the recovery modal inside `MfaPanel` would have hidden the very
-  progress bar it was meant to complete. Recovery renders inline instead.
-- **`/p?slug=` never opens the detail sheet** — `SlugRedirectPage` passes
-  `initialSelected`, but `PetsPage`'s `open` state initialises `false` and
-  nothing opens it. Pre-existing, out of scope, real.
+### Three fixes the wiring turned up
 
-### Known, unfixed
+- `role-selection.tsx` called `setLoading(false)` *after* `router.push`. Since
+  push resolves before the next route paints, that flashed the role picker back
+  for a frame. Removed — the component unmounts on navigation anyway. Same
+  pattern removed from `member-wizard.tsx`'s no-pets branch.
+- Both `rescue-center-wizard.tsx` and `business-wizard.tsx` cleared `submitting`
+  *before* `await getMethods()`, so the loader blinked off while a second round
+  trip was still deciding which screen came next. Moved the clear after it.
+- Pulse opacity floor raised 0.55 → 0.7. `logo.svg` is a fixed dark slate
+  (`#3b424c`) with no `currentColor`, so a deep trough read as washed out
+  rather than as a pulse; scale carries the motion instead.
 
-- **Commit `3e61768` has a misleading message.** Two implementers ran
-  concurrently on disjoint *files* but a shared *git index*; a bare `git commit`
-  swept Task 7.4's MFA changes into Milestone 8's container-width commit. No
-  work was lost and the tree is correct — only the boundary is wrong. Branch is
-  local and unpushed, so a rebase reword is available if wanted. **Lesson: use
-  `git commit -- <pathspec>`, or don't run implementers in parallel.**
-- **Footer contrast is sub-AA and the plan made it worse.** `muted-foreground`
-  on `bg-primary` measures 3.36:1 light / 2.97:1 dark today; the plan's `/70` on
-  the legal rows takes it to 2.18:1 / 2.04:1. Shipped as specified because
-  dropping `/70` still fails 4.5:1 — the real fix is the footer's base token.
-- **The `/adopt` mobile chrome budget.** Banner 160 + sticky chip 74 + progress
-  44 = **278px**, ~50% of an iPhone SE's visible viewport, ~2 fields visible on
-  a 25-question form. Feeds the agreed mobile redesign work.
-- The `top-[calc(14.5rem+2px)]` offset hard-codes /adopt's banner+chip height
-  inside `form-renderer.tsx`; jsdom has no layout, so no test can hold it.
-- `hola@pelurd.com` could not be confirmed as a real inbox, so the footer
-  contact row was dropped rather than shipping a bouncing mailto. `footer.contact`
-  is retained in both locales — re-add the row if the inbox is real.
-- Carried from Plan B and still open: `lib/api/mfa.ts` violates the never-throw
-  convention; `apiClient` has no request timeout so a *hung* request spins
-  forever; `use-mfa-error.ts` is unmemoized; the chat pagination fetch discards
-  its error and permanently disables scroll-up.
+### Known limitation
 
-### Verification
+`logo.svg` hardcodes its colours, so if these screens ever render on a genuinely
+dark surface the mark will sink into it. Today the `dark` class on the auth
+shells still resolves to a light background, so it reads fine — the same
+assumption `components/logo.tsx` already makes in the nav.
 
-- `npx vitest run` → **673/674**, the one failure pre-existing.
-- `npx tsc --noEmit` → only the 2 known pre-existing errors.
-- **`bun run build` was NOT run** — it rewrites `.next/`/`out/`, which the
-  Docker prod build on port 3000 serves.
-- **NOTHING was verified in a browser.** Port 3000 serves a stale Docker prod
-  build, and CORS blocks API data on any other port. Every live step across both
-  plans was waived. For a *visual* pass this is the headline gap — highest risk
-  in Milestones 1 (sticky stacking), 3 (DOP price formatting), 5 (modal layout)
-  and 8 (rebalanced hero, 375px carousel height).
+### Two constraints that decide the implementation
+
+**CSS keyframes, not Framer Motion.** `CLAUDE.md` records that `LogoLoop` was
+replaced by a CSS `@keyframes` marquee because `requestAnimationFrame` freezes
+on mobile Safari after React re-renders. A loader that loops for the length of a
+photo upload is exactly that hazard, so the pulse runs on the compositor via CSS
+and `motion-reduce:animate-none` handles reduced motion — no JS timer at all.
+
+**Do not reuse `components/logo.tsx`.** It wraps the mark in `<Link href="/">`,
+so dropping it into a blocking overlay would make clicking the loader navigate
+home mid-submit. The loader renders the `<Image>` directly.
+
+### Not done
+
+- Equal-height role cards (`grid-rows-3`) — never confirmed as wanted.
+- `/auth/mfa/enrollment` not driven end-to-end: it redirects to `/auth/login`
+  and there are no local test credentials. Shell geometry was verified by
+  rebuilding the exact `MfaPanel` DOM against the loaded stylesheet; the real
+  route's three steps have not been seen rendered.
+- The three onboarding wizards — out of scope by design.

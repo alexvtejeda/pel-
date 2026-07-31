@@ -118,6 +118,8 @@
   --radius-2xl: 1rem;
   --radius-xl: 0.75rem;
 
+  --spacing-enrollment-nav: calc(var(--spacing)*5)
+
   --font-sans: Inter, Source Sans 3, Manrope, system-ui, sans-serif;
 
   --animate-accordion-down: accordion-down 0.2s ease-out;
@@ -130,6 +132,27 @@
   --shadow-post: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 12px rgb(0 0 0 / 0.06), 0 12px 32px rgb(0 0 0 / 0.04);
 
   --animate-marquee: marquee 25s linear infinite;
+
+  /* Registration-flow loader. CSS rather than a rAF loop for the same reason
+     LogoMarquee replaced LogoLoop: rAF animations freeze on mobile Safari after
+     a React re-render, and this one has to survive the length of a photo
+     upload. Running on the compositor, it cannot stall. */
+  --animate-logo-pulse: logo-pulse 1.6s ease-in-out infinite;
+
+  @keyframes logo-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+      /* Floor is 0.7, not 0.5: logo.svg is a fixed dark slate (#3b424c) with no
+         currentColor, so a deeper trough reads as washed out rather than as a
+         pulse. Scale carries most of the motion. */
+      opacity: 0.7;
+    }
+    50% {
+      transform: scale(1.12);
+      opacity: 1;
+    }
+  }
 
   @keyframes marquee {
     from {

@@ -2,6 +2,7 @@
   "app_name": "Pelú",
   "welcome": "Welcome",
   "loading": "Loading...",
+  "saving": "Saving...",
   "error": "Error",
   "error_state": {
     "title": "We couldn't load this",

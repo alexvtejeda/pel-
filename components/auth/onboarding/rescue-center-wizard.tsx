@@ -20,6 +20,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { createRescueCenter, getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { LogoLoader } from '@/components/logo-loader'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { getMethods } from '@/lib/api/mfa'
 import Carousel from '@/components/Carousel'
@@ -184,10 +185,12 @@ export function RescueCenterWizard() {
       return
     }
 
-    setSubmitting(false)
-
     // Skip MFA enrollment if already configured (e.g. during post-registration prompt)
+    // `submitting` stays set across this call: it is a second round trip, and
+    // clearing it first blinked the loader off and put the form back on screen
+    // while the app was still deciding which screen comes next.
     const { data: mfaData } = await getMethods()
+    setSubmitting(false)
     if (mfaData?.mfa_enabled) {
       setSubmitted(true)
     } else {
@@ -225,7 +228,7 @@ export function RescueCenterWizard() {
       return (
         <div className="dark relative min-h-screen overflow-hidden bg-background">
           <BackgroundBeams />
-          <main className="backdrop-blur-sm my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30 inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
+          <main className="my-4 rounded-2xl relative z-10 max-w-md mx-auto p-8 pb-20 bg-background shadow-post">
             <h1 className="text-2xl font-bold tracking-tight mb-1">{t('rc_wizard.add_pets_prompt')}</h1>
             <p className="text-sm text-muted-foreground mb-10">{t('rc_wizard.success_subtitle')}</p>
 
@@ -393,9 +396,9 @@ export function RescueCenterWizard() {
 
     // Decision point / Pet added confirmation
     return (
-      <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
-        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background p-16 inset-shadow-border-border shadow-post">
           {petAdded ? (
             <>
               <FontAwesomeIcon icon={faPaw} className="text-6xl text-pop-550" />
@@ -437,8 +440,11 @@ export function RescueCenterWizard() {
   }
 
   return (
-    <div className="dark relative min-h-screen overflow-hidden bg-background">
+    <div className="dark relative h-screen overflow-hidden bg-background">
       <BackgroundBeams />
+      {/* petSubmitting too: createPet is followed by uploadPhotos, which is the
+          slowest thing in this whole flow. */}
+      {(submitting || petSubmitting) && <LogoLoader />}
 
       <OnboardingNav
         items={[
@@ -450,7 +456,7 @@ export function RescueCenterWizard() {
       />
 
       {/* Page content */}
-      <main className="backdrop-blur-sm my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30  inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
+      <main className="my-4 rounded-2xl relative z-10 max-w-3xl mx-auto px-8 py-8 bg-background border-border shadow-post">
 
         <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu centro de rescate</h1>
         <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
@@ -556,7 +562,7 @@ export function RescueCenterWizard() {
               sessionStorage.setItem('pelu_changing_role', '1')
               router.push('/auth/role-selection')
             }}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            className="flex border-border rounded-xl p-4 border-2 items-center gap-2 text-sm text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
           >
             <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
             Cambiar rol

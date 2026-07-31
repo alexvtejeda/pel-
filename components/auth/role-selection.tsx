@@ -9,6 +9,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDog, faShieldCat, faCheck, faStore } from '@fortawesome/free-solid-svg-icons'
 import { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { LogoLoader } from '@/components/logo-loader'
 import { OnboardingNav } from '@/components/auth/onboarding/onboarding-nav'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { getMyBusiness } from '@/lib/api/businesses'
@@ -103,13 +104,19 @@ export function RoleSelection() {
       return
     }
 
+    // No setLoading(false) here on purpose: router.push resolves before the
+    // next route paints, so clearing it would flash the role picker back for a
+    // frame. The component unmounts on navigation, which clears it for us.
     router.push(`/auth/onboarding/${selectedRole}`)
-    setLoading(false)
   }
 
   return (
-    <div className="dark relative min-h-screen overflow-hidden bg-background">
+    <div className="dark relative flex min-h-dvh flex-col overflow-x-clip bg-background">
       <BackgroundBeams />
+      {/* Stays up through the router.push on success — handleSubmit clears
+          `loading` only on the error path, so there is no gap between the
+          request finishing and the next screen painting. */}
+      {loading && <LogoLoader />}
       <OnboardingNav
         items={[
           { label: 'Inicio', href: '/' },
@@ -117,8 +124,8 @@ export function RoleSelection() {
           { label: 'Rol', current: true },
         ]}
       />
-      <div className="relative z-10 flex items-start justify-center p-4 pt-20">
-        <div className="w-full max-w-2xl">
+      <div className="relative z-10 flex flex-1 items-center justify-center p-4">
+        <div className="w-full max-w-2xl shadow-post bg-background border-2 p-6 sm:p-10 lg:p-16 rounded-2xl border-border">
           <div className="text-center mb-6">
             <h1 className="text-3xl font-bold mb-2">¿Cómo quieres usar Pelú?</h1>
             <p className="text-muted-foreground">
@@ -131,7 +138,7 @@ export function RoleSelection() {
               <button
                 key={option.value}
                 onClick={() => setSelectedRole(option.value)}
-                className={`p-6 rounded-2xl border-2 transition-all duration-300 ease-in-out text-left slide-background [--su-color:color-mix(in_oklch,var(--color-pop-450)_50%,transparent)] bg-background ${
+                className={`p-6 shadow-post rounded-2xl border-2 transition-all duration-300 ease-in-out text-left slide-background [--su-color:color-mix(in_oklch,var(--color-pop-450)_50%,transparent)] bg-background ${
                   selectedRole === option.value
                     ? 'transition-all ease-in duration-300 border-pop-950/10 bg-pop-450/50 inset-shadow-decoration'
                     : 'border-border'
@@ -168,7 +175,7 @@ export function RoleSelection() {
           <button
             onClick={handleSubmit}
             disabled={!selectedRole || loading}
-            className="w-full py-3 px-4 bg-primary text-primary-foreground rounded-xl font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-3 px-4 bg-pop-850 text-secondary rounded-xl font-medium hover:bg-pop-750 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Guardando...' : 'Continuar'}
           </button>

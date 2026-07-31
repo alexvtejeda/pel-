@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDog, faCat, faMars, faVenus } from '@fortawesome/free-solid-svg-icons'
 import { OnboardingNav } from './onboarding-nav'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { LogoLoader } from '@/components/logo-loader'
 import { apiClient } from '@/lib/api/client'
 import { createUserPets } from '@/lib/api/user-pets'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -89,7 +90,8 @@ export function MemberWizard() {
 
     if (!hasPets) {
       if (motivation) localStorage.setItem('pelu_motivation', motivation)
-      setSubmitting(false)
+      // Left set, like the success path below: clearing it before the push
+      // flashes the wizard back for a frame before the next route paints.
       router.push('/')
       return
     }
@@ -113,6 +115,7 @@ export function MemberWizard() {
   return (
     <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
+      {submitting && <LogoLoader />}
       <OnboardingNav
         items={[
           { label: 'Inicio', href: '/' },

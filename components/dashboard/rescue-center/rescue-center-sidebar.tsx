@@ -54,11 +54,12 @@ export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSide
 
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className='p-3'>
-        <Logo showText={state === 'expanded'} width={32} height={32} />
+      <SidebarHeader className='flex items-center justify-center p-3 w-full'>
+        <Logo showText={state === 'expanded'} width={32} height={48} />
       </SidebarHeader>
 
       <SidebarContent>
+        <hr className="w-full rounded-2xl border-border/20"></hr>
         <SidebarMenu className={`my-5 gap-8 ${state === 'collapsed' ? 'items-center gap-8' : ''}`}>
           {navItems.map(({ tab, label, icon }) => (
             <React.Fragment key={tab}>

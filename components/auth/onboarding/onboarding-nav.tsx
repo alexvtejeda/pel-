@@ -37,7 +37,7 @@ export function OnboardingNav({ items }: Props) {
         }
     }
     return ( 
-        <nav className="relative bg-card z-10 inset-shadow-[0px_0px_1px_2px_var(--color-input)]">
+        <nav className="relative shrink-0 bg-card z-10 inset-shadow-[0px_0px_1px_2px_var(--color-input)]">
           <div className="container mx-auto flex gap-8 items-center px-4 py-5">
             <Logo width={32} height={32} />
             <Breadcrumb>

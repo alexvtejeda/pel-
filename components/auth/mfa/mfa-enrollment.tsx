@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -85,7 +86,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
   if (recoveryCodes) {
     return (
       <MfaPanel breadcrumbItems={breadcrumbItems} step={3}>
-        <div className="w-full bg-background/90 backdrop-blur-xl rounded-2xl p-8 space-y-4 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="overflow-hidden w-full bg-background backdrop-blur-xl rounded-2xl p-8 space-y-4 shadow-post">
           <div className="space-y-1.5">
             <h1 className="text-lg font-semibold text-foreground">{t('mfa.recovery.title')}</h1>
             <p className="text-sm text-muted-foreground">{t('mfa.recovery.subtitle')}</p>
@@ -101,7 +102,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
   if (selectedMethod === 'totp' || selectedMethod === 'webauthn') {
     return (
       <MfaPanel breadcrumbItems={breadcrumbItems} step={2}>
-        <div className="w-full bg-background/90 backdrop-blur-xl rounded-2xl p-8 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="w-full bg-background/90 backdrop-blur-xl rounded-2xl p-8">
           {selectedMethod === 'totp' ? (
             <MfaTotpSetup onSuccess={handleSuccess} onBack={() => setSelectedMethod(null)} />
           ) : (
@@ -114,7 +115,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
 
   return (
     <MfaPanel breadcrumbItems={breadcrumbItems} step={1}>
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="text-center space-y-2">
           <FontAwesomeIcon icon={faShieldHalved} className="text-5xl text-pop-550" />
           <h1 className="text-2xl font-bold text-foreground">{t('mfa.enrollment.title')}</h1>
@@ -130,7 +131,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
                 onClick={() => handleSelectMethod(m.key)}
                 disabled={pendingMethod !== null}
                 aria-busy={pending}
-                className="focus-ring w-full p-4 bg-background/90 backdrop-blur-xl rounded-2xl border border-input hover:border-pop-450/50 transition-all text-left flex items-center gap-4 inset-shadow-[1px_1px_1px_var(--color-input)] disabled:opacity-60"
+                className="focus-ring w-full p-4 bg-background backdrop-blur-xl rounded-2xl border border-border hover:border-pop-450/50 transition-all text-left flex items-center gap-4 shadow-post disabled:opacity-60"
               >
                 {pending ? (
                   <Spinner className="text-xl text-pop-550" />
@@ -142,7 +143,7 @@ export function MfaEnrollment({ onComplete, onSkip, breadcrumbItems }: MfaEnroll
                   <div className="text-sm text-muted-foreground">{m.desc}</div>
                 </div>
                 {m.recommended && (
-                  <span className="text-xs px-2 py-1 bg-pop-550/20 text-pop-450 rounded-full font-medium">
+                  <span className="text-xs px-2 py-1 bg-pop-550/20 text-pop-550 rounded-full font-medium">
                     {t('mfa.enrollment.recommended')}
                   </span>
                 )}
@@ -196,14 +197,24 @@ function MfaPanel({ breadcrumbItems, step, children }: MfaPanelProps) {
       ? breadcrumbItems.slice(-1).map((item) => ({ label: item.label, current: true }))
       : breadcrumbItems
 
+  // Here we connect all of the pieces together, the product of DNS/auth/register
+  //
+  // h-dvh, not min-h-dvh: `max-h-full` on the panel resolves against a
+  // percentage, and a percentage needs a *definite* parent height. Under
+  // min-height the cap silently computes to `none` and the panel grows the page
+  // instead. A definite height is also the invariant itself — the page can no
+  // longer be taller than the viewport.
   return (
-    <div className="dark relative min-h-screen overflow-hidden bg-background">
+    <div className="dark relative flex h-dvh flex-col overflow-x-clip bg-background">
       <BackgroundBeams />
       <OnboardingNav items={trail} />
 
-      <div className="relative z-10 flex min-h-screen items-center justify-center p-4 pt-20">
-        <div className="w-full max-w-md space-y-4">
-          <div>
+      {/* min-h-0 is what makes the cap below bite: without it `flex-1` grows to
+          its content and `max-h-full` resolves to that grown height, so the
+          panel could still push the page taller than the viewport. */}
+      <div className="relative z-10 flex min-h-0 flex-1 items-center justify-center p-4">
+        <div className="flex max-h-full w-full max-w-2xl flex-col p-6 sm:p-10 lg:p-8 bg-background border-border shadow-2xl rounded-2xl">
+          <div className="shrink-0 mb-10">
             <p className="text-xs font-medium text-muted-foreground">
               {progressLabel} · {labels[step - 1]}
             </p>
@@ -223,9 +234,65 @@ function MfaPanel({ breadcrumbItems, step, children }: MfaPanelProps) {
               ))}
             </div>
           </div>
-          {children}
+          <AnimatedHeight>{children}</AnimatedHeight>
         </div>
       </div>
     </div>
+  )
+}
+
+/**
+ * Animates the card's height between enrollment steps, which otherwise snap
+ * from one content height to the next. Same idiom as components/Stepper.tsx —
+ * measure the content, animate an explicit height on the wrapper — rather than
+ * a CSS transition, because `height: auto` is not interpolable.
+ *
+ * The measured child stays in normal flow (Stepper absolutely positions its
+ * step, but that flow owns the slide animation this panel deliberately does
+ * not have), so the only job here is keeping the wrapper's height in sync.
+ */
+function AnimatedHeight({ children }: { children: React.ReactNode }) {
+  const innerRef = useRef<HTMLDivElement>(null)
+  const [height, setHeight] = useState<number>()
+  const [animating, setAnimating] = useState(false)
+  const reduceMotion = useReducedMotion()
+
+  useLayoutEffect(() => {
+    const el = innerRef.current
+    // Same guard as components/pets/pet-feed.tsx: jsdom ships no ResizeObserver.
+    // Bailing before the first measure leaves `height` undefined, which makes
+    // the wrapper a plain flow container — the content must never collapse to
+    // the 0 that offsetHeight reports in a layout-less environment.
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const measure = () => setHeight(el.offsetHeight)
+    measure()
+    // Catches height changes the step swap does not cause: a QR code finishing
+    // its decode, a validation message appearing, the viewport reflowing.
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <motion.div
+      // No entry animation: on first paint `height` is still undefined, and
+      // animating in from 0 would make every mount look like a step change.
+      initial={false}
+      animate={{ height }}
+      transition={reduceMotion ? { duration: 0 } : { type: 'spring', duration: 0.4, bounce: 0 }}
+      onAnimationStart={() => setAnimating(true)}
+      onAnimationComplete={() => setAnimating(false)}
+      // The panel is capped at the viewport, so when a step's content cannot
+      // fit, this is what scrolls — never the page. min-h-0 lets it shrink
+      // below its measured height; the -mx-2/px-2 pair keeps 8px of bleed
+      // inside the scroll box so focus-ring's outline (2px at 2px offset) is
+      // not clipped, which a bare scroll container would do.
+      className="-mx-2 min-h-0 px-2"
+      // While the height is in motion, clip instead of scrolling: a scrollbar
+      // flickering in and out for 400ms reads as a glitch.
+      style={{ overflowY: animating ? 'hidden' : 'auto' }}
+    >
+      <div ref={innerRef}>{children}</div>
+    </motion.div>
   )
 }

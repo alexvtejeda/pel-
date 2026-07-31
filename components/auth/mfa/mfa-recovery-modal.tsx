@@ -67,7 +67,7 @@ export function MfaRecoveryCodes({ codes, onConfirm }: MfaRecoveryCodesProps) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-2 p-4 bg-muted rounded-xl font-mono text-sm">
+      <div className="grid grid-cols-2 gap-2 p-4 bg-secondary rounded-xl font-mono text-sm">
         {codes.map((code, i) => (
           <div key={i} className="px-2 py-1">{code}</div>
         ))}
@@ -79,7 +79,7 @@ export function MfaRecoveryCodes({ codes, onConfirm }: MfaRecoveryCodesProps) {
           onClick={handleCopy}
           className="focus-ring flex flex-1 items-center justify-center gap-2 px-4 py-2 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
         >
-          <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="text-base" />
+          <FontAwesomeIcon icon={copied ? faCheck : faCopy} className="text-pop-650" />
           {copied ? t('mfa.recovery.copied') : t('mfa.recovery.copy_all')}
         </button>
         <button
@@ -87,7 +87,7 @@ export function MfaRecoveryCodes({ codes, onConfirm }: MfaRecoveryCodesProps) {
           onClick={handleDownload}
           className="focus-ring flex flex-1 items-center justify-center gap-2 px-4 py-2 border border-input rounded-xl text-sm hover:bg-muted transition-colors"
         >
-          <FontAwesomeIcon icon={faDownload} className="text-base" />
+          <FontAwesomeIcon icon={faDownload} className="text-pop-650" />
           {t('mfa.recovery.download')}
         </button>
       </div>
@@ -97,7 +97,7 @@ export function MfaRecoveryCodes({ codes, onConfirm }: MfaRecoveryCodesProps) {
           type="checkbox"
           checked={acknowledged}
           onChange={(e) => setAcknowledged(e.target.checked)}
-          className="focus-ring size-5 shrink-0 accent-pop-550"
+          className="focus-ring size-5 shrink-0 accent-pop-450"
         />
         {t('mfa.recovery.acknowledge')}
       </label>

@@ -18,6 +18,7 @@ import {
   OperatingHours,
 } from '@/lib/api/businesses'
 import { BackgroundBeams } from '@/components/ui/beams'
+import { LogoLoader } from '@/components/logo-loader'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { getMethods } from '@/lib/api/mfa'
 
@@ -176,10 +177,12 @@ export function BusinessWizard() {
       URL.revokeObjectURL(coverPhoto.url)
     }
 
-    setSubmitting(false)
-
     // Skip MFA enrollment if already configured (e.g. during post-registration prompt)
+    // `submitting` stays set across this call: it is a second round trip, and
+    // clearing it first blinked the loader off and put the form back on screen
+    // while the app was still deciding which screen comes next.
     const { data: mfaData } = await getMethods()
+    setSubmitting(false)
     if (mfaData?.mfa_enabled) {
       setSubmitted(true)
     } else {
@@ -215,9 +218,9 @@ export function BusinessWizard() {
 
   if (submitted) {
     return (
-      <div className="backdark relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
         <BackgroundBeams />
-        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background/90 backdrop-blur-xl p-16 inset-shadow-[1px_1px_1px_var(--color-input)]">
+        <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background backdrop-blur-md p-16">
           <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
           <h1 className="text-2xl font-bold text-foreground">¡Solicitud enviada!</h1>
           <p className="text-muted-foreground">
@@ -240,6 +243,7 @@ export function BusinessWizard() {
   return (
     <div className="dark relative min-h-screen overflow-hidden bg-background">
       <BackgroundBeams />
+      {submitting && <LogoLoader />}
 
       <OnboardingNav
         items={[
@@ -250,7 +254,7 @@ export function BusinessWizard() {
         ]}
       />
 
-      <main className="backdrop-blur-sm my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background/30 inset-shadow-[-1px_1px_1px_1px_var(--color-input)]">
+      <main className="my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background shadow-post border-2 border-border">
         <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu negocio</h1>
         <p className="text-sm text-muted-foreground mb-10">
           Completa tu perfil para que dueños de mascotas puedan encontrarte
@@ -503,9 +507,9 @@ export function BusinessWizard() {
                 localStorage.setItem('pelu_changing_role', '1')
                 router.push('/auth/role-selection')
               }}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              className="border-border border-2 px-8 py-3 rounded-xl bg-background flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
+              <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
               Cambiar rol
             </button>
             <button
