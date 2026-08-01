@@ -39,7 +39,20 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   const subscribersRef = useRef<Map<string, Set<(data: any) => void>>>(new Map())
   const retryDelayRef = useRef(1000)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const mountedRef = useRef(true)
+  /*
+    Identifies which run of the connection effect a socket belongs to. Bumped on
+    every setup AND every teardown, so any socket opened by an earlier run is
+    permanently stale and its onclose can neither reconnect nor touch wsRef.
+
+    This replaces a single shared `mountedRef` boolean, which could not tell a
+    stale socket from a live one: teardown set it false and the next setup set it
+    straight back to true, so a socket closed by teardown still saw `true`, nulled
+    wsRef and scheduled its own reconnect — orphaning the socket the new run had
+    just opened. Nothing ever closed the orphan, so it kept dispatching and every
+    handler ran once per surviving socket. That is why one sent message showed up
+    as three unread.
+  */
+  const connectionGenRef = useRef(0)
   // Track unread per conversation for read_receipt decrements
   const unreadPerConvoRef = useRef<Map<string, number>>(new Map())
 
@@ -136,7 +149,8 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
 
   // WebSocket connection lifecycle
   useEffect(() => {
-    mountedRef.current = true
+    const generation = ++connectionGenRef.current
+    const isCurrent = () => connectionGenRef.current === generation
 
     if (!shouldConnect) {
       // Clean up any existing connection
@@ -153,13 +167,13 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     }
 
     function connect() {
-      if (!mountedRef.current) return
+      if (!isCurrent()) return
 
       const ws = new WebSocket(getWsUrl())
       wsRef.current = ws
 
       ws.onopen = () => {
-        if (!mountedRef.current) return
+        if (!isCurrent()) return
         setConnected(true)
         retryDelayRef.current = 1000
       }
@@ -176,7 +190,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
       }
 
       ws.onclose = () => {
-        if (!mountedRef.current) return
+        // A socket from a superseded run must stay dead: reconnecting here is
+        // what used to leave two live sockets dispatching the same event.
+        if (!isCurrent()) return
         setConnected(false)
         wsRef.current = null
 
@@ -194,7 +210,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
     connect()
 
     return () => {
-      mountedRef.current = false
+      // Retires this run's socket before it is closed, so the onclose below
+      // cannot schedule a reconnect that races the next run's own connect().
+      connectionGenRef.current++
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current)
         retryTimerRef.current = null
@@ -209,6 +227,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
   // Listen for session-cleared to disconnect
   useEffect(() => {
     const handleSessionCleared = () => {
+      // Retire the live socket first, or closing it below reconnects straight
+      // into a 401 loop until `user` clears and the effect above tears down.
+      connectionGenRef.current++
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current)
         retryTimerRef.current = null
