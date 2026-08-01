@@ -51,6 +51,7 @@ import {
   createUserPets, updateUserPet, uploadUserPetPhotos, deleteUserPetPhoto,
   listUserPets, type UserPet,
 } from '@/lib/api/user-pets'
+import { apiClient } from '@/lib/api/client'
 import { toast } from 'sonner'
 
 const pet: UserPet = {
@@ -234,6 +235,107 @@ describe('MemberAddPetModal — edit mode', () => {
       await waitFor(() => expect(deleteUserPetPhoto).toHaveBeenCalledWith('up1', 'ph1'))
       expect(deleteUserPetPhoto).toHaveBeenCalledTimes(1)
     })
+  })
+})
+
+describe('MemberAddPetModal — publishing', () => {
+  /** The one call the profile write-through is supposed to make. */
+  const profileCall = () =>
+    vi.mocked(apiClient).mock.calls.find(([path]) => path === '/api/v1/auth/profile')
+
+  it('publishes the pet as available', async () => {
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    await waitFor(() => expect(createUserPets).toHaveBeenCalled())
+    expect(vi.mocked(createUserPets).mock.calls[0][0][0]).toMatchObject({
+      name: 'Luna',
+      adoption_status: 'available',
+    })
+  })
+
+  /*
+    §2.3: there is no member profile settings page, so this modal is the only
+    place a phone can be set. It therefore belongs on the profile, not on the
+    listing — one number, every pet, editable from one place.
+  */
+  it('saves the phone to the profile, not to the pet', async () => {
+    vi.mocked(apiClient).mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ user: { id: 'u1', phone: '809-555-0134' } }),
+    } as never)
+
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.change(screen.getByLabelText(/teléfono/i), { target: { value: '809-555-0134' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    await waitFor(() => expect(profileCall()).toBeDefined())
+    const [, options] = profileCall()!
+    expect(options!.method).toBe('PATCH')
+    expect(JSON.parse(options!.body as string)).toEqual({ phone: '809-555-0134' })
+
+    await waitFor(() => expect(createUserPets).toHaveBeenCalled())
+    expect(vi.mocked(createUserPets).mock.calls[0][0][0]).not.toHaveProperty('phone')
+  })
+
+  // A listing without a contact number is a dead end, so the pet must not go
+  // live when the profile write fails.
+  it('does not create the pet when the phone write fails', async () => {
+    vi.mocked(apiClient).mockResolvedValueOnce({
+      ok: false,
+      json: async () => ({ error: 'Teléfono inválido' }),
+    } as never)
+
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.change(screen.getByLabelText(/teléfono/i), { target: { value: 'nope' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Teléfono inválido')
+    expect(createUserPets).not.toHaveBeenCalled()
+  })
+
+  // An untouched field is not an edit. Re-PATCHing the same number on every
+  // publish is a write the user never asked for.
+  it('skips the profile write when the phone was left alone', async () => {
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    await waitFor(() => expect(createUserPets).toHaveBeenCalled())
+    expect(profileCall()).toBeUndefined()
+  })
+
+  // The modal now has public consequences and has to say so before the press.
+  it('warns that the listing is public before publishing, but not when editing', async () => {
+    const notice = 'Tu mascota aparecerá públicamente en Pelú con tu nombre y datos de contacto.'
+
+    const { unmount } = renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+    expect(screen.getByText(notice)).toBeInTheDocument()
+    unmount()
+
+    renderWithProviders(<MemberAddPetModal open pet={pet} onClose={vi.fn()} />)
+    await screen.findByDisplayValue('Max')
+    expect(screen.queryByText(notice)).not.toBeInTheDocument()
+  })
+
+  // Editing must not silently re-list a pet the member already marked adopted.
+  it('does not change adoption_status when editing', async () => {
+    renderWithProviders(
+      <MemberAddPetModal open pet={{ ...pet, adoption_status: 'adopted' }} onClose={vi.fn()} />,
+    )
+
+    await screen.findByDisplayValue('Max')
+    fireEvent.click(screen.getByRole('button', { name: 'Guardar cambios' }))
+
+    await waitFor(() => expect(updateUserPet).toHaveBeenCalled())
+    expect(vi.mocked(updateUserPet).mock.calls[0][1]).not.toHaveProperty('adoption_status')
   })
 })
 

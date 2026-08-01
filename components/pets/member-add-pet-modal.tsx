@@ -32,6 +32,8 @@ import {
   deleteUserPetPhoto,
   UserPet,
 } from '@/lib/api/user-pets'
+import { apiClient } from '@/lib/api/client'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { UserPetCard } from '@/components/pets/user-pet-card'
 
 interface PendingPhoto {
@@ -50,7 +52,9 @@ interface MemberAddPetModalProps {
 
 export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetModalProps) {
   const { t } = useTranslation('pets')
+  const { user, updateSession } = useAuth()
   const [name, setName] = useState('')
+  const [phone, setPhone] = useState('')
   const [description, setDescription] = useState('')
   const [age, setAge] = useState('')
   const [gender, setGender] = useState<'male' | 'female'>('male')
@@ -93,6 +97,15 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
     setSize(pet.size ?? 'medium')
   }, [open, pet])
 
+  // The publish flow is the only place a member can set a phone (there is no
+  // profile settings page), so seed it from the session and write it back on
+  // save rather than storing it per-listing. `phone` is `omitempty` on the auth
+  // payload, so an unset number is absent, not null.
+  useEffect(() => {
+    if (!open) return
+    setPhone(user?.phone ?? '')
+  }, [open, user?.phone])
+
   const addFiles = (files: FileList | File[]) => {
     const candidates = Array.from(files)
       .filter((f) => f.type.startsWith('image/') && f.size <= 5 * 1024 * 1024)
@@ -112,6 +125,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
   const reset = () => {
     photos.forEach((p) => URL.revokeObjectURL(p.url))
     setName('')
+    setPhone('')
     setDescription('')
     setAge('')
     setAgeUnit('months')
@@ -184,6 +198,23 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
       return
     }
 
+    // Write the phone to the profile first: if this fails the listing should
+    // not go live without a contact number on it.
+    const trimmedPhone = phone.trim()
+    if (trimmedPhone && trimmedPhone !== (user?.phone ?? '')) {
+      const res = await apiClient('/api/v1/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ phone: trimmedPhone }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error || t('member.error_phone'))
+        setSaving(false)
+        return
+      }
+      if (json.user) updateSession(json.user)
+    }
+
     const { data, error: createError } = await createUserPets([{
       name: name.trim(),
       age: ageInMonths,
@@ -193,6 +224,9 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
       size,
       vaccinated,
       castrated,
+      // Publishing IS the point of this modal. The edit branch above omits the
+      // field on purpose, so saving an edit never re-lists an adopted pet.
+      adoption_status: 'available',
     }])
 
     if (createError || !data || data.length === 0) {
@@ -389,6 +423,23 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
               />
             </div>
 
+            {/* Contact phone. Lives on the profile, not on the pet — this modal
+                is the only place a member can set one (there is no profile
+                settings page), so it is seeded from the session and written
+                back on save. */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-phone" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('member.phone_label')}</label>
+              <input
+                id="pet-phone"
+                type="tel"
+                placeholder={t('member.phone_placeholder')}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground/70">{t('member.phone_hint')}</p>
+            </div>
+
             {/* Vaccinated / Castrated */}
             <div className="grid grid-cols-2 gap-3">
               <label htmlFor="pet-vaccinated" className="flex items-center gap-2 cursor-pointer">
@@ -517,6 +568,12 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
             {/* Error message */}
             {error && (
               <p role="alert" className="text-sm text-destructive">{error}</p>
+            )}
+
+            {/* The modal now has public consequences, so it says so before the
+                button is pressed rather than after. */}
+            {!isEdit && (
+              <p className="text-xs text-muted-foreground">{t('member.publish_notice')}</p>
             )}
 
             {/* Footer */}
