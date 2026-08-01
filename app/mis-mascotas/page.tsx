@@ -5,12 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faPen, faTrash, faPlus, faHouseChimneyUser, faShareNodes } from '@fortawesome/free-solid-svg-icons'
 import { PetsHeader } from '@/components/pets/pets-header'
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import { UserPetCard } from '@/components/pets/user-pet-card'
 import { UserPetCardSkeleton } from '@/components/pets/user-pet-card-skeleton'
-import { listUserPets, deleteUserPet, UserPet } from '@/lib/api/user-pets'
+import { listUserPets, deleteUserPet, updateUserPet, UserPet } from '@/lib/api/user-pets'
 import { Button } from '@/components/ui/button'
 import { ErrorState } from '@/components/ui/error-state'
 import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
@@ -83,6 +83,22 @@ function MisMascotasContent() {
     toast.success(t('member.deleted'))
   }
 
+  const handleStatusChange = async (pet: UserPet, next: 'available' | 'adopted') => {
+    const previous = pet.adoption_status ?? null
+    // Optimistic: the chip flips immediately and rolls back on failure, matching
+    // the delete path's behaviour above. A chip that says "Adoptada" after a
+    // failed PATCH would tell the member their pet is off the public grid when
+    // it is still on it.
+    setPets((prev) => prev.map((p) => (p.id === pet.id ? { ...p, adoption_status: next } : p)))
+    const { error } = await updateUserPet(pet.id, { adoption_status: next })
+    if (error) {
+      setPets((prev) => prev.map((p) => (p.id === pet.id ? { ...p, adoption_status: previous } : p)))
+      toast.error(t('member.status_error'))
+      return
+    }
+    toast.success(next === 'adopted' ? t('member.marked_adopted') : t('member.published'))
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <PetsHeader />
@@ -132,8 +148,43 @@ function MisMascotasContent() {
                 vaccinated={pet.vaccinated}
                 castrated={pet.castrated}
                 size={pet.size}
+                badge={
+                  pet.adoption_status === 'available' ? (
+                    <span className="rounded-full bg-pop-solid px-2 py-0.5 text-[11px] font-medium text-white">
+                      {t('member.status_listed')}
+                    </span>
+                  ) : pet.adoption_status === 'adopted' ? (
+                    <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {t('member.status_adopted')}
+                    </span>
+                  ) : null
+                }
                 actions={
                   <>
+                    {/* Labelled rather than text-labelled: these sit in a 32px
+                        overlay circle, so the aria-label is what a screen
+                        reader announces and what the tests query. */}
+                    {pet.adoption_status === 'available' ? (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(pet, 'adopted')}
+                        aria-label={t('member.mark_adopted')}
+                        title={t('member.mark_adopted')}
+                        className="h-8 w-8 rounded-full bg-background/90 backdrop-blur text-foreground flex items-center justify-center shadow-sm hover:bg-background transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faHouseChimneyUser} className="text-xs" />
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(pet, 'available')}
+                        aria-label={t('member.publish_listing')}
+                        title={t('member.publish_listing')}
+                        className="h-8 w-8 rounded-full bg-background/90 backdrop-blur text-pop-550 flex items-center justify-center shadow-sm hover:bg-background transition-colors"
+                      >
+                        <FontAwesomeIcon icon={faShareNodes} className="text-xs" />
+                      </button>
+                    )}
                     <button
                       type="button"
                       onClick={() => openEdit(pet)}

@@ -1,11 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
 
 vi.mock('@/lib/api/user-pets', () => ({
   listUserPets: vi.fn(),
   deleteUserPet: vi.fn(),
+  updateUserPet: vi.fn(),
 }))
+
+vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 
 /*
   PetsHeader is site chrome, not the surface under test, and it pulls in the auth
@@ -21,9 +24,11 @@ vi.mock('@/components/pets/member-add-pet-modal', () => ({
 }))
 
 import MisMascotasPage from '@/app/mis-mascotas/page'
-import { listUserPets, type UserPet } from '@/lib/api/user-pets'
+import { listUserPets, updateUserPet, type UserPet } from '@/lib/api/user-pets'
+import { toast } from 'sonner'
 
 const mockList = vi.mocked(listUserPets)
+const mockUpdate = vi.mocked(updateUserPet)
 
 const PET: UserPet = {
   id: 'p1',
@@ -142,5 +147,87 @@ describe('MisMascotasPage', () => {
     expect(await screen.findByText(EMPTY_STATE)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Añadir mascota/ })).toBeInTheDocument()
     expect(screen.queryByText('No pudimos cargar tus mascotas')).not.toBeInTheDocument()
+  })
+})
+
+/*
+  `adoption_status` is what separates a pet the member merely keeps on file from
+  one that is publicly listed for adoption. The onboarding wizard and the
+  transport picker both write rows with no status at all, so "absent" has to
+  read as private — never as a listing waiting to be retired.
+*/
+describe('MisMascotas listing management', () => {
+  const listed: UserPet = { ...PET, id: 'p1', name: 'Luna', adoption_status: 'available' }
+  const priv: UserPet = { ...PET, id: 'p2', name: 'Rex', gender: 'male' }
+
+  it('marks published pets and offers to retire them', async () => {
+    mockList.mockResolvedValue({ data: [listed], error: null })
+
+    renderWithProviders(<MisMascotasPage />)
+
+    expect(await screen.findByText('En adopción')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Marcar como adoptada' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Publicar en adopción' })).toBeNull()
+  })
+
+  it('offers to publish a private pet', async () => {
+    mockList.mockResolvedValue({ data: [priv], error: null })
+
+    renderWithProviders(<MisMascotasPage />)
+
+    await screen.findByText('Rex')
+    expect(screen.queryByText('En adopción')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Publicar en adopción' })).toBeInTheDocument()
+  })
+
+  it('labels an adopted pet and lets it be re-listed', async () => {
+    mockList.mockResolvedValue({ data: [{ ...listed, adoption_status: 'adopted' }], error: null })
+
+    renderWithProviders(<MisMascotasPage />)
+
+    expect(await screen.findByText('Adoptada')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Publicar en adopción' })).toBeInTheDocument()
+  })
+
+  it('retires a listing via PATCH', async () => {
+    mockList.mockResolvedValue({ data: [listed], error: null })
+    mockUpdate.mockResolvedValue({ data: listed, error: null })
+
+    renderWithProviders(<MisMascotasPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Marcar como adoptada' }))
+
+    await waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith('p1', { adoption_status: 'adopted' }))
+    // Optimistic: the chip must flip without waiting for a refetch.
+    expect(await screen.findByText('Adoptada')).toBeInTheDocument()
+  })
+
+  it('publishes a private pet via PATCH', async () => {
+    mockList.mockResolvedValue({ data: [priv], error: null })
+    mockUpdate.mockResolvedValue({ data: priv, error: null })
+
+    renderWithProviders(<MisMascotasPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Publicar en adopción' }))
+
+    await waitFor(() =>
+      expect(mockUpdate).toHaveBeenCalledWith('p2', { adoption_status: 'available' }))
+    expect(await screen.findByText('En adopción')).toBeInTheDocument()
+  })
+
+  /*
+    The rollback matters more than the optimistic flip: a chip that says
+    "Adoptada" after a failed PATCH tells the member their pet is off the public
+    grid when it is still on it.
+  */
+  it('rolls the chip back when the PATCH fails', async () => {
+    mockList.mockResolvedValue({ data: [listed], error: null })
+    mockUpdate.mockResolvedValue({ data: null, error: 'Error de conexión' })
+
+    renderWithProviders(<MisMascotasPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Marcar como adoptada' }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('No pudimos actualizar el estado'))
+    expect(screen.getByText('En adopción')).toBeInTheDocument()
+    expect(screen.queryByText('Adoptada')).toBeNull()
   })
 })

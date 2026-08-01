@@ -62,6 +62,12 @@ export interface UserPetCardProps {
   vaccinated?: boolean
   castrated?: boolean
   size?: string
+  /**
+   * Optional top-LEFT overlay (e.g. the "En adopción" chip on /mis-mascotas),
+   * mirroring the public grid's condition badge. The right side is already the
+   * actions column.
+   */
+  badge?: React.ReactNode
   /** Optional top-right overlay (e.g. edit / delete actions on /mis-mascotas). */
   actions?: React.ReactNode
 }
@@ -71,7 +77,7 @@ export interface UserPetCardProps {
  * MemberAddPetModal and as the grid item on /mis-mascotas.
  */
 export function UserPetCard({
-  name, age, ageUnit = 'months', gender, species, photoUrls, vaccinated, castrated, size, actions,
+  name, age, ageUnit = 'months', gender, species, photoUrls, vaccinated, castrated, size, badge, actions,
 }: UserPetCardProps) {
   const { t } = useTranslation('pets')
   // The live preview inside MemberAddPetModal passes the raw typed string plus the
@@ -95,6 +101,9 @@ export function UserPetCard({
           <div className="absolute inset-0 flex items-center justify-center">
             <FontAwesomeIcon icon={faPaw} className="text-5xl text-muted-foreground/20" />
           </div>
+        )}
+        {badge && (
+          <div className="absolute top-2 left-2 z-10">{badge}</div>
         )}
         {actions && (
           <div className="absolute top-2 right-2 z-10 flex gap-1.5">{actions}</div>
