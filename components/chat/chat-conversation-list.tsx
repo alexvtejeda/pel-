@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleUser, faComments } from '@fortawesome/free-solid-svg-icons'
 import { listConversations, Conversation } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { ErrorState } from '@/components/ui/error-state'
 import { TransitionLink } from '@/components/transitions/transition-link'
 
@@ -46,6 +47,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
   const { t, i18n } = useTranslation('pets')
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { subscribe } = useWebSocket()
+  const { user } = useAuth()
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState(false)
@@ -82,6 +84,19 @@ export default function ChatConversationList({ onSelectConversation, activeConve
 
   useEffect(() => { load() }, [load])
 
+  /*
+    Opening a thread is what marks it read: chat-message-thread fires the
+    receipt and the row really does flip to is_read server-side. Only this
+    component's local copy of the count was left stale, so the badge survived
+    until a full reload. Clearing it here keeps the two in step.
+  */
+  const selectConversation = useCallback((convo: Conversation) => {
+    setConversations(prev =>
+      prev.map(c => (c.id === convo.id ? { ...c, unread_count: 0 } : c))
+    )
+    onSelectConversation(convo)
+  }, [onSelectConversation])
+
   const autoSelectedRef = useRef(false)
 
   useEffect(() => {
@@ -90,8 +105,8 @@ export default function ChatConversationList({ onSelectConversation, activeConve
     const match = conversations.find((c) => c.id === autoSelectId)
     // A missing id is not an error — the conversation may have been reaped by
     // the 30-day empty-conversation GC. Drop it silently rather than toasting.
-    if (match) onSelectConversation(match)
-  }, [autoSelectId, conversations, onSelectConversation])
+    if (match) selectConversation(match)
+  }, [autoSelectId, conversations, selectConversation])
 
   // Subscribe to new_message to update last message + unread count live
   useEffect(() => {
@@ -106,14 +121,29 @@ export default function ChatConversationList({ onSelectConversation, activeConve
         const convo = { ...updated[idx] }
         convo.last_message_body = m.body
         convo.last_message_at = m.created_at
-        convo.unread_count = (convo.unread_count || 0) + 1
+
+        /*
+          Two things are not unread: your own message, and one arriving in the
+          thread you already have open. Both used to badge a conversation the
+          user was looking at — sending a single message lit up your own row.
+          websocket-context has always made the sender check; this list didn't.
+
+          `m.sender_id` is null on transport system messages, which are nobody's
+          own, hence the truthiness guard before the comparison.
+        */
+        const isOwn = !!m.sender_id && m.sender_id === user?.id
+        const isOpen = data.conversation_id === activeConversationId
+        if (!isOwn && !isOpen) {
+          convo.unread_count = (convo.unread_count || 0) + 1
+        }
+
         updated.splice(idx, 1)
         updated.unshift(convo) // Move to top
         return updated
       })
     })
     return unsub
-  }, [subscribe])
+  }, [subscribe, user?.id, activeConversationId])
 
   const timeAgo = (dateStr: string): string => {
     const date = new Date(dateStr)
@@ -193,7 +223,7 @@ export default function ChatConversationList({ onSelectConversation, activeConve
         return (
           <button
             key={convo.id}
-            onClick={() => onSelectConversation(convo)}
+            onClick={() => selectConversation(convo)}
             className={`focus-ring flex items-center gap-3 text-left transition-colors ${
               compact ? 'px-3 py-2.5 rounded-xl' : 'p-3 rounded-2xl'
             } ${

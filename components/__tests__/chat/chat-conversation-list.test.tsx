@@ -1,10 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
+
+/*
+  Hoisted because vi.mock factories are lifted above the imports — a plain
+  `const` here would be in its TDZ when the factory runs. The map lets a test
+  reach in and fire the `new_message` the provider would have dispatched.
+*/
+const { wsHandlers } = vi.hoisted(() => ({
+  wsHandlers: new Map<string, (data: unknown) => void>(),
+}))
 
 vi.mock('@/lib/api/chat', () => ({ listConversations: vi.fn() }))
 vi.mock('@/lib/contexts/websocket-context', () => ({
-  useWebSocket: () => ({ subscribe: () => () => {} }),
+  useWebSocket: () => ({
+    subscribe: (type: string, handler: (data: unknown) => void) => {
+      wsHandlers.set(type, handler)
+      return () => wsHandlers.delete(type)
+    },
+  }),
+}))
+vi.mock('@/lib/contexts/auth-context', () => ({
+  useAuth: () => ({ user: { id: 'u-me' } }),
 }))
 
 import ChatConversationList from '@/components/chat/chat-conversation-list'
@@ -38,12 +55,21 @@ const CONVERSATION: Conversation = {
   over a missing provider. It reads useRouter/usePathname, both mocked by
   renderWithProviders.
 */
-const renderList = (props: { compact?: boolean; darkBg?: boolean } = {}) =>
-  renderWithProviders(
+const renderList = (
+  props: {
+    compact?: boolean
+    darkBg?: boolean
+    activeConversationId?: string
+    onSelectConversation?: (c: Conversation) => void
+  } = {}
+) => {
+  const { onSelectConversation = () => {}, ...rest } = props
+  return renderWithProviders(
     <RouteTransitionProvider>
-      <ChatConversationList onSelectConversation={() => {}} {...props} />
+      <ChatConversationList onSelectConversation={onSelectConversation} {...rest} />
     </RouteTransitionProvider>
   )
+}
 
 /*
   A fetch that never settles, so the loading branch stays on screen for the
@@ -53,7 +79,29 @@ const stayLoading = () => mockList.mockImplementation(() => new Promise<never>((
 
 const skeletonRows = (container: HTMLElement) => container.querySelectorAll('.animate-pulse')
 
-beforeEach(() => vi.clearAllMocks())
+beforeEach(() => {
+  vi.clearAllMocks()
+  wsHandlers.clear()
+})
+
+// The badge span is the only .bg-pop-solid in a row, so this reads the unread
+// count without colliding with the timestamp, which is also a bare number.
+const badge = (container: HTMLElement) => container.querySelector('.bg-pop-solid')
+
+const emitMessage = (conversationId: string, senderId: string | null, body = 'Hola') =>
+  act(() => {
+    wsHandlers.get('new_message')?.({
+      type: 'new_message',
+      conversation_id: conversationId,
+      // Mirrors the real frame: the payload is nested under `message`.
+      message: {
+        id: `m-${body}`,
+        sender_id: senderId,
+        body,
+        created_at: '2026-01-04T11:00:00Z',
+      },
+    })
+  })
 
 describe('ChatConversationList', () => {
   it('shows an error with retry when the fetch fails', async () => {
@@ -173,5 +221,75 @@ describe('ChatConversationList', () => {
     expect(
       screen.getByText('Cuando un centro apruebe tu solicitud, podrás chatear aquí.')
     ).toBeInTheDocument()
+  })
+
+  /*
+    Alex sent one message and his own row lit up with an unread badge. The list
+    incremented on every new_message with no sender check — websocket-context
+    has always had that guard, this component never did.
+  */
+  describe('unread badge', () => {
+    beforeEach(() => mockList.mockResolvedValue({ data: [CONVERSATION], error: null }))
+
+    it('does not badge a conversation for a message you sent yourself', async () => {
+      const { container } = renderList()
+      await screen.findByText('Rescate RD')
+
+      emitMessage('c1', 'u-me', 'Klk mi helmanao')
+
+      expect(badge(container)).toBeNull()
+      // The preview must still move — this is a counting fix, not a mute.
+      expect(screen.getByText('Klk mi helmanao')).toBeInTheDocument()
+    })
+
+    it('badges a conversation when the message comes from the other party', async () => {
+      const { container } = renderList()
+      await screen.findByText('Rescate RD')
+
+      emitMessage('c1', 'u-rc', 'Sí, sigue disponible')
+
+      expect(badge(container)).toHaveTextContent('1')
+    })
+
+    // sender_id is null on transport system messages. Those are not "yours",
+    // so a null sender must not fall through the own-message guard.
+    it('badges a system message with no sender', async () => {
+      const { container } = renderList()
+      await screen.findByText('Rescate RD')
+
+      emitMessage('c1', null, 'El viaje comenzó')
+
+      expect(badge(container)).toHaveTextContent('1')
+    })
+
+    it('does not badge the conversation that is already open', async () => {
+      const { container } = renderList({ activeConversationId: 'c1' })
+      await screen.findByText('Rescate RD')
+
+      emitMessage('c1', 'u-rc', 'Sí, sigue disponible')
+
+      expect(badge(container)).toBeNull()
+    })
+
+    /*
+      Opening the thread is what marks it read — the message thread fires the
+      receipt, and the DB row really does flip to is_read. Only the list's local
+      copy of the count was left stale, so the badge survived until a reload.
+    */
+    it('clears the badge when the conversation is opened', async () => {
+      mockList.mockResolvedValue({
+        data: [{ ...CONVERSATION, unread_count: 3 }],
+        error: null,
+      })
+      const onSelect = vi.fn()
+      const { container } = renderList({ onSelectConversation: onSelect })
+      await screen.findByText('Rescate RD')
+      expect(badge(container)).toHaveTextContent('3')
+
+      fireEvent.click(screen.getByText('Rescate RD'))
+
+      expect(badge(container)).toBeNull()
+      expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ id: 'c1' }))
+    })
   })
 })
