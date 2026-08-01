@@ -379,6 +379,43 @@ describe('ChatMessageThread', () => {
     })
   })
 
+  /*
+    The shortcut behind the attach menu is the adoption transport request, which
+    needs both an adoption thread and a pet. The gate used to read `pet_id`
+    alone and got the right answer by accident, because service conversations
+    happen to carry a null pet. These pin the intent instead of the accident.
+  */
+  describe('the attach menu', () => {
+    const attach = () => screen.queryByRole('button', { name: 'Adjuntar' })
+
+    it('is offered in an adoption thread with a pet', async () => {
+      resolveWithMessages()
+
+      renderThread(conversation('c1', 'Rescate RD'))
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      expect(attach()).toBeInTheDocument()
+    })
+
+    it('is withheld from a service thread even when it carries a pet', async () => {
+      resolveWithMessages()
+
+      renderThread(conversation('c9', 'Guardería Canina', { type: 'service', pet_id: 'p1' }))
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      expect(attach()).not.toBeInTheDocument()
+    })
+
+    it('is withheld from an adoption thread with no pet', async () => {
+      resolveWithMessages()
+
+      renderThread(conversation('c8', 'Rescate RD', { pet_id: null }))
+      await screen.findByText('¿Sigue disponible Luna?')
+
+      expect(attach()).not.toBeInTheDocument()
+    })
+  })
+
   describe('screen-reader semantics', () => {
     it('announces the thread as a polite log', async () => {
       resolveWithMessages()

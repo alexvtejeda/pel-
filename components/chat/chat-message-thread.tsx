@@ -420,7 +420,12 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
 
       {/* Input Bar */}
       <div className="flex items-center gap-2 p-4 border-t border-border bg-background shrink-0">
-        {conversation.pet_id && (
+        {/* Explicit, not incidental: the shortcut behind this menu is the
+            adoption transport request, which needs both an adoption thread and
+            a pet. Service conversations have neither. A future iteration may
+            offer transport inside service threads — transport_trips already
+            accepts any conversation_id — but not today. */}
+        {conversation.type === 'adoption' && conversation.pet_id && (
           <>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
