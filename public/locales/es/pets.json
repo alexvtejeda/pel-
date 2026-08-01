@@ -378,6 +378,10 @@
     "rescueCenter": "Centro de rescate",
     "specialCondition": "Condición especial",
     "verified_center": "Centro de rescate verificado",
+    "published_by_member": "Publicado por un miembro",
+    "chat_with": "Chatear con {{name}}",
+    "chat_starting": "Abriendo chat...",
+    "chat_error": "No pudimos iniciar la conversación",
     "facts": {
       "vaccines": "Vacunas",
       "neutering": "Castración",

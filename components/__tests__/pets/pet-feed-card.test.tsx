@@ -124,6 +124,38 @@ describe('PetFeedCard publisher', () => {
   })
 })
 
+describe('PetFeedCard member publisher', () => {
+  const memberPet = (owner: Record<string, unknown> = {}) =>
+    pet({
+      rescue_center: undefined,
+      owner: { id: 'u1', display_name: 'María', email: 'maria@example.com', ...owner },
+    })
+
+  it('names the owner and never marks them verified', () => {
+    mockUser.mockReturnValue({ user: null, loading: false })
+    renderWithProviders(<PetFeedCard pet={memberPet()} photoWidth={351} />)
+
+    expect(screen.getByText('María')).toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /verificado/ })).toBeNull()
+  })
+
+  // A private person has no website or Instagram on file, so the row must stay
+  // plain text — a control that opens nothing is worse than no control.
+  it('never turns the owner row into a links dropdown', () => {
+    mockUser.mockReturnValue({ user: null, loading: false })
+    renderWithProviders(<PetFeedCard pet={memberPet()} photoWidth={351} />)
+
+    expect(screen.queryByRole('button', { name: /Enlaces de/ })).toBeNull()
+  })
+
+  it('falls back to the email local part when the owner has no display name', () => {
+    mockUser.mockReturnValue({ user: null, loading: false })
+    renderWithProviders(<PetFeedCard pet={memberPet({ display_name: null })} photoWidth={351} />)
+
+    expect(screen.getByText('maria')).toBeInTheDocument()
+  })
+})
+
 describe('PetFeedCard CTA', () => {
   it('invites a logged-out visitor to sign in', () => {
     mockUser.mockReturnValue({ user: null, loading: false })

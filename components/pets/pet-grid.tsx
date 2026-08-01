@@ -6,7 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faEllipsis, faLink, faGlobe } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
-import { instagramUrl, ensureUrl } from '@/lib/utils'
+import { instagramUrl, ensureUrl, ownerDisplayName } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { ErrorState } from '@/components/ui/error-state'
 import { VerifiedBadge } from './verified-badge'
@@ -132,11 +132,11 @@ export function PetGrid({
                     )}
 
                     {/* Name + meta overlay. Spans, not <p>: a button may only
-                        contain phrasing content. The avatar only renders for
-                        centre-published pets — member pets carry no author
-                        identity, and a placeholder would invent one. */}
+                        contain phrasing content. A listing has either a centre
+                        or an owner, never both — so the avatar slot is shared
+                        and only a pet with neither goes without one. */}
                     <span className="absolute inset-x-0 bottom-0 flex items-center gap-2 bg-linear-to-t from-primary to-transparent p-2 pt-6 text-left">
-                      {pet.rescue_center?.avatar_url && (
+                      {pet.rescue_center?.avatar_url ? (
                         <Image
                           src={pet.rescue_center.avatar_url}
                           alt=""
@@ -144,7 +144,15 @@ export function PetGrid({
                           height={30}
                           className="h-[30px] w-[30px] shrink-0 rounded-full border-[1.5px] border-white/90 object-cover"
                         />
-                      )}
+                      ) : pet.owner?.avatar_url ? (
+                        <Image
+                          src={pet.owner.avatar_url}
+                          alt=""
+                          width={30}
+                          height={30}
+                          className="h-[30px] w-[30px] shrink-0 rounded-full border-[1.5px] border-white/90 object-cover"
+                        />
+                      ) : null}
                       <span className="block min-w-0 flex-1">
                         <span className="block truncate text-sm font-semibold text-background">{pet.name}</span>
                         <span className="block truncate text-[11px] text-background/80">
@@ -152,6 +160,13 @@ export function PetGrid({
                           {' · '}
                           {t(`gender.${pet.gender}`)}
                         </span>
+                        {/* Attribution for member listings. Centre pets carry
+                            the verified badge top-right instead. */}
+                        {pet.owner && (
+                          <span className="block truncate text-[11px] text-background/80">
+                            {ownerDisplayName(pet.owner)}
+                          </span>
+                        )}
                       </span>
                     </span>
                   </button>

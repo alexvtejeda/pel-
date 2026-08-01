@@ -4,10 +4,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaw, faGlobe, faSyringe, faScissors, faRulerCombined } from '@fortawesome/free-solid-svg-icons'
+import { faPaw, faGlobe, faSyringe, faScissors, faRulerCombined, faUser } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
-import { instagramUrl, ensureUrl } from '@/lib/utils'
+import { instagramUrl, ensureUrl, ownerDisplayName } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
@@ -60,6 +60,27 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
     </>
   )
 
+  // Member listings get the same publisher row without the badge and without
+  // the links dropdown — a private person has no website or Instagram on file.
+  const ownerPublisher = pet.owner && (
+    <>
+      {pet.owner.avatar_url ? (
+        <Image
+          src={pet.owner.avatar_url}
+          alt=""
+          width={26}
+          height={26}
+          className="h-[26px] w-[26px] shrink-0 rounded-full object-cover"
+        />
+      ) : (
+        <span className="flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full bg-secondary">
+          <FontAwesomeIcon icon={faUser} className="text-[11px] text-muted-foreground" />
+        </span>
+      )}
+      <span className="truncate text-[13px] font-semibold">{ownerDisplayName(pet.owner)}</span>
+    </>
+  )
+
   const factPill = (icon: typeof faSyringe, label: string, value: string) => (
     <span className="inline-flex items-center gap-1.5 rounded-xl bg-pop-450/40 px-2.5 py-1 text-[11.5px] font-medium text-pop-800">
       <FontAwesomeIcon icon={icon} className="text-[10px]" />
@@ -104,6 +125,10 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
         ) : (
           <div className="flex min-h-11 items-center gap-2 px-3 py-2.5">{publisher}</div>
         ))}
+
+      {ownerPublisher && (
+        <div className="flex min-h-11 items-center gap-2 px-3 py-2.5">{ownerPublisher}</div>
+      )}
 
       {/* Photo, flush to the card edges — the card's overflow-hidden clips it. */}
       <div className="relative aspect-square bg-secondary">

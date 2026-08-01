@@ -378,6 +378,10 @@
     "rescueCenter": "Rescue center",
     "specialCondition": "Special condition",
     "verified_center": "Verified rescue center",
+    "published_by_member": "Published by a member",
+    "chat_with": "Chat with {{name}}",
+    "chat_starting": "Opening chat...",
+    "chat_error": "We couldn't start the conversation",
     "facts": {
       "vaccines": "Vaccines",
       "neutering": "Neutering",

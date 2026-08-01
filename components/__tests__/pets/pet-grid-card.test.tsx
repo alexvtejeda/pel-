@@ -154,3 +154,35 @@ describe('PetGrid card', () => {
     expect(container.querySelector('img')).toBeNull()
   })
 })
+
+describe('PetGrid member listings', () => {
+  const memberPet = (owner: Record<string, unknown> = {}) =>
+    pet({
+      rescue_center: undefined,
+      owner: { id: 'u1', display_name: 'María', email: 'maria@example.com', ...owner },
+    })
+
+  it('attributes the listing to its owner without a verified badge', () => {
+    renderGrid([memberPet()])
+
+    expect(screen.getByText('María')).toBeInTheDocument()
+    // The badge means "verified rescue centre" — nobody verified a private person.
+    expect(screen.queryByRole('img', { name: /verificad/i })).toBeNull()
+  })
+
+  it('falls back to the email local part when the owner has no display name', () => {
+    renderGrid([memberPet({ display_name: null })])
+
+    expect(screen.getByText('maria')).toBeInTheDocument()
+  })
+
+  it('shows the owner avatar in the same slot the centre avatar uses', () => {
+    const { container } = renderGrid([memberPet({ avatar_url: 'https://cdn.test/u1.jpg' })])
+
+    const avatar = container.querySelector('img[src="https://cdn.test/u1.jpg"]')
+    expect(avatar).not.toBeNull()
+    expect(avatar).toHaveAttribute('alt', '')
+    expect(avatar!.className).toContain('h-[30px]')
+    expect(avatar!.className).toContain('w-[30px]')
+  })
+})
