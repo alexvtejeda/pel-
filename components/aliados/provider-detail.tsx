@@ -65,7 +65,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
           <div className="flex items-center gap-1.5">
             <FontAwesomeIcon icon={faShieldHalved} className="text-sm text-success" />
             <span className="text-sm text-success">
-              {provider.type === 'business'
+              {provider.provider_type === 'business'
                 ? t('provider.business_verified')
                 : t('provider.member_verified')}
             </span>
@@ -103,7 +103,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
         <hr className="border-border" />
 
         {/* Operating hours — businesses only */}
-        {provider.operating_hours && provider.type === 'business' && (
+        {provider.operating_hours && provider.provider_type === 'business' && (
           <section className="space-y-2">
             <h3 className="font-semibold text-sm">{t('aliados.schedule')}</h3>
             <div className="space-y-1">
@@ -131,7 +131,7 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
         )}
 
         {/* Instagram — businesses only */}
-        {provider.instagram && provider.type === 'business' && (
+        {provider.instagram && provider.provider_type === 'business' && (
           <a
             href={instagramUrl(provider.instagram)}
             target="_blank"

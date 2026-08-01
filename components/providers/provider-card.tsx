@@ -66,7 +66,7 @@ export function ProviderCard({ provider, selected = false, onClick }: ProviderCa
           <div className="flex items-center gap-1.5 mt-0.5">
             <FontAwesomeIcon icon={faShieldHalved} className="text-xs text-success" />
             <span className="text-xs text-success truncate">
-              {provider.type === 'business'
+              {provider.provider_type === 'business'
                 ? t('provider.business_verified')
                 : t('provider.member_verified')}
             </span>

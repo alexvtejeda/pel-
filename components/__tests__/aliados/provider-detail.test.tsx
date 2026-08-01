@@ -9,11 +9,21 @@ const provider = (overrides: Partial<UnifiedProvider> = {}): UnifiedProvider => 
   id: '1',
   user_id: 'u1',
   name: 'Baños Luna',
-  type: 'business',
+  provider_type: 'business',
   services: ['pet_sitting'],
   price: 1500,
   ...overrides,
 })
+
+const HOURS = {
+  monday: { open: true, from: '09:00', to: '17:00' },
+  tuesday: { open: false, from: '', to: '' },
+  wednesday: { open: false, from: '', to: '' },
+  thursday: { open: false, from: '', to: '' },
+  friday: { open: false, from: '', to: '' },
+  saturday: { open: false, from: '', to: '' },
+  sunday: { open: false, from: '', to: '' },
+}
 
 // Recomputed from Intl rather than hardcoded: the exact glyphs are ICU's call
 // (es-DO gives an ASCII "RD$", en-US gives "DOP" + a non-breaking space).
@@ -116,5 +126,60 @@ describe('ProviderDetail', () => {
     expect(instagram).toHaveAttribute('href', 'https://instagram.com/banosluna')
     expect(instagram).toHaveAttribute('target', '_blank')
     expect(instagram).toHaveAttribute('rel', expect.stringContaining('noopener'))
+  })
+})
+
+/*
+  The API sends `provider_type` (serviceproviders.UnifiedProvider in
+  api/docs/api/swagger.yaml); the interface declared `type`, so `provider.type`
+  read undefined and every `=== 'business'` branch was permanently false. The
+  business badge, the operating-hours section and the Instagram link have never
+  rendered on /aliados for a real payload.
+*/
+describe('ProviderDetail identity', () => {
+  it('shows the business badge for a business provider', () => {
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    expect(screen.getByText('Empresa verificada')).toBeInTheDocument()
+    expect(screen.queryByText('Proveedor verificado')).not.toBeInTheDocument()
+  })
+
+  it('shows the member badge for a member provider', () => {
+    renderWithProviders(<ProviderDetail provider={provider({ provider_type: 'member' })} />)
+
+    expect(screen.getByText('Proveedor verificado')).toBeInTheDocument()
+    expect(screen.queryByText('Empresa verificada')).not.toBeInTheDocument()
+  })
+
+  it('renders the operating hours for a business', () => {
+    renderWithProviders(<ProviderDetail provider={provider({ operating_hours: HOURS })} />)
+
+    expect(screen.getByText('Horario de atención')).toBeInTheDocument()
+    expect(screen.getByText('09:00 - 17:00')).toBeInTheDocument()
+  })
+
+  // Members register through the wizard without a schedule, so the section is
+  // business-only — the gate has to be on identity, not on the field existing.
+  it('hides the operating hours for a member provider', () => {
+    renderWithProviders(
+      <ProviderDetail provider={provider({ provider_type: 'member', operating_hours: HOURS })} />
+    )
+
+    expect(screen.queryByText('Horario de atención')).not.toBeInTheDocument()
+    expect(screen.queryByText('09:00 - 17:00')).not.toBeInTheDocument()
+  })
+
+  it('renders the Instagram link for a business', () => {
+    renderWithProviders(<ProviderDetail provider={provider({ instagram: '@banosluna' })} />)
+
+    expect(screen.getByRole('link', { name: /banosluna/ })).toBeInTheDocument()
+  })
+
+  it('hides the Instagram link for a member provider', () => {
+    renderWithProviders(
+      <ProviderDetail provider={provider({ provider_type: 'member', instagram: '@banosluna' })} />
+    )
+
+    expect(screen.queryByRole('link', { name: /banosluna/ })).not.toBeInTheDocument()
   })
 })

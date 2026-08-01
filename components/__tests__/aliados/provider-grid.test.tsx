@@ -12,7 +12,7 @@ import { ProviderGrid } from '@/components/aliados/provider-grid'
 import { UnifiedProvider } from '@/lib/api/providers'
 
 const provider = (id: string, name: string, services: string[]): UnifiedProvider => ({
-  id, user_id: `u${id}`, name, type: 'member', services, price: 1500,
+  id, user_id: `u${id}`, name, provider_type: 'member', services, price: 1500,
 })
 
 const PROVIDERS = [

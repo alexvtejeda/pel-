@@ -4,7 +4,14 @@ export interface UnifiedProvider {
   id: string
   user_id: string
   name: string
-  type: 'business' | 'member'
+  /**
+   * Wire name is `provider_type` (api: `serviceproviders.UnifiedProvider` in
+   * docs/api/swagger.yaml). This used to be declared as `type`, which silently
+   * disabled every business-only UI branch — `provider.type` was always
+   * undefined, so the business badge, the operating-hours section and the
+   * Instagram link never rendered on /aliados.
+   */
+  provider_type: 'business' | 'member'
   services: string[]
   description?: string
   price?: number | null
