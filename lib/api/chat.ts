@@ -52,3 +52,32 @@ export async function listMessages(
     return { data: null, error: 'Error de conexión' }
   }
 }
+
+/**
+ * Target of a new conversation. A **resource** id, never a user id — the
+ * backend resolves the owner and only lets you reach someone who is publicly
+ * listed right now. Exactly one key: the API 400s on both or neither.
+ */
+export type ConversationTarget = { provider_id: string } | { pet_id: string }
+
+/**
+ * Opens (or reuses) a conversation with a listing's owner.
+ *
+ * Idempotent — calling it twice for the same target returns the same
+ * conversation, so the button needs no "already contacted" state.
+ */
+export async function createConversation(
+  target: ConversationTarget
+): Promise<{ data: { id: string } | null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/conversations', {
+      method: 'POST',
+      body: JSON.stringify(target),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al iniciar la conversación' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
