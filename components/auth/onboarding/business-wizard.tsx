@@ -30,14 +30,15 @@ import { getMethods } from '@/lib/api/mfa'
   to mean anything, and a pending business cannot be listed, so it lives in settings.
 */
 
-const DAYS: { key: keyof OperatingHours; label: string }[] = [
-  { key: 'monday', label: 'Lun' },
-  { key: 'tuesday', label: 'Mar' },
-  { key: 'wednesday', label: 'Mié' },
-  { key: 'thursday', label: 'Jue' },
-  { key: 'friday', label: 'Vie' },
-  { key: 'saturday', label: 'Sáb' },
-  { key: 'sunday', label: 'Dom' },
+// Labels come from `auth.business_wizard.days.<key>` at render time.
+const DAYS: { key: keyof OperatingHours }[] = [
+  { key: 'monday' },
+  { key: 'tuesday' },
+  { key: 'wednesday' },
+  { key: 'thursday' },
+  { key: 'friday' },
+  { key: 'saturday' },
+  { key: 'sunday' },
 ]
 
 function CardCarousel({ urls }: { urls: string[] }) {
@@ -96,7 +97,7 @@ export function BusinessWizard() {
   const router = useRouter()
   // Only the service labels are translated here; the rest of this wizard is still
   // hardcoded Spanish, so the hook is deliberately narrow.
-  const { t } = useTranslation('business')
+  const { t } = useTranslation('auth')
 
   // Required fields
   const [name, setName] = useState('')
@@ -206,11 +207,11 @@ export function BusinessWizard() {
           setSubmitted(true)
         }}
         breadcrumbItems={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Registro', href: '/auth/register' },
-          { label: 'Rol', href: '/auth/role-selection', changeRole: true },
-          { label: 'Negocio' },
-          { label: 'Seguridad', current: true },
+          { label: t('home', { ns: 'common' }), href: '/' },
+          { label: t('register', { ns: 'common' }), href: '/auth/register' },
+          { label: t('role', { ns: 'common' }), href: '/auth/role-selection', changeRole: true },
+          { label: t('business_wizard.nav_current') },
+          { label: t('security', { ns: 'common' }), current: true },
         ]}
       />
     )
@@ -222,18 +223,18 @@ export function BusinessWizard() {
         <BackgroundBeams />
         <div className="relative z-10 w-full rounded-2xl max-w-md text-center space-y-6 bg-background backdrop-blur-md p-16">
           <FontAwesomeIcon icon={faPaw} className="text-6xl text-foreground" />
-          <h1 className="text-2xl font-bold text-foreground">¡Solicitud enviada!</h1>
+          <h1 className="text-2xl font-bold text-foreground">{t('business_wizard.success_title')}</h1>
           <p className="text-muted-foreground">
-            Tu negocio está en revisión. Nuestro equipo verificará la información y te notificará cuando sea aprobado.
+            {t('business_wizard.success_subtitle')}
           </p>
           <div className="p-4 bg-muted border border-border rounded-2xl text-sm text-muted-foreground">
-            Estado: <span className="font-medium text-foreground">Pendiente de aprobación</span>
+            {t('business_wizard.status_label')} <span className="font-medium text-foreground">{t('business_wizard.status_pending')}</span>
           </div>
           <button
             onClick={() => router.push('/')}
             className="px-6 py-3 bg-pop-550 text-white rounded-xl font-medium hover:opacity-90 transition-opacity"
           >
-            Ir al inicio
+            {t('business_wizard.go_home')}
           </button>
         </div>
       </div>
@@ -247,28 +248,28 @@ export function BusinessWizard() {
 
       <OnboardingNav
         items={[
-          { label: 'Inicio', current: false, href: '/' },
-          { label: 'Registro', current: false, href: '/auth/register' },
-          { label: 'Rol', current: false, href: '/auth/role-selection', changeRole: true },
-          { label: 'Negocio', current: true },
+          { label: t('home', { ns: 'common' }), current: false, href: '/' },
+          { label: t('register', { ns: 'common' }), current: false, href: '/auth/register' },
+          { label: t('role', { ns: 'common' }), current: false, href: '/auth/role-selection', changeRole: true },
+          { label: t('business_wizard.nav_current'), current: true },
         ]}
       />
 
       <main className="my-4 rounded-2xl relative z-10 max-w-230 mx-auto px-8 py-12 pb-20 bg-background shadow-post border-2 border-border">
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu negocio</h1>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">{t('business_wizard.title')}</h1>
         <p className="text-sm text-muted-foreground mb-10">
-          Completa tu perfil para que dueños de mascotas puedan encontrarte
+          {t('business_wizard.subtitle')}
         </p>
 
         {/* Required fields */}
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Nombre del negocio <span className="text-destructive">*</span>
+              {t('business_wizard.name_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              placeholder="ej. Groomers RD"
+              placeholder={t('business_wizard.name_placeholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -277,11 +278,11 @@ export function BusinessWizard() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Teléfono <span className="text-destructive">*</span>
+              {t('business_wizard.phone_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="tel"
-              placeholder="809-000-0000"
+              placeholder={t('business_wizard.phone_placeholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -290,11 +291,11 @@ export function BusinessWizard() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Dirección <span className="text-destructive">*</span>
+              {t('business_wizard.address_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              placeholder="Calle, número, sector, ciudad"
+              placeholder={t('business_wizard.address_placeholder')}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -304,11 +305,11 @@ export function BusinessWizard() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                RNC / Cédula <span className="text-destructive">*</span>
+                {t('business_wizard.rnc_label')} <span className="text-destructive">*</span>
               </label>
               <input
                 type="text"
-                placeholder="1-23-45678-9"
+                placeholder={t('business_wizard.rnc_placeholder')}
                 value={rnc}
                 onChange={(e) => setRnc(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -316,9 +317,9 @@ export function BusinessWizard() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Instagram{' '}
+                {t('instagram', { ns: 'common' })}{' '}
                 <span className="text-muted-foreground/50 font-normal normal-case tracking-normal">
-                  (opcional)
+                  {t('optional', { ns: 'common' })}
                 </span>
               </label>
               <div className="relative">
@@ -327,7 +328,7 @@ export function BusinessWizard() {
                 </span>
                 <input
                   type="text"
-                  placeholder="tunegocio"
+                  placeholder={t('business_wizard.instagram_placeholder')}
                   value={instagram}
                   onChange={(e) => setInstagram(e.target.value)}
                   className="w-full rounded-xl border border-input bg-background/50 pl-8 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -339,7 +340,7 @@ export function BusinessWizard() {
           {/* Services checkboxes */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Servicios <span className="text-destructive">*</span>
+              {t('business_wizard.services_label')} <span className="text-destructive">*</span>
             </label>
             <div className="grid grid-cols-3 gap-2">
               {BUSINESS_SERVICE_OPTIONS.map((key) => (
@@ -354,14 +355,14 @@ export function BusinessWizard() {
                       : 'border-input text-muted-foreground hover:border-border'
                   }`}
                 >
-                  {t(`service_providers.services.${key}`)}
+                  {t(`service_providers.services.${key}`, { ns: 'business' })}
                 </button>
               ))}
             </div>
             {services.includes('other') && (
               <input
                 type="text"
-                placeholder="Especifica el servicio"
+                placeholder={t('business_wizard.other_service_placeholder')}
                 value={otherService}
                 onChange={(e) => setOtherService(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring mt-2"
@@ -375,7 +376,7 @@ export function BusinessWizard() {
           <div className="my-8 col-span-4 flex items-center gap-4 mb-8">
             <div className="flex-1 h-px bg-border" />
             <span className="text-xs font-semibold text-muted-foreground/60 uppercase tracking-widest">
-              Opcional
+              {t('business_wizard.optional_divider')}
             </span>
             <div className="flex-1 h-px bg-border" />
           </div>
@@ -384,13 +385,13 @@ export function BusinessWizard() {
           <div className="flex flex-col gap-5">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Descripción{' '}
+                {t('business_wizard.description_label')}{' '}
                 <span className="text-muted-foreground/50 font-normal normal-case tracking-normal">
                   ({description.length}/300)
                 </span>
               </label>
               <textarea
-                placeholder="ej. Especializados en razas pequeñas, 5 años de experiencia en Santo Domingo."
+                placeholder={t('business_wizard.description_placeholder')}
                 value={description}
                 onChange={(e) => {
                   if (e.target.value.length <= 300) setDescription(e.target.value)
@@ -403,10 +404,10 @@ export function BusinessWizard() {
             {/* Operating hours */}
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Horario de operación
+                {t('business_wizard.hours_label')}
               </label>
               <div className="flex flex-col gap-2">
-                {DAYS.map(({ key, label }) => (
+                {DAYS.map(({ key }) => (
                   <div key={key} className="flex items-center gap-3">
                     <button
                       type="button"
@@ -417,7 +418,7 @@ export function BusinessWizard() {
                           : 'border-input text-muted-foreground hover:border-border'
                       }`}
                     >
-                      {label}
+                      {t(`business_wizard.days.${key}`)}
                     </button>
                     {hours[key]?.open ? (
                       <div className="flex items-center gap-2">
@@ -436,7 +437,7 @@ export function BusinessWizard() {
                         />
                       </div>
                     ) : (
-                      <span className="text-xs text-muted-foreground/40">Cerrado</span>
+                      <span className="text-xs text-muted-foreground/40">{t('business_wizard.closed')}</span>
                     )}
                   </div>
                 ))}
@@ -447,7 +448,7 @@ export function BusinessWizard() {
           {/* Right column: cover photo preview */}
           <div className="flex flex-col gap-2 ms-8">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Vista Previa
+              {t('business_wizard.preview')}
             </label>
             <input
               ref={photoInputRef}
@@ -475,7 +476,7 @@ export function BusinessWizard() {
                   </button>
                 </div>
                 <div className="p-3">
-                  <p className="font-medium text-sm truncate">{name || 'Sin nombre'}</p>
+                  <p className="font-medium text-sm truncate">{name || t('business_wizard.unnamed')}</p>
                 </div>
               </div>
             ) : (
@@ -490,12 +491,12 @@ export function BusinessWizard() {
                   <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-5xl text-muted-foreground/20" />
                 </div>
                 <div className="p-3">
-                  <p className="font-medium text-sm truncate">{name || 'Sin nombre'}</p>
+                  <p className="font-medium text-sm truncate">{name || t('business_wizard.unnamed')}</p>
                 </div>
               </div>
             )}
             <p className="text-xs text-muted-foreground text-center">
-              Arrastra y suelta o haz click para subir
+              {t('business_wizard.upload_hint')}
             </p>
           </div>
 
@@ -510,7 +511,7 @@ export function BusinessWizard() {
               className="border-border border-2 px-8 py-3 rounded-xl bg-background flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <FontAwesomeIcon icon={faArrowLeft} className="text-lg" />
-              Cambiar rol
+              {t('business_wizard.change_role')}
             </button>
             <button
               type="button"
@@ -518,7 +519,7 @@ export function BusinessWizard() {
               disabled={!canSubmit}
               className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
             >
-              {submitting ? 'Enviando...' : 'Enviar solicitud \u2192'}
+              {submitting ? t('business_wizard.submitting') : t('business_wizard.submit')}
             </button>
           </div>
         </div>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useState } from 'react'
@@ -23,34 +24,15 @@ const roleDashboardPaths: Record<UserRole, string> = {
 
 interface RoleOption {
   value: UserRole
-  title: string
-  description: string
   icon: IconDefinition
   color: string
 }
 
+// Copy lives in `auth.role_selection.<value>.*`, keyed off `value`.
 const roleOptions: RoleOption[] = [
-  {
-    value: 'member',
-    title: 'Miembro',
-    description: 'Explora mascotas, adopta o rescata un animal callejero.',
-    icon: faDog,
-    color: 'var(--color-pop-700)',
-  },
-  {
-    value: 'rescue_center',
-    title: 'Centro de rescate',
-    description: 'Represento un centro de rescate animal',
-    icon: faShieldCat,
-    color: 'var(--color-pop-650)',
-  },
-  {
-    value: 'business',
-    title: 'Negocio',
-    description: 'Ofrezco servicios para mascotas (grooming, veterinaria, etc.)',
-    icon: faStore,
-    color: 'var(--color-pop-600)',
-  },
+  { value: 'member', icon: faDog, color: 'var(--color-pop-700)' },
+  { value: 'rescue_center', icon: faShieldCat, color: 'var(--color-pop-650)' },
+  { value: 'business', icon: faStore, color: 'var(--color-pop-600)' },
 ]
 
 export function RoleSelection() {
@@ -58,6 +40,7 @@ export function RoleSelection() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+  const { t } = useTranslation('auth')
   const { user, setRole } = useAuth()
   const submitted = useRef(false)
 
@@ -120,17 +103,17 @@ export function RoleSelection() {
       {loading && <LogoLoader />}
       <OnboardingNav
         items={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Registro', href: '/auth/register' },
-          { label: 'Rol', current: true },
+          { label: t('home', { ns: 'common' }), href: '/' },
+          { label: t('register', { ns: 'common' }), href: '/auth/register' },
+          { label: t('role', { ns: 'common' }), current: true },
         ]}
       />
       <div className="relative z-10 flex flex-1 items-center justify-center p-4">
         <div className="w-full max-w-2xl shadow-post bg-background border-2 p-6 sm:p-10 lg:p-16 rounded-2xl border-border">
           <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold mb-2">¿Cómo quieres usar Pelú?</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('role_selection.title')}</h1>
             <p className="text-muted-foreground">
-              Selecciona tu rol principal
+              {t('role_selection.subtitle')}
             </p>
           </div>
 
@@ -150,8 +133,8 @@ export function RoleSelection() {
                     <FontAwesomeIcon icon={option.icon} style={{color: option.color}}/>
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">{option.title}</h3>
-                    <p className="text-muted-foreground">{option.description}</p>
+                    <h3 className="text-lg font-semibold mb-1">{t(`role_selection.${option.value}.title`)}</h3>
+                    <p className="text-muted-foreground">{t(`role_selection.${option.value}.description`)}</p>
                   </div>
                   <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center ${
                     selectedRole === option.value
@@ -178,7 +161,7 @@ export function RoleSelection() {
             disabled={!selectedRole || loading}
             className="w-full py-3 px-4 bg-pop-850 text-secondary rounded-xl font-medium hover:bg-pop-750 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Guardando...' : 'Continuar'}
+            {loading ? t('role_selection.saving') : t('role_selection.continue')}
           </button>
         </div>
       </div>

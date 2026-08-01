@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -27,6 +28,7 @@ const shrinkExpandProps = {
 export function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { t } = useTranslation('auth')
   const { login } = useAuth()
 
   const [mode, setMode] = useState<LoginMode>(
@@ -47,7 +49,7 @@ export function LoginPage() {
     ;(async () => {
       const { data, error } = await mfaChallengeApi()
       if (error || !data) {
-        setCredentialsError('Tu sesión MFA expiró, inicia sesión de nuevo')
+        setCredentialsError(t('login.mfa_expired'))
         setMode('credentials')
         return
       }
@@ -73,7 +75,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout accent="amber" heroTagline="Bienvenido de vuelta">
+    <AuthLayout accent="amber" heroTagline={t('login.hero')}>
       <AnimatePresence mode="wait" initial={false}>
         {mode === 'credentials' && (
           <motion.div key="credentials" {...shrinkExpandProps}>
@@ -100,7 +102,7 @@ export function LoginPage() {
               onSuccess={handleSuccess}
               onExpired={() => {
                 setChallenge(null)
-                setCredentialsError('Tu sesión MFA expiró, inicia sesión de nuevo')
+                setCredentialsError(t('login.mfa_expired'))
                 setMode('credentials')
               }}
               onCancel={handleCancel}
@@ -120,6 +122,7 @@ interface CredentialsFormProps {
 }
 
 function CredentialsForm({ initialError, onMfaRequired, onSuccess, login }: CredentialsFormProps) {
+  const { t } = useTranslation('auth')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -157,14 +160,14 @@ function CredentialsForm({ initialError, onMfaRequired, onSuccess, login }: Cred
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold text-foreground">Inicia sesión</h2>
-        <p className="text-xs text-muted-foreground mt-1">Ingresa tus credenciales</p>
+        <h2 className="text-lg font-semibold text-foreground">{t('login.title')}</h2>
+        <p className="text-xs text-muted-foreground mt-1">{t('login.subtitle')}</p>
       </div>
 
       <form onSubmit={handleEmailAuth} className="space-y-3">
         <input
           type="email"
-          placeholder="Correo electrónico"
+          placeholder={t('login.email')}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
@@ -172,7 +175,7 @@ function CredentialsForm({ initialError, onMfaRequired, onSuccess, login }: Cred
         />
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder={t('login.password')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -184,20 +187,20 @@ function CredentialsForm({ initialError, onMfaRequired, onSuccess, login }: Cred
           disabled={loading}
           className="w-full py-3 px-4 bg-amber-500 text-background rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {loading ? 'Cargando...' : 'Iniciar sesión'}
+          {loading ? t('loading', { ns: 'common' }) : t('login.submit')}
         </button>
       </form>
 
       <div className="text-center text-sm">
         <Link href="/auth/register">
-          ¿No tienes cuenta? <span className="text-pop-550 hover:opacity-80 transition-opacity">Regístrate</span>
+          {t('login.no_account')} <span className="text-pop-550 hover:opacity-80 transition-opacity">{t('login.signup')}</span>
         </Link>
       </div>
 
       <div className="relative">
         <hr className="my-4" />
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-transparent text-muted-foreground">O continúa con</span>
+          <span className="px-2 bg-transparent text-muted-foreground">{t('login.or_continue')}</span>
         </div>
       </div>
 

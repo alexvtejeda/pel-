@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
+import { I18nextProvider } from 'react-i18next'
+import i18n from '@/lib/i18n'
 import { LoginPage } from '@/components/auth/login-page'
 
 vi.mock('next/navigation', () => {
@@ -39,6 +41,14 @@ vi.mock('@/lib/api/auth', () => ({
 
 import { mfaChallenge as mockMfaChallenge } from '@/lib/api/mfa'
 
+// Not `renderWithProviders`: that helper registers its own next/navigation mock,
+// which would shadow this file's and break the ?mfa=1 cases. The page's copy is
+// translated, so it still needs the i18n instance bound.
+const renderLogin = () =>
+  render(<LoginPage />, {
+    wrapper: ({ children }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>,
+  })
+
 describe('LoginPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -46,7 +56,7 @@ describe('LoginPage', () => {
   })
 
   it('renders the credentials form when URL has no ?mfa param', () => {
-    render(<LoginPage />)
+    renderLogin()
     expect(screen.getByPlaceholderText(/correo electrónico/i)).toBeInTheDocument()
     expect(screen.getByPlaceholderText(/contraseña/i)).toBeInTheDocument()
   })
@@ -64,7 +74,7 @@ describe('LoginPage', () => {
       error: null,
     })
 
-    render(<LoginPage />)
+    renderLogin()
 
     await waitFor(() => {
       expect(mockMfaChallenge).toHaveBeenCalledTimes(1)
@@ -81,7 +91,7 @@ describe('LoginPage', () => {
       error: 'Sesión MFA expirada',
     })
 
-    render(<LoginPage />)
+    renderLogin()
 
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/correo electrónico/i)).toBeInTheDocument()

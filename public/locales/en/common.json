@@ -73,5 +73,8 @@
     "removed": "Profile photo removed",
     "error": "Error updating photo",
     "size_error": "Image must be under 5 MB"
-  }
+  },
+  "register": "Sign up",
+  "role": "Role",
+  "optional": "(optional)"
 }

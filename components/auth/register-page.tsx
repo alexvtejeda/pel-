@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslation } from 'react-i18next'
 import Link from 'next/link'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
@@ -17,6 +18,7 @@ export function RegisterPage() {
   const [error, setError] = useState<string | null>(null)
   const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
   const router = useRouter()
+  const { t } = useTranslation('auth')
   const { register } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -42,9 +44,9 @@ export function RegisterPage() {
         onComplete={() => router.push('/auth/role-selection')}
         onSkip={() => router.push('/auth/role-selection')}
         breadcrumbItems={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Registro', href: '/auth/register' },
-          { label: 'Seguridad', current: true },
+          { label: t('home', { ns: 'common' }), href: '/' },
+          { label: t('register', { ns: 'common' }), href: '/auth/register' },
+          { label: t('security', { ns: 'common' }), current: true },
         ]}
       />
     )
@@ -55,17 +57,17 @@ export function RegisterPage() {
   }
 
   return (
-    <AuthLayout accent="pop" heroTagline="Encuentra a tu compañero ideal">
+    <AuthLayout accent="pop" heroTagline={t('signup.hero')}>
       <div className="space-y-4">
         <div>
-          <h2 className="text-lg font-semibold text-foreground">Crea tu cuenta</h2>
-          <p className="text-xs text-muted-foreground mt-1">Únete a la comunidad</p>
+          <h2 className="text-lg font-semibold text-foreground">{t('signup.title')}</h2>
+          <p className="text-xs text-muted-foreground mt-1">{t('signup.subtitle')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-3">
           <input
             type="email"
-            placeholder="Correo electrónico"
+            placeholder={t('login.email')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -73,7 +75,7 @@ export function RegisterPage() {
           />
           <input
             type="password"
-            placeholder="Contraseña"
+            placeholder={t('login.password')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -85,20 +87,20 @@ export function RegisterPage() {
             disabled={loading}
             className="w-full py-3 px-4 bg-pop-550 text-background rounded-xl font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Cargando...' : 'Crear cuenta'}
+            {loading ? t('loading', { ns: 'common' }) : t('signup.submit')}
           </button>
         </form>
 
         <div className="text-center text-sm">
           <Link href="/auth/login">
-            ¿Ya tienes cuenta? <span className="text-amber-500 hover:opacity-80 transition-opacity">Inicia sesión</span>
+            {t('signup.already_have')} <span className="text-amber-500 hover:opacity-80 transition-opacity">{t('signup.login')}</span>
           </Link>
         </div>
 
         <div className="relative">
           <hr className="my-4"></hr>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-transparent text-muted-foreground">O continúa con</span>
+            <span className="px-2 bg-transparent text-muted-foreground">{t('login.or_continue')}</span>
           </div>
         </div>
 

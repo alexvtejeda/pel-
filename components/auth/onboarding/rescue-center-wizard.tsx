@@ -212,11 +212,11 @@ export function RescueCenterWizard() {
           setSubmitted(true)
         }}
         breadcrumbItems={[
-          { label: 'Inicio', href: '/' },
-          { label: 'Registro', href: '/auth/register' },
-          { label: 'Rol', href: '/auth/role-selection', changeRole: true },
-          { label: 'Centro de Rescate' },
-          { label: 'Seguridad', current: true },
+          { label: t('home', { ns: 'common' }), href: '/' },
+          { label: t('register', { ns: 'common' }), href: '/auth/register' },
+          { label: t('role', { ns: 'common' }), href: '/auth/role-selection', changeRole: true },
+          { label: t('rc_wizard.nav_current') },
+          { label: t('security', { ns: 'common' }), current: true },
         ]}
       />
     )
@@ -236,54 +236,54 @@ export function RescueCenterWizard() {
               {/* Left: Pet fields */}
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Nombre</label>
-                  <input type="text" placeholder="ej. Coco" value={petName} onChange={(e) => setPetName(e.target.value)}
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.pet_name_label')}</label>
+                  <input type="text" placeholder={t('rc_wizard.pet_name_placeholder')} value={petName} onChange={(e) => setPetName(e.target.value)}
                     className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Descripción</label>
-                  <input type="text" placeholder="ej. Muy cariñoso, bueno con niños…" value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.pet_description_label')}</label>
+                  <input type="text" placeholder={t('rc_wizard.pet_description_placeholder')} value={petDescription} onChange={(e) => setPetDescription(e.target.value)}
                     className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Edad</label>
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.pet_age_label')}</label>
                   <div className="flex gap-2">
-                    <input type="number" min={0} placeholder="ej. 8" value={petAge} onChange={(e) => setPetAge(e.target.value)}
+                    <input type="number" min={0} placeholder={t('rc_wizard.pet_age_placeholder')} value={petAge} onChange={(e) => setPetAge(e.target.value)}
                       className="flex-1 rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring" />
                     <button type="button" onClick={() => setPetAgeUnit('months')}
                       className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petAgeUnit === 'months' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                      Meses
+                      {t('rc_wizard.unit_months')}
                     </button>
                     <button type="button" onClick={() => setPetAgeUnit('years')}
                       className={`rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petAgeUnit === 'years' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                      Años
+                      {t('rc_wizard.unit_years')}
                     </button>
                   </div>
                 </div>
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Género</label>
+                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.gender_label')}</label>
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setPetGender('male')}
                         className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petGender === 'male' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                        <FontAwesomeIcon icon={faMars} /> Macho
+                        <FontAwesomeIcon icon={faMars} /> {t('rc_wizard.male')}
                       </button>
                       <button type="button" onClick={() => setPetGender('female')}
                         className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petGender === 'female' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                        <FontAwesomeIcon icon={faVenus} /> Hembra
+                        <FontAwesomeIcon icon={faVenus} /> {t('rc_wizard.female')}
                       </button>
                     </div>
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tipo</label>
+                    <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.type_label')}</label>
                     <div className="flex gap-2">
                       <button type="button" onClick={() => setPetSpecies('dog')}
                         className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petSpecies === 'dog' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                        <FontAwesomeIcon icon={faDog} /> Perro
+                        <FontAwesomeIcon icon={faDog} /> {t('rc_wizard.dog')}
                       </button>
                       <button type="button" onClick={() => setPetSpecies('cat')}
                         className={`flex-1 flex flex-col items-center gap-1 rounded-xl border px-3 py-2.5 text-sm font-medium transition-colors ${petSpecies === 'cat' ? 'bg-pop-550/10 border-pop-550 text-foreground' : 'border-input text-muted-foreground hover:border-border'}`}>
-                        <FontAwesomeIcon icon={faCat} /> Gato
+                        <FontAwesomeIcon icon={faCat} /> {t('rc_wizard.cat')}
                       </button>
                     </div>
                   </div>
@@ -292,28 +292,28 @@ export function RescueCenterWizard() {
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={petVaccinated} onChange={e => setPetVaccinated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
                     <FontAwesomeIcon icon={faSyringe} className="text-sm text-muted-foreground" />
-                    <span className="text-sm text-foreground">Vacunado</span>
+                    <span className="text-sm text-foreground">{t('rc_wizard.vaccinated')}</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input type="checkbox" checked={petCastrated} onChange={e => setPetCastrated(e.target.checked)} className="w-4 h-4 rounded accent-pop-550" />
                     <FontAwesomeIcon icon={faScissors} className="text-sm text-muted-foreground" />
-                    <span className="text-sm text-foreground">Castrado</span>
+                    <span className="text-sm text-foreground">{t('rc_wizard.neutered')}</span>
                   </label>
                 </div>
                 <div className="flex flex-col gap-1.5 mt-3">
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
+                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.size_label')}</label>
                   <select value={petSize} onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large')}
                     className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
-                    <option value="small">Pequeño</option>
-                    <option value="medium">Mediano</option>
-                    <option value="large">Grande</option>
+                    <option value="small">{t('rc_wizard.size_small')}</option>
+                    <option value="medium">{t('rc_wizard.size_medium')}</option>
+                    <option value="large">{t('rc_wizard.size_large')}</option>
                   </select>
                 </div>
               </div>
 
               {/* Right: Photo upload + preview */}
               <div className="flex flex-col gap-2">
-                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Vista Previa</label>
+                <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.preview')}</label>
                 <input ref={photoInputRef} type="file" accept="image/png,image/jpeg,image/webp" multiple className="hidden"
                   onChange={(e) => { addFiles(e.target.files ?? []); e.target.value = '' }} />
                 {petPhotos.length > 0 ? (
@@ -332,9 +332,9 @@ export function RescueCenterWizard() {
                       )}
                     </div>
                     <div className="p-3">
-                      <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                      <p className="font-medium text-sm truncate">{petName || t('rc_wizard.unnamed')}</p>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? t('rc_wizard.age_years') : t('rc_wizard.age_months')}</span>}
                         {petAge && <span>·</span>}
                         <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
                         <span>·</span>
@@ -343,7 +343,7 @@ export function RescueCenterWizard() {
                       <div className="flex items-center gap-2 mt-1">
                         <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                         <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? t('rc_wizard.size_small') : petSize === 'medium' ? t('rc_wizard.size_medium') : t('rc_wizard.size_large')}</span>
                       </div>
                     </div>
                   </div>
@@ -357,9 +357,9 @@ export function RescueCenterWizard() {
                       <FontAwesomeIcon icon={faArrowUpFromBracket} className="text-5xl text-muted-foreground/20" />
                     </div>
                     <div className="p-3">
-                      <p className="font-medium text-sm truncate">{petName || 'Sin nombre'}</p>
+                      <p className="font-medium text-sm truncate">{petName || t('rc_wizard.unnamed')}</p>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">
-                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? 'años' : 'meses'}</span>}
+                        {petAge && <span>{petAge} {petAgeUnit === 'years' ? t('rc_wizard.age_years') : t('rc_wizard.age_months')}</span>}
                         {petAge && <span>·</span>}
                         <FontAwesomeIcon icon={petGender === 'male' ? faMars : faVenus} className="text-xs" />
                         <span>·</span>
@@ -368,12 +368,12 @@ export function RescueCenterWizard() {
                       <div className="flex items-center gap-2 mt-1">
                         <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                         <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? 'Pequeño' : petSize === 'medium' ? 'Mediano' : 'Grande'}</span>
+                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? t('rc_wizard.size_small') : petSize === 'medium' ? t('rc_wizard.size_medium') : t('rc_wizard.size_large')}</span>
                       </div>
                     </div>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground text-center">Arrastra y suelta · Click para subir imagen de mascota</p>
+                <p className="text-xs text-muted-foreground text-center">{t('rc_wizard.upload_hint')}</p>
               </div>
 
               {/* Footer */}
@@ -381,11 +381,11 @@ export function RescueCenterWizard() {
                 <button type="button" onClick={() => { setShowPetForm(false); resetPetForm() }}
                   className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
                   <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-                  Volver
+                  {t('back', { ns: 'common' })}
                 </button>
                 <button type="button" onClick={handlePetSubmit} disabled={!petName.trim() || petSubmitting}
                   className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed">
-                  {petSubmitting ? 'Guardando…' : 'Guardar mascota →'}
+                  {petSubmitting ? t('rc_wizard.pet_submitting') : t('rc_wizard.pet_submit')}
                 </button>
               </div>
             </div>
@@ -420,7 +420,7 @@ export function RescueCenterWizard() {
               <h1 className="text-2xl font-bold text-foreground">{t('rc_wizard.success_title')}</h1>
               <p className="text-muted-foreground">{t('rc_wizard.success_subtitle')}</p>
               <div className="p-4 bg-muted border border-border rounded-2xl text-sm text-muted-foreground">
-                Estado: <span className="font-medium text-foreground">Pendiente de aprobación</span>
+                {t('rc_wizard.status_label')} <span className="font-medium text-foreground">{t('rc_wizard.status_pending')}</span>
               </div>
               <div className="flex flex-col gap-3">
                 <button onClick={() => setShowPetForm(true)}
@@ -448,28 +448,28 @@ export function RescueCenterWizard() {
 
       <OnboardingNav
         items={[
-          {label: 'Inicio', current: false, href: "/"},
-          {label: 'Registro', current: false, href: "/auth/register"},
-          {label: 'Rol', current: false, href: "/auth/role-selection", changeRole: true},
-          {label: 'Centro de Rescate', current: true}
+          {label: t('home', { ns: 'common' }), current: false, href: "/"},
+          {label: t('register', { ns: 'common' }), current: false, href: "/auth/register"},
+          {label: t('role', { ns: 'common' }), current: false, href: "/auth/role-selection", changeRole: true},
+          {label: t('rc_wizard.nav_current'), current: true}
         ]}
       />
 
       {/* Page content */}
       <main className="my-4 rounded-2xl relative z-10 max-w-3xl mx-auto px-8 py-8 bg-background border-border shadow-post">
 
-        <h1 className="text-2xl font-bold tracking-tight mb-1">Registra tu centro de rescate</h1>
-        <p className="text-sm text-muted-foreground mb-10">Completa tu perfil para que adoptantes puedan encontrarte</p>
+        <h1 className="text-2xl font-bold tracking-tight mb-1">{t('rc_wizard.title')}</h1>
+        <p className="text-sm text-muted-foreground mb-10">{t('rc_wizard.subtitle')}</p>
 
         {/* Center fields */}
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Nombre del centro <span className="text-destructive">*</span>
+              {t('rc_wizard.name_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              placeholder="ej. Centro de Rescate Esperanza"
+              placeholder={t('rc_wizard.name_placeholder')}
               value={centerName}
               onChange={(e) => setCenterName(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -478,11 +478,11 @@ export function RescueCenterWizard() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Teléfono <span className="text-destructive">*</span>
+              {t('rc_wizard.phone_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="tel"
-              placeholder="809-000-0000"
+              placeholder={t('rc_wizard.phone_placeholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -491,11 +491,11 @@ export function RescueCenterWizard() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Dirección <span className="text-destructive">*</span>
+              {t('rc_wizard.address_label')} <span className="text-destructive">*</span>
             </label>
             <input
               type="text"
-              placeholder="Calle, número, sector, ciudad"
+              placeholder={t('rc_wizard.address_placeholder')}
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -505,14 +505,14 @@ export function RescueCenterWizard() {
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                RNC{' '}
+                {t('rc_wizard.rnc_label')}{' '}
                 <span className="text-muted-foreground/50 font-normal normal-case tracking-normal">
-                  (opcional)
+                  {t('optional', { ns: 'common' })}
                 </span>
               </label>
               <input
                 type="text"
-                placeholder="1-23-45678-9"
+                placeholder={t('rc_wizard.rnc_placeholder')}
                 value={rnc}
                 onChange={(e) => setRnc(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -520,14 +520,14 @@ export function RescueCenterWizard() {
             </div>
             <div className="flex flex-col gap-1.5">
               <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                Sitio web{' '}
+                {t('website', { ns: 'common' })}{' '}
                 <span className="text-muted-foreground/50 font-normal normal-case tracking-normal">
-                  (opcional)
+                  {t('optional', { ns: 'common' })}
                 </span>
               </label>
               <input
                 type="url"
-                placeholder="https://tucentro.com"
+                placeholder={t('rc_wizard.website_placeholder')}
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background/50 px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -537,7 +537,7 @@ export function RescueCenterWizard() {
 
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Instagram
+              {t('instagram', { ns: 'common' })}
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground pointer-events-none">
@@ -545,7 +545,7 @@ export function RescueCenterWizard() {
               </span>
               <input
                 type="text"
-                placeholder="tucentro"
+                placeholder={t('rc_wizard.instagram_placeholder')}
                 value={instagram}
                 onChange={(e) => setInstagram(e.target.value)}
                 className="w-full rounded-xl border border-input bg-background/50 pl-8 pr-4 py-3 text-sm outline-none focus:ring-2 focus:ring-ring"
@@ -565,7 +565,7 @@ export function RescueCenterWizard() {
             className="flex border-border rounded-xl p-4 border-2 items-center gap-2 text-sm text-muted-foreground hover:border-foreground hover:text-foreground transition-colors"
           >
             <FontAwesomeIcon icon={faArrowLeft} className="text-xs" />
-            Cambiar rol
+            {t('rc_wizard.change_role')}
           </button>
           <button
             type="button"
@@ -573,7 +573,7 @@ export function RescueCenterWizard() {
             disabled={!canSubmit}
             className="px-8 py-3 bg-pop-550 text-white rounded-xl font-semibold hover:opacity-90 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Enviando…' : 'Enviar solicitud →'}
+            {submitting ? t('rc_wizard.submitting') : t('rc_wizard.submit')}
           </button>
         </div>
 
