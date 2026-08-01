@@ -1,13 +1,47 @@
-import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 
-vi.mock('@/lib/api/metrics', () => ({ trackPetEvent: vi.fn() }))
-vi.mock('@/lib/contexts/auth-context', () => ({
-  useAuth: () => ({ user: null, loading: false }),
+/*
+  `auth` is a single mutable object, not a fresh literal per call: the tests that
+  need a session set `auth.user` before rendering, and everything else runs on
+  the logged-out default that the pre-existing cases in this file assume.
+*/
+const { auth, createConversation, toast } = vi.hoisted(() => ({
+  auth: { user: null as null | { id: string; role: string }, loading: false },
+  createConversation: vi.fn(),
+  toast: { success: vi.fn(), error: vi.fn() },
 }))
 
+vi.mock('@/lib/api/metrics', () => ({ trackPetEvent: vi.fn() }))
+vi.mock('@/lib/contexts/auth-context', () => ({ useAuth: () => auth }))
+vi.mock('@/lib/api/chat', () => ({ createConversation }))
+vi.mock('sonner', () => ({ toast }))
+
 import { renderWithProviders } from '../test-utils'
+import * as nav from 'next/navigation'
 import { PetDetail } from '@/components/pets/pet-detail'
+
+/*
+  `renderWithProviders` registers its own `next/navigation` mock, and because
+  test-utils is imported AFTER this file's hoisted vi.mock calls, its factory is
+  the one that wins — a `vi.mock('next/navigation', …)` written here would be
+  silently discarded. Spying on the resulting namespace is what actually reaches
+  the component.
+*/
+const spyRouter = () => {
+  const push = vi.fn()
+  vi.spyOn(nav, 'useRouter').mockReturnValue({
+    push, replace: vi.fn(), back: vi.fn(), forward: vi.fn(), refresh: vi.fn(), prefetch: vi.fn(),
+  } as unknown as ReturnType<typeof nav.useRouter>)
+  return push
+}
+
+beforeEach(() => {
+  vi.restoreAllMocks()
+  auth.user = null
+  createConversation.mockReset()
+  toast.error.mockReset()
+})
 
 const pet = (overrides: Record<string, unknown> = {}) =>
   ({
@@ -190,5 +224,111 @@ describe('PetDetail rescue-center card', () => {
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('[data-icon="paw"]')).not.toBeNull()
     expect(screen.getByText('Adoptame RD')).toBeInTheDocument()
+  })
+})
+
+describe('PetDetail member listings', () => {
+  const memberPet = (owner: Record<string, unknown> = {}) =>
+    pet({
+      rescue_center: undefined,
+      owner: { id: 'u1', display_name: 'María', email: 'maria@example.com', phone: '809-555-0134', ...owner },
+    })
+
+  it('shows the owner contacts and no verified badge', () => {
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+
+    expect(screen.getByText('María')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /809-555-0134/ })).toHaveAttribute('href', 'tel:809-555-0134')
+    expect(screen.getByRole('link', { name: /maria@example.com/ })).toHaveAttribute(
+      'href',
+      'mailto:maria@example.com',
+    )
+    expect(screen.queryByRole('img', { name: /verificad/i })).toBeNull()
+  })
+
+  // The adoption form belongs to rescue centres; a member listing has none, so
+  // routing to /adopt would land on a form that cannot exist.
+  it('offers chat instead of the adoption form for a logged-in member', () => {
+    auth.user = { id: 'u2', role: 'member' }
+
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+
+    expect(screen.queryByRole('button', { name: /adoptar/i })).toBeNull()
+    expect(screen.getByRole('button', { name: 'Chatear con María' })).toBeInTheDocument()
+  })
+
+  it('starts a conversation and navigates to chat', async () => {
+    const push = spyRouter()
+    auth.user = { id: 'u2', role: 'member' }
+    createConversation.mockResolvedValue({ data: { id: 'c1' }, error: null })
+
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+    fireEvent.click(screen.getByRole('button', { name: /chatear/i }))
+
+    await waitFor(() => expect(createConversation).toHaveBeenCalledWith({ pet_id: 'p1' }))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
+  })
+
+  it('reports a failed start and stays on the page', async () => {
+    const push = spyRouter()
+    auth.user = { id: 'u2', role: 'member' }
+    createConversation.mockResolvedValue({ data: null, error: 'Esta mascota ya no está publicada' })
+
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+    fireEvent.click(screen.getByRole('button', { name: /chatear/i }))
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledWith('Esta mascota ya no está publicada'))
+    expect(push).not.toHaveBeenCalled()
+    // The button has to come back, or a transient failure strands the user.
+    await waitFor(() => expect(screen.getByRole('button', { name: /chatear/i })).not.toBeDisabled())
+  })
+
+  it('hides the chat button on your own listing', () => {
+    auth.user = { id: 'u1', role: 'member' } // same id as the owner
+
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+
+    expect(screen.queryByRole('button', { name: /chatear/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /adoptar/i })).toBeNull()
+  })
+
+  // A logged-out visitor still needs a way in — the login prompt is shared with
+  // centre listings and must not be swallowed by the owner fork.
+  it('still invites a logged-out visitor to sign in', () => {
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+
+    expect(screen.getByRole('link', { name: 'Inicia sesión para adoptar' })).toHaveAttribute(
+      'href',
+      '/auth/login',
+    )
+  })
+
+  // `short_slug` is omitted for member listings, so the share button self-hides.
+  it('offers no share button', () => {
+    renderWithProviders(<PetDetail pet={memberPet()} />)
+
+    expect(screen.queryByRole('button', { name: /compartir/i })).toBeNull()
+  })
+})
+
+describe('PetDetail rescue-centre CTA', () => {
+  const centrePet = () => pet({ rescue_center: { id: 'rc1', name: 'Adoptame RD' } })
+
+  it('still routes a member to the adoption form', () => {
+    auth.user = { id: 'u2', role: 'member' }
+
+    renderWithProviders(<PetDetail pet={centrePet()} />)
+
+    expect(screen.getByRole('button', { name: 'Adoptar' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /chatear/i })).toBeNull()
+  })
+
+  it.each(['rescue_center', 'business'])('offers nothing to a %s account', (role) => {
+    auth.user = { id: 'u2', role }
+
+    renderWithProviders(<PetDetail pet={centrePet()} />)
+
+    expect(screen.queryByRole('button', { name: 'Adoptar' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Inicia sesión/ })).toBeNull()
   })
 })

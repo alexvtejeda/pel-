@@ -19,14 +19,18 @@ import {
   faRulerCombined,
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Pet } from '@/lib/api/pets'
-import { instagramUrl, ensureUrl } from '@/lib/utils'
+import { createConversation } from '@/lib/api/chat'
+import { instagramUrl, ensureUrl, ownerDisplayName } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
 import Link from 'next/link'
 import Carousel from '@/components/Carousel'
 import { VerifiedBadge } from './verified-badge'
+import { PetOwnerCard } from './pet-owner-card'
 
 function DetailCarousel({ urls }: { urls: string[] }) {
   const { t } = useTranslation('pets')
@@ -75,7 +79,9 @@ interface PetDetailProps {
 export function PetDetail({ pet }: PetDetailProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
+  const [startingChat, setStartingChat] = useState(false)
 
   useEffect(() => {
     if (pet?.id) trackPetEvent(pet.id, 'view')
@@ -101,6 +107,21 @@ export function PetDetail({ pet }: PetDetailProps) {
   const handleAdopt = () => {
     trackPetEvent(pet.id, 'adopt_click')
     window.location.href = `/adopt?id=${pet.id}`
+  }
+
+  // Member listings have no adoption form, so the conversation IS the funnel.
+  // `createConversation` is idempotent, which is why there is no "already
+  // contacted" state to keep — a second press reopens the same thread.
+  const handleChat = async () => {
+    if (startingChat || !pet.owner) return
+    setStartingChat(true)
+    const { data, error } = await createConversation({ pet_id: pet.id })
+    if (error || !data) {
+      toast.error(error || t('detail.chat_error'))
+      setStartingChat(false)
+      return
+    }
+    router.push(`/chat?conversation_id=${data.id}`)
   }
 
   const speciesIcon = pet.species === 'dog' ? faDog : faCat
@@ -276,11 +297,27 @@ export function PetDetail({ pet }: PetDetailProps) {
             )}
           </div>
         )}
+
+        {/* A listing has either a centre or an owner, never both. */}
+        {pet.owner && <PetOwnerCard owner={pet.owner} />}
       </div>
 
       {/* Adopt button + share */}
       <div className="p-4 border-t border-border shrink-0 space-y-2">
-        {user && user.role !== 'rescue_center' && user.role !== 'business' ? (
+        {/* Member listings have no adoption form — forms belong to rescue
+            centres — so chat is the whole funnel here. Your own listing gets
+            no button at all. */}
+        {user && pet.owner && user.id !== pet.owner.id ? (
+          <button
+            onClick={handleChat}
+            disabled={startingChat}
+            className="focus-ring w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-60"
+          >
+            {startingChat
+              ? t('detail.chat_starting')
+              : t('detail.chat_with', { name: ownerDisplayName(pet.owner) })}
+          </button>
+        ) : user && pet.owner ? null : user && user.role !== 'rescue_center' && user.role !== 'business' ? (
           <button
             onClick={handleAdopt}
             className="focus-ring w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98]"
