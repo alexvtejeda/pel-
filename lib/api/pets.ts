@@ -19,16 +19,35 @@ export interface PetRescueCenter {
   instagram?: string
 }
 
+/**
+ * Publisher block for a member-published adoption listing — the counterpart of
+ * `PetRescueCenter`. Exactly one of `owner` / `rescue_center` is set on a pet:
+ * a listing belongs either to a verified centre or to a person. Both are
+ * `omitempty` on the wire (api: internal/pets/handler.go `petResponse`).
+ *
+ * `display_name` is nullable in the database, and a Google sign-up can skip the
+ * onboarding wizard that sets it — never render it without a fallback.
+ */
+export interface PetOwner {
+  id: string
+  display_name?: string | null
+  email: string
+  phone?: string | null
+  avatar_url?: string | null
+}
+
 export interface Pet {
   id: string
-  rescue_center_id: string
+  /** Empty string on a member listing — the pet belongs to `owner`, not a centre. */
+  rescue_center_id?: string
   name: string
   description: string
   age: number
   gender: 'male' | 'female'
   species: 'dog' | 'cat'
   status: string
-  short_slug: string
+  /** Rescue-centre listings only; `petResponse` omits it for member listings. */
+  short_slug?: string
   photos: Photo[]
   conditions: string[]
   condition_notes: string | null
@@ -36,6 +55,7 @@ export interface Pet {
   castrated: boolean
   size: 'small' | 'medium' | 'large'
   rescue_center?: PetRescueCenter
+  owner?: PetOwner
   submission_count?: number
 }
 

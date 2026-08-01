@@ -8,6 +8,13 @@ export interface AuthUser {
   auth_provider: string
   preferred_lang: string
   display_name: string | null
+  /**
+   * Optional, not `string | null`: `phone` is the one `omitempty` field on the
+   * auth userResponse (api: internal/auth/handler.go), so it is absent from the
+   * payload entirely when unset, while display_name and avatar_url serialise as
+   * null. Set via `PATCH /auth/profile`.
+   */
+  phone?: string | null
   avatar_url: string | null
   mfa_setup_required?: boolean
 }

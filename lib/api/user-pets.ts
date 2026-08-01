@@ -13,6 +13,12 @@ export interface UserPet {
   size?: 'small' | 'medium' | 'large'
   vaccinated?: boolean
   castrated?: boolean
+  /**
+   * Public visibility of this pet. `undefined`/`null` means private — the
+   * onboarding wizard and the transport picker write rows that must never
+   * reach the public feed. Only `'available'` is listed.
+   */
+  adoption_status?: 'available' | 'adopted' | null
   photos?: { id: string; url: string; position: number }[]
   created_at: string
 }
