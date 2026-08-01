@@ -45,16 +45,27 @@ const mockListMessages = vi.mocked(listMessages)
 
 type ListResult = { data: Message[] | null; error: string | null }
 
-const conversation = (id: string, name: string): Conversation => ({
+/*
+  Shaped from the backend's ConversationSummary (api: internal/chat/repository.go).
+  Defaults to an adoption thread with a pet, because that is the one combination
+  that renders the attach menu — see the gate tests below.
+*/
+const conversation = (
+  id: string,
+  name: string,
+  overrides: Partial<Conversation> = {}
+): Conversation => ({
   id,
-  rescue_center_id: 'rc1',
-  member_id: 'me',
+  type: 'adoption',
+  pet_id: 'p1',
+  other_user_id: 'u-other',
   other_user_name: name,
   other_user_email: `${id}@pelu.do`,
   last_message_body: null,
   last_message_at: null,
   unread_count: 0,
   created_at: '2026-07-29T10:00:00Z',
+  ...overrides,
 })
 
 const CONVERSATION_A = conversation('c1', 'Rescate RD')

@@ -14,19 +14,21 @@ import type { Conversation } from '@/lib/api/chat'
 
 const mockList = vi.mocked(listConversations)
 
-// Shaped from the Conversation interface in lib/api/chat.ts — every field the
-// full (non-compact) row reads is present.
+// Shaped from the backend's ConversationSummary (api: internal/chat/repository.go),
+// which is what the Conversation interface now mirrors — every field the full
+// (non-compact) row reads is present. There is deliberately no pet_name: the API
+// has never sent one, and the badge that read it has been deleted.
 const CONVERSATION: Conversation = {
   id: 'c1',
-  rescue_center_id: 'rc1',
-  member_id: 'm1',
+  type: 'adoption',
+  pet_id: 'p1',
+  other_user_id: 'u-rc',
   other_user_name: 'Rescate RD',
   other_user_email: 'hola@rescaterd.do',
   last_message_body: '¿Sigue disponible Luna?',
   last_message_at: '2026-01-04T10:00:00Z',
   unread_count: 0,
   created_at: '2026-01-04T09:00:00Z',
-  pet_name: 'Luna',
 }
 
 /*

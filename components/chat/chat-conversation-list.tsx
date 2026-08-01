@@ -201,7 +201,8 @@ export default function ChatConversationList({ onSelectConversation, activeConve
                 )}
               </div>
             ) : (
-              /* Full: avatar + name + pet + last message */
+              /* Full: avatar + name + last message. No pet badge — the backend
+                 has never sent a pet name on a conversation summary. */
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <span className={`text-sm truncate ${isUnread ? colors.nameUnread : colors.name}`}>
@@ -213,10 +214,6 @@ export default function ChatConversationList({ onSelectConversation, activeConve
                     </span>
                   )}
                 </div>
-
-                {convo.pet_name && (
-                  <span className="text-xs text-pop-550">{convo.pet_name}</span>
-                )}
 
                 {convo.last_message_body && (
                   <p className={`text-xs truncate mt-0.5 ${colors.message}`}>

@@ -1,18 +1,25 @@
 import { apiClient } from './client'
 
+/**
+ * Mirrors the backend's ConversationSummary
+ * (api: internal/chat/repository.go). Note what is NOT here: `rescue_center_id`
+ * and `member_id` were dropped by migration 000042, and `pet_name` /
+ * `pet_photo_url` have never been sent — the interface declared them for years
+ * and the UI rendered a badge that was always empty.
+ */
 export interface Conversation {
   id: string
-  rescue_center_id: string
-  member_id: string
-  other_user_name: string
+  type: 'adoption' | 'transport' | 'service'
+  /** Derived from the linked submission; null for service and direct chats. */
+  pet_id?: string | null
+  other_user_id: string
+  other_user_name: string | null
   other_user_email: string
+  other_avatar_url?: string | null
   last_message_body: string | null
   last_message_at: string | null
   unread_count: number
   created_at: string
-  pet_name?: string
-  pet_photo_url?: string
-  pet_id?: string // used for transport link
 }
 
 export interface Message {

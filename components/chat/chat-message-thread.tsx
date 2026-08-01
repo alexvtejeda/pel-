@@ -301,9 +301,6 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
           <p className="text-sm font-medium truncate">
             {conversation.other_user_name || conversation.other_user_email}
           </p>
-          {conversation.pet_name && (
-            <p className="text-xs text-pop-550">{conversation.pet_name}</p>
-          )}
         </div>
       </div>
 
