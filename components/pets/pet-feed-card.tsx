@@ -1,12 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faGlobe, faSyringe, faScissors, faRulerCombined, faUser } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { Pet } from '@/lib/api/pets'
+import { createConversation } from '@/lib/api/chat'
 import { instagramUrl, ensureUrl, ownerDisplayName } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -34,6 +38,8 @@ interface PetFeedCardProps {
 export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
+  const router = useRouter()
+  const [startingChat, setStartingChat] = useState(false)
 
   const age = formatAge(pet.age)
   const rc = pet.rescue_center
@@ -42,6 +48,21 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
   const handleAdopt = () => {
     trackPetEvent(pet.id, 'adopt_click')
     window.location.href = `/adopt?id=${pet.id}`
+  }
+
+  // Same funnel as pet-detail.tsx: a member listing has no adoption form, so
+  // the conversation is the whole CTA. `createConversation` is idempotent, so
+  // a second press reopens the same thread rather than making a duplicate.
+  const handleChat = async () => {
+    if (startingChat || !pet.owner) return
+    setStartingChat(true)
+    const { data, error } = await createConversation({ pet_id: pet.id })
+    if (error || !data) {
+      toast.error(error || t('detail.chat_error'))
+      setStartingChat(false)
+      return
+    }
+    router.push(`/chat?conversation_id=${data.id}`)
   }
 
   const publisher = rc && (
@@ -218,9 +239,23 @@ export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardPr
         )}
       </div>
 
-      {/* Mirrors pet-detail.tsx:280-294 exactly — rescue-centre and business
-          accounts get no CTA at all, so the wrapper goes with it. */}
-      {user && user.role !== 'rescue_center' && user.role !== 'business' ? (
+      {/* Mirrors pet-detail.tsx's CTA fork exactly — rescue-centre and business
+          accounts get no CTA at all, so the wrapper goes with it. Member
+          listings branch first: they have no adoption form, and their owner
+          gets no button on their own pet. */}
+      {user && pet.owner && user.id !== pet.owner.id ? (
+        <div className="p-3 pt-0">
+          <button
+            onClick={handleChat}
+            disabled={startingChat}
+            className="focus-ring min-h-11 w-full rounded-xl bg-pop-solid font-semibold text-white transition-[background-color,transform] hover:bg-pop-850 disabled:opacity-60 motion-safe:active:scale-[0.99]"
+          >
+            {startingChat
+              ? t('detail.chat_starting')
+              : t('detail.chat_with', { name: ownerDisplayName(pet.owner) })}
+          </button>
+        </div>
+      ) : user && pet.owner ? null : user && user.role !== 'rescue_center' && user.role !== 'business' ? (
         <div className="p-3 pt-0">
           <button
             onClick={handleAdopt}

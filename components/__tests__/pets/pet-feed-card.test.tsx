@@ -3,7 +3,10 @@ import { screen } from '@testing-library/react'
 
 vi.mock('@/lib/api/metrics', () => ({ trackPetEvent: vi.fn() }))
 
-const mockUser = vi.fn(() => ({ user: null as null | { role: string }, loading: false }))
+const mockUser = vi.fn(() => ({
+  user: null as null | { id?: string; role: string },
+  loading: false,
+}))
 vi.mock('@/lib/contexts/auth-context', () => ({ useAuth: () => mockUser() }))
 
 import { renderWithProviders } from '../test-utils'
@@ -222,5 +225,47 @@ describe('PetFeedCard structure', () => {
     renderWithProviders(<PetFeedCard pet={pet()} photoWidth={351} />)
 
     expect(screen.getByRole('article', { name: 'Abril' })).toBeInTheDocument()
+  })
+})
+
+// The mobile feed is the WHOLE /pets experience below 640px — there is no
+// detail view to fall back to. pet-detail.tsx forks its CTA for member
+// listings; this surface must fork identically, or a mobile tap on Adoptar
+// lands on /adopt?id=<user_pet_id>, an adoption form that cannot exist because
+// forms belong to rescue centres.
+describe('PetFeedCard member-listing CTA', () => {
+  const memberPet = (overrides: Record<string, unknown> = {}) =>
+    pet({
+      rescue_center: undefined,
+      rescue_center_id: '',
+      owner: { id: 'u-owner', display_name: 'María', email: 'maria@example.com' },
+      ...overrides,
+    })
+
+  it('offers chat instead of Adoptar on a member listing', () => {
+    mockUser.mockReturnValue({ user: { id: 'u-visitor', role: 'member' }, loading: false })
+
+    renderWithProviders(<PetFeedCard pet={memberPet()} photoWidth={351} />)
+
+    expect(screen.getByRole('button', { name: /chatear con maría/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^adoptar$/i })).toBeNull()
+  })
+
+  it('gives the owner no CTA on their own listing', () => {
+    mockUser.mockReturnValue({ user: { id: 'u-owner', role: 'member' }, loading: false })
+
+    renderWithProviders(<PetFeedCard pet={memberPet()} photoWidth={351} />)
+
+    expect(screen.queryByRole('button', { name: /chatear/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /^adoptar$/i })).toBeNull()
+  })
+
+  it('still offers Adoptar on a rescue-centre pet', () => {
+    mockUser.mockReturnValue({ user: { id: 'u-visitor', role: 'member' }, loading: false })
+
+    renderWithProviders(<PetFeedCard pet={pet()} photoWidth={351} />)
+
+    expect(screen.getByRole('button', { name: /^adoptar$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /chatear/i })).toBeNull()
   })
 })
