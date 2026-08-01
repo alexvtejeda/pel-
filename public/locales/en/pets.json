@@ -73,7 +73,8 @@
     "register": "Sign up",
     "dashboard": "Dashboard",
     "my_account": "My account",
-    "setup_mfa": "Set up MFA"
+    "setup_mfa": "Set up MFA",
+    "change_role": "Change role"
   },
   "profile": {
     "logout": "Log out"

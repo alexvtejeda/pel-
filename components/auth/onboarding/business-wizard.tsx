@@ -504,7 +504,7 @@ export function BusinessWizard() {
             <button
               type="button"
               onClick={() => {
-                localStorage.setItem('pelu_changing_role', '1')
+                sessionStorage.setItem('pelu_changing_role', '1')
                 router.push('/auth/role-selection')
               }}
               className="border-border border-2 px-8 py-3 rounded-xl bg-background flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"

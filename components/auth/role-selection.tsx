@@ -14,10 +14,11 @@ import { OnboardingNav } from '@/components/auth/onboarding/onboarding-nav'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { getMyBusiness } from '@/lib/api/businesses'
 
+// Where a role lands once its onboarding is done. `member` has no dashboard.
 const roleDashboardPaths: Record<UserRole, string> = {
   rescue_center: '/dashboard/rescue-center',
   member: '/',
-  business: '/',
+  business: '/dashboard/business',
 }
 
 interface RoleOption {
@@ -60,33 +61,25 @@ export function RoleSelection() {
   const { user, setRole } = useAuth()
   const submitted = useRef(false)
 
-  // Auto-redirect returning users who already have a role
-  // Skip if they navigated back from onboarding to change their role
+  // Auto-redirect returning users who already have a role.
+  // The flag marks a deliberate visit — the "Cambiar rol" button in the profile
+  // sheet, or the "Rol" breadcrumb inside a wizard. Those users stay on the
+  // picker no matter how far along their onboarding is; without the exemption
+  // the redirect fires before they can pick anything.
   useEffect(() => {
     if (!user?.role || submitted.current) return
-
-    const changingRole = sessionStorage.getItem('pelu_changing_role')
-
-    async function checkOnboarding() {
-      let onboardingComplete = false
-
-      if (user!.role === 'rescue_center') {
-        const { data } = await getMyRescueCenter()
-        onboardingComplete = !!data
-      } else if (user!.role === 'business') {
-        const { data } = await getMyBusiness()
-        onboardingComplete = !!data
-      } else if (user!.role === 'member') {
-        onboardingComplete = !!user!.display_name
-      }
-
-      if (onboardingComplete || !changingRole) {
-        router.push(roleDashboardPaths[user!.role!])
-      }
-    }
-
-    checkOnboarding()
+    if (sessionStorage.getItem('pelu_changing_role')) return
+    router.push(roleDashboardPaths[user.role])
   }, [user, router])
+
+  // rescue-center-wizard.tsx self-redirects when a center already exists, but
+  // the business and member wizards do not — without this check, switching back
+  // to a role you already set up replays its whole wizard.
+  const onboardingDone = async (role: UserRole): Promise<boolean> => {
+    if (role === 'rescue_center') return !!(await getMyRescueCenter()).data
+    if (role === 'business') return !!(await getMyBusiness()).data
+    return !!user?.display_name
+  }
 
   const handleSubmit = async () => {
     if (!selectedRole) return
@@ -104,10 +97,18 @@ export function RoleSelection() {
       return
     }
 
-    // No setLoading(false) here on purpose: router.push resolves before the
-    // next route paints, so clearing it would flash the role picker back for a
-    // frame. The component unmounts on navigation, which clears it for us.
-    router.push(`/auth/onboarding/${selectedRole}`)
+    const done = await onboardingDone(selectedRole)
+
+    // Hard navigation rather than router.push: AuthProvider reads
+    // `mfa_setup_required` from /auth/me only on mount, so a soft push into
+    // rescue_center/business would leave it stale at false and ProtectedRoute
+    // would never force enrollment. A document load re-inits the provider
+    // against the freshly re-signed access-token cookie.
+    // No setLoading(false) here on purpose: the loader stays up until the next
+    // document paints, instead of flashing the role picker back for a frame.
+    window.location.href = done
+      ? roleDashboardPaths[selectedRole]
+      : `/auth/onboarding/${selectedRole}`
   }
 
   return (

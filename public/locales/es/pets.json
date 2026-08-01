@@ -73,7 +73,8 @@
     "register": "Registrarse",
     "dashboard": "Mi panel",
     "my_account": "Mi cuenta",
-    "setup_mfa": "Configurar MFA"
+    "setup_mfa": "Configurar MFA",
+    "change_role": "Cambiar rol"
   },
   "profile": {
     "logout": "Cerrar sesión"

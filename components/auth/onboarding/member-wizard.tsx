@@ -154,7 +154,7 @@ export function MemberWizard() {
           headerLeft={
             <button
               onClick={() => {
-                localStorage.setItem('pelu_changing_role', '1')
+                sessionStorage.setItem('pelu_changing_role', '1')
                 router.push('/auth/role-selection')
               }}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"

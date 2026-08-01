@@ -10,7 +10,7 @@ import { uploadAvatar, deleteAvatar } from '@/lib/api/auth'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner, faHandHoldingHeart } from '@fortawesome/free-solid-svg-icons'
+import { faTableColumns, faArrowRightFromBracket, faPaw, faComments, faTruckFast, faKey, faCamera, faSpinner, faHandHoldingHeart, faRightLeft } from '@fortawesome/free-solid-svg-icons'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { LanguageSwitcher } from '@/components/language-switcher'
@@ -92,6 +92,14 @@ export function PetsHeader() {
     setSheetOpen(false)
     await logout()
     router.push('/pets')
+  }
+
+  // The picker sends anyone who already has a role straight back out unless this
+  // flag marks the visit as deliberate — see role-selection.tsx.
+  const handleChangeRole = () => {
+    setSheetOpen(false)
+    sessionStorage.setItem('pelu_changing_role', '1')
+    router.push('/auth/role-selection')
   }
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -364,8 +372,16 @@ export function PetsHeader() {
               <FontAwesomeIcon icon={faArrowRightFromBracket} className="text-lg" />
               {t('profile.logout')}
             </button>
-            <div className="mt-2 border-t border-border pt-3 px-4">
+            <div className="mt-2 flex flex-col items-start gap-3 border-t border-border pt-3 px-4">
               <LanguageSwitcher />
+              <button
+                type="button"
+                onClick={handleChangeRole}
+                className="focus-ring inline-flex items-center gap-2 rounded-xl px-2 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <FontAwesomeIcon icon={faRightLeft} className="text-xs" />
+                {t('header.change_role')}
+              </button>
             </div>
           </nav>
         </SheetContent>
