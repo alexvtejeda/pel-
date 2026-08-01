@@ -28,6 +28,13 @@ export function ChatPage() {
   }, [searchParams, t, router])
 
   /*
+    Not stripped from the URL the way `welcome` is: the id is harmless to leave
+    behind, and a router.replace here would race the conversation list's load —
+    the effect that consumes this only fires once the list has arrived.
+  */
+  const deepLinkId = searchParams?.get('conversation_id') ?? undefined
+
+  /*
     A flex column, not viewport arithmetic: the old h-[calc(100vh-72px)] hard-coded
     a header height the header does not have (~88px), so the panels sat 16px past
     the fold. min-h-dvh + flex-1 lets the header measure itself.
@@ -46,7 +53,7 @@ export function ChatPage() {
             <h1 className="text-lg font-semibold">{t('chat.my_conversations')}</h1>
           </div>
           <div className="flex-1 overflow-y-auto">
-            <ChatConversationList onSelectConversation={setActive} />
+            <ChatConversationList onSelectConversation={setActive} autoSelectId={deepLinkId} />
           </div>
         </div>
 

@@ -34,9 +34,15 @@ interface ChatConversationListProps {
   compact?: boolean
   /** When true, uses sidebar-aware colors for dark backgrounds */
   darkBg?: boolean
+  /**
+   * Conversation to open once the list has loaded — backs the
+   * `/chat?conversation_id=` deep link. Fires at most once per mount so the
+   * user stays free to navigate away afterwards.
+   */
+  autoSelectId?: string
 }
 
-export default function ChatConversationList({ onSelectConversation, activeConversationId, compact = false, darkBg = false }: ChatConversationListProps) {
+export default function ChatConversationList({ onSelectConversation, activeConversationId, compact = false, darkBg = false, autoSelectId }: ChatConversationListProps) {
   const { t, i18n } = useTranslation('pets')
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { subscribe } = useWebSocket()
@@ -75,6 +81,17 @@ export default function ChatConversationList({ onSelectConversation, activeConve
   }, [])
 
   useEffect(() => { load() }, [load])
+
+  const autoSelectedRef = useRef(false)
+
+  useEffect(() => {
+    if (!autoSelectId || autoSelectedRef.current || conversations.length === 0) return
+    autoSelectedRef.current = true
+    const match = conversations.find((c) => c.id === autoSelectId)
+    // A missing id is not an error — the conversation may have been reaped by
+    // the 30-day empty-conversation GC. Drop it silently rather than toasting.
+    if (match) onSelectConversation(match)
+  }, [autoSelectId, conversations, onSelectConversation])
 
   // Subscribe to new_message to update last message + unread count live
   useEffect(() => {
