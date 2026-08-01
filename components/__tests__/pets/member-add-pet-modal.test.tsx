@@ -21,11 +21,14 @@ vi.mock('@/lib/api/user-pets', () => ({
   header markup — the header itself is NOT mocked, because whether it mounts an
   add-pet dialog is exactly what is under test.
 */
+// Hoisted so the spy survives across renders — an inline vi.fn() in the factory
+// is a fresh mock on every useAuth() call and can never be asserted on.
+const { updateSession } = vi.hoisted(() => ({ updateSession: vi.fn() }))
 vi.mock('@/lib/contexts/auth-context', () => ({
   useAuth: () => ({
     user: { id: 'u1', email: 'm@pelu.do', role: 'member', display_name: 'Member' },
     logout: vi.fn(),
-    updateSession: vi.fn(),
+    updateSession,
   }),
 }))
 vi.mock('@/lib/contexts/websocket-context', () => ({
@@ -76,6 +79,24 @@ beforeEach(() => {
   vi.mocked(deleteUserPetPhoto).mockResolvedValue({ data: null, error: null })
   vi.mocked(listUserPets).mockResolvedValue({ data: [], error: null })
 })
+
+/*
+  The real body of PATCH /api/v1/auth/profile. The handler ends in
+  `api.WriteJSON(w, 200, toUserResponse(u))` — the updated user IS the response,
+  it is not wrapped in a `user` key. Earlier mocks here invented the wrapper,
+  which is exactly why the `json.user` read in the component went unnoticed.
+*/
+const PROFILE_RESPONSE = {
+  id: 'u1',
+  email: 'm@pelu.do',
+  role: 'member',
+  auth_provider: 'email',
+  preferred_lang: 'es',
+  display_name: 'Member',
+  photo_url: null,
+  avatar_url: null,
+  phone: '809-555-0134',
+}
 
 /** Fill the two fields the publish CTA is gated on. */
 function fillRequired() {
@@ -189,6 +210,79 @@ describe('MemberAddPetModal — edit mode', () => {
   })
 
   /*
+    Reported by Alex: a phone set once could never be changed. The field renders
+    in edit mode too, but handleSubmit's edit branch returned before ever
+    reaching the profile PATCH — which lived only in the publish path — so the
+    new number was silently dropped on save.
+  */
+  it('writes a changed phone to the profile when editing', async () => {
+    vi.mocked(apiClient).mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...PROFILE_RESPONSE, phone: '809-555-0199' }),
+    } as never)
+
+    renderWithProviders(
+      <MemberAddPetModal open pet={pet} onClose={vi.fn()} onSaved={vi.fn()} />
+    )
+    await screen.findByDisplayValue('Max')
+
+    fireEvent.change(screen.getByLabelText(/teléfono/i), { target: { value: '809-555-0199' } })
+    fireEvent.click(screen.getByText('Guardar cambios'))
+
+    await waitFor(() => {
+      const call = vi.mocked(apiClient).mock.calls.find(([path]) => path === '/api/v1/auth/profile')
+      expect(call).toBeDefined()
+      expect(JSON.parse(call![1]!.body as string)).toEqual({ phone: '809-555-0199' })
+    })
+    // The pet still saves; the phone write is an addition, not a replacement.
+    await waitFor(() => expect(updateUserPet).toHaveBeenCalled())
+    expect(vi.mocked(updateUserPet).mock.calls[0][1]).not.toHaveProperty('phone')
+  })
+
+  /*
+    The other half of "the phone never changes". Even once the PATCH fires, the
+    component read the new user off `json.user` — a key the endpoint does not
+    send — so updateSession never ran and the context kept the old number. The
+    modal prefills from that context, so reopening it showed the stale value and
+    the save looked like it had been discarded.
+  */
+  it('refreshes the session from the profile response, which is the user itself', async () => {
+    vi.mocked(apiClient).mockResolvedValue({
+      ok: true,
+      json: async () => ({ ...PROFILE_RESPONSE, phone: '809-555-0199' }),
+    } as never)
+
+    renderWithProviders(
+      <MemberAddPetModal open pet={pet} onClose={vi.fn()} onSaved={vi.fn()} />
+    )
+    await screen.findByDisplayValue('Max')
+
+    fireEvent.change(screen.getByLabelText(/teléfono/i), { target: { value: '809-555-0199' } })
+    fireEvent.click(screen.getByText('Guardar cambios'))
+
+    await waitFor(() =>
+      expect(updateSession).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'u1', phone: '809-555-0199' })
+      )
+    )
+  })
+
+  // Same rule as publishing: an untouched field is not an edit.
+  it('skips the profile write when editing without touching the phone', async () => {
+    renderWithProviders(
+      <MemberAddPetModal open pet={pet} onClose={vi.fn()} onSaved={vi.fn()} />
+    )
+    await screen.findByDisplayValue('Max')
+
+    fireEvent.click(screen.getByText('Guardar cambios'))
+
+    await waitFor(() => expect(updateUserPet).toHaveBeenCalled())
+    expect(
+      vi.mocked(apiClient).mock.calls.find(([path]) => path === '/api/v1/auth/profile')
+    ).toBeUndefined()
+  })
+
+  /*
     Existing photos used to render with alt="" and no explanation of what could
     be done with them. They are now a labelled group of removable thumbnails,
     and removal is staged until save so Cancelar stays non-destructive.
@@ -264,7 +358,7 @@ describe('MemberAddPetModal — publishing', () => {
   it('saves the phone to the profile, not to the pet', async () => {
     vi.mocked(apiClient).mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ user: { id: 'u1', phone: '809-555-0134' } }),
+      json: async () => PROFILE_RESPONSE,
     } as never)
 
     renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)

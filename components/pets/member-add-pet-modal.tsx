@@ -154,6 +154,37 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
 
     const ageInMonths = ageUnit === 'years' ? parsedAge * 12 : parsedAge
 
+    /*
+      Write the phone to the profile first, for BOTH modes: if this fails a new
+      listing should not go live without a contact number on it.
+
+      This has to run before the edit branch below, not inside the publish path
+      alone. The field renders in edit mode too, so when it only guarded the
+      create path a member could change their number, save, and watch the change
+      silently vanish — there is no other screen that can set it.
+    */
+    const trimmedPhone = phone.trim()
+    if (trimmedPhone && trimmedPhone !== (user?.phone ?? '')) {
+      const res = await apiClient('/api/v1/auth/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ phone: trimmedPhone }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(json.error || t('member.error_phone'))
+        setSaving(false)
+        return
+      }
+      /*
+        The endpoint answers with the updated user itself, not `{ user }` — see
+        api.WriteJSON(w, 200, toUserResponse(u)) in internal/auth/handler.go. The
+        old `json.user` read never matched, so the session kept the previous
+        number and this modal, which prefills from it, showed the stale value
+        back to the user as if the save had been dropped.
+      */
+      if (json?.id) updateSession(json)
+    }
+
     // Edit mode → PATCH.
     if (pet) {
       const { data, error: updateError } = await updateUserPet(pet.id, {
@@ -196,23 +227,6 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
       reset()
       onClose()
       return
-    }
-
-    // Write the phone to the profile first: if this fails the listing should
-    // not go live without a contact number on it.
-    const trimmedPhone = phone.trim()
-    if (trimmedPhone && trimmedPhone !== (user?.phone ?? '')) {
-      const res = await apiClient('/api/v1/auth/profile', {
-        method: 'PATCH',
-        body: JSON.stringify({ phone: trimmedPhone }),
-      })
-      const json = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        setError(json.error || t('member.error_phone'))
-        setSaving(false)
-        return
-      }
-      if (json.user) updateSession(json.user)
     }
 
     const { data, error: createError } = await createUserPets([{
