@@ -38,7 +38,11 @@
     "business_verified": "Empresa verificada",
     "member_verified": "Proveedor verificado",
     "price_unavailable": "Precio no disponible",
-    "no_providers": "No hay proveedores disponibles"
+    "no_providers": "No hay proveedores disponibles",
+    "contact": "Contactar",
+    "contacting": "Abriendo chat...",
+    "contact_error": "No pudimos iniciar la conversación",
+    "contact_unavailable": "Este aliado ya no está disponible"
   },
   "settings": {
     "profile": "Perfil del negocio",

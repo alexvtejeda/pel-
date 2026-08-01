@@ -38,7 +38,11 @@
     "business_verified": "Verified business",
     "member_verified": "Verified provider",
     "price_unavailable": "Price unavailable",
-    "no_providers": "No providers available"
+    "no_providers": "No providers available",
+    "contact": "Contact",
+    "contacting": "Opening chat...",
+    "contact_error": "We couldn't start the conversation",
+    "contact_unavailable": "This partner is no longer available"
   },
   "settings": {
     "profile": "Business profile",

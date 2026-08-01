@@ -1,6 +1,19 @@
-import { describe, it, expect } from 'vitest'
-import { screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+
+const { auth, push, toastError, createConversation } = vi.hoisted(() => ({
+  auth: { user: null as { id: string; role: string } | null, loading: false },
+  push: vi.fn(),
+  toastError: vi.fn(),
+  createConversation: vi.fn(),
+}))
+
+vi.mock('@/lib/contexts/auth-context', () => ({ useAuth: () => auth }))
+vi.mock('@/lib/api/chat', () => ({ createConversation }))
+vi.mock('sonner', () => ({ toast: { error: toastError, success: vi.fn() } }))
+
 import { renderWithProviders } from '../test-utils'
+import * as nav from 'next/navigation'
 
 import { ProviderDetail } from '@/components/aliados/provider-detail'
 import { UnifiedProvider } from '@/lib/api/providers'
@@ -35,15 +48,15 @@ const dop = (value: number) =>
   }).format(value)
 
 describe('ProviderDetail', () => {
-  // The demo-stub CTA was permanently disabled — it promised a chat hand-off
-  // that does not exist yet. Queried broadly so a re-added disabled button
-  // (disabled buttons stay in the a11y tree) still trips this.
-  it('renders no Contactar CTA at all', () => {
+  /*
+    The CTA used to be a permanently-disabled demo stub, then was removed
+    outright because it promised a chat hand-off that did not exist. It is back
+    and functional — so it must be enabled, not a re-added stub.
+  */
+  it('renders an enabled Contactar CTA', () => {
     const { container } = renderWithProviders(<ProviderDetail provider={provider()} />)
 
-    expect(screen.queryByRole('button', { name: /contact/i })).not.toBeInTheDocument()
-    expect(screen.queryByText(/^Contact(ar)?$/)).not.toBeInTheDocument()
-    expect(container.querySelector('button[disabled]')).toBeNull()
+    expect(screen.getByRole('button', { name: /contactar/i })).toBeEnabled()
     expect(container.querySelector('.cursor-not-allowed')).toBeNull()
   })
 
@@ -111,8 +124,8 @@ describe('ProviderDetail', () => {
     expect(screen.getByText('Precio no disponible')).toBeInTheDocument()
   })
 
-  // The removed CTA's replacement comment claims these are the real contact
-  // routes, so they have to stay rendered.
+  // Secondary contact routes. Contactar is the primary one now, but these are
+  // the only way to reach a provider outside the app, so they stay.
   it('keeps the address and Instagram contact affordances', () => {
     renderWithProviders(
       <ProviderDetail
@@ -181,5 +194,160 @@ describe('ProviderDetail identity', () => {
     )
 
     expect(screen.queryByRole('link', { name: /banosluna/ })).not.toBeInTheDocument()
+  })
+})
+
+describe('ProviderDetail Contactar', () => {
+  const clickContact = () =>
+    fireEvent.click(screen.getByRole('button', { name: /contactar/i }))
+
+  beforeEach(() => {
+    auth.user = null
+    push.mockReset()
+    toastError.mockReset()
+    createConversation.mockReset()
+    /*
+      `renderWithProviders` registers its own `next/navigation` mock whose
+      useRouter mints a fresh `push` per call, and because test-utils is
+      imported AFTER this file's hoisted vi.mock calls, its factory is the one
+      that wins — a `vi.mock('next/navigation', …)` written here is silently
+      discarded. Spying on the resulting namespace is what actually reaches the
+      component.
+    */
+    vi.spyOn(nav, 'useRouter').mockReturnValue({
+      push,
+      replace: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    } as unknown as ReturnType<typeof nav.useRouter>)
+  })
+
+  /*
+    /aliados is public and this button is the conversion path, so a logged-out
+    visitor sees it rather than having it hidden. There is no return-URL
+    convention (postLoginRedirect is role-based), so login is the destination
+    and no conversation is opened on their behalf.
+  */
+  it('sends a logged-out visitor to login without opening a conversation', () => {
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    expect(createConversation).not.toHaveBeenCalled()
+    expect(push).toHaveBeenCalledWith('/auth/login')
+  })
+
+  it('opens a conversation and navigates to that thread', async () => {
+    auth.user = { id: 'u2', role: 'member' }
+    createConversation.mockResolvedValue({ data: { id: 'c1' }, error: null })
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    // The resource id, never the owner's user id — the backend resolves the owner.
+    await waitFor(() => expect(createConversation).toHaveBeenCalledWith({ provider_id: '1' }))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  // Every authenticated role can reach a provider — the backend admits member,
+  // rescue_center and business alike — so the CTA is not gated on role.
+  it('opens a conversation for a rescue center too', async () => {
+    auth.user = { id: 'u2', role: 'rescue_center' }
+    createConversation.mockResolvedValue({ data: { id: 'c9' }, error: null })
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c9'))
+  })
+
+  // The backend answers this with a 400; hiding the button is what stops the
+  // user from ever reaching that dead end.
+  it('hides the button on your own listing', () => {
+    auth.user = { id: 'u1', role: 'member' } // same id as provider.user_id
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    expect(screen.queryByRole('button', { name: /contactar/i })).toBeNull()
+  })
+
+  /*
+    Two distinct 404 bodies exist — "not found" when the provider is missing or
+    no longer active, and "provider not found" when the id is malformed
+    (api: internal/chat/handler.go). Both mean the same thing to a user, so the
+    match is a substring, not the equality the plan specified.
+  */
+  it.each(['not found', 'provider not found'])(
+    'reports an unavailable provider for the %o 404 without navigating',
+    async error => {
+      auth.user = { id: 'u2', role: 'member' }
+      createConversation.mockResolvedValue({ data: null, error })
+
+      renderWithProviders(<ProviderDetail provider={provider()} />)
+
+      clickContact()
+
+      await waitFor(() =>
+        expect(toastError).toHaveBeenCalledWith('Este aliado ya no está disponible')
+      )
+      expect(push).not.toHaveBeenCalled()
+    }
+  )
+
+  it('reports a generic failure without navigating', async () => {
+    auth.user = { id: 'u2', role: 'member' }
+    createConversation.mockResolvedValue({ data: null, error: 'Error de conexión' })
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith('No pudimos iniciar la conversación')
+    )
+    expect(push).not.toHaveBeenCalled()
+  })
+
+  // A failed attempt has to leave the button usable — the provider may just
+  // have been mid-deploy.
+  it('re-enables the button after a failure', async () => {
+    auth.user = { id: 'u2', role: 'member' }
+    createConversation.mockResolvedValue({ data: null, error: 'boom' })
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    await waitFor(() => expect(toastError).toHaveBeenCalled())
+    expect(screen.getByRole('button', { name: /contactar/i })).toBeEnabled()
+  })
+
+  /*
+    The request is idempotent server-side, so a double tap cannot fork the
+    thread — but it can fire a second navigation at a half-unmounted page. The
+    pending state is what makes the button honest about the wait.
+  */
+  it('shows a pending state and ignores a second click while in flight', async () => {
+    auth.user = { id: 'u2', role: 'member' }
+    let resolve!: (value: unknown) => void
+    createConversation.mockReturnValue(new Promise(r => (resolve = r)))
+
+    renderWithProviders(<ProviderDetail provider={provider()} />)
+
+    clickContact()
+
+    const button = await screen.findByRole('button', { name: /abriendo chat/i })
+    expect(button).toBeDisabled()
+
+    fireEvent.click(button)
+    expect(createConversation).toHaveBeenCalledTimes(1)
+
+    resolve({ data: { id: 'c1' }, error: null })
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
   })
 })

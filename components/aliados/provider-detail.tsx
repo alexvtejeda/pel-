@@ -1,11 +1,21 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { useTranslation } from 'react-i18next'
+import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShieldHalved, faLocationDot, faBriefcase } from '@fortawesome/free-solid-svg-icons'
+import {
+  faShieldHalved,
+  faLocationDot,
+  faBriefcase,
+  faComments,
+} from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
 import { UnifiedProvider } from '@/lib/api/providers'
+import { createConversation } from '@/lib/api/chat'
+import { useAuth } from '@/lib/contexts/auth-context'
 import { instagramUrl } from '@/lib/utils'
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const
@@ -16,7 +26,53 @@ interface ProviderDetailProps {
 
 export function ProviderDetail({ provider }: ProviderDetailProps) {
   const { t, i18n } = useTranslation('business')
+  const { user } = useAuth()
+  const router = useRouter()
+  const [contacting, setContacting] = useState(false)
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
+
+  /*
+    Own listing → no button. The backend answers that case with a 400, so
+    hiding it is what keeps the user off a dead end. Everyone else sees it,
+    logged-out visitors included: /aliados is public and this is the conversion
+    path, so hiding it from them would cost the signup it exists to earn.
+  */
+  const isOwnListing = user?.id === provider.user_id
+
+  const handleContact = async () => {
+    if (!user) {
+      /*
+        No return-URL convention exists — postLoginRedirect is role-based only —
+        so a logged-out visitor lands on their normal post-login destination and
+        navigates back. Worth revisiting when login grows a `next` param.
+      */
+      router.push('/auth/login')
+      return
+    }
+    if (contacting) return
+    setContacting(true)
+
+    // The provider id, not the owner's user id: the backend resolves the owner
+    // and only lets you reach someone whose listing is active right now.
+    const { data, error } = await createConversation({ provider_id: provider.id })
+
+    if (error || !data) {
+      /*
+        A 404 carries either "not found" (gone or deactivated) or "provider not
+        found" (malformed id) — api: internal/chat/handler.go. Both mean the
+        same thing to a reader, hence the substring rather than an equality
+        check against one of the two.
+      */
+      const gone = error?.includes('not found')
+      toast.error(t(gone ? 'provider.contact_unavailable' : 'provider.contact_error'))
+      setContacting(false)
+      return
+    }
+
+    // Left pending through the navigation: re-enabling here would flash the
+    // idle label for a frame while the route is already tearing down.
+    router.push(`/chat?conversation_id=${data.id}`)
+  }
 
   const initials = provider.name
     .split(' ')
@@ -145,12 +201,21 @@ export function ProviderDetail({ provider }: ProviderDetailProps) {
       </div>
 
       {/*
-        The "Contactar" CTA is intentionally absent until the aliados→chat
-        wiring ships. See
-        pelu/docs/superpowers/specs/2026-07-28-aliados-contactar-chat-design.md.
-        A permanently-disabled button promises something that never happens;
-        Instagram and the address above are the working contact affordances.
+        Outside the scrolling section above so it pins to the panel floor,
+        matching pet-detail.tsx's adopt CTA.
       */}
+      {!isOwnListing && (
+        <div className="shrink-0 border-t border-border p-4">
+          <button
+            onClick={handleContact}
+            disabled={contacting}
+            className="focus-ring w-full py-2.5 bg-pop-solid text-white font-semibold rounded-xl hover:bg-pop-850 transition-[background-color,transform] active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            <FontAwesomeIcon icon={faComments} className="text-sm" />
+            {contacting ? t('provider.contacting') : t('provider.contact')}
+          </button>
+        </div>
+      )}
     </div>
   )
 }
