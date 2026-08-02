@@ -13,9 +13,16 @@ import { listPets } from '@/lib/api/pets'
 import { getMyRescueCenter } from '@/lib/api/rescue-centers'
 import { TransportBusinessPicker } from '@/components/transport/transport-business-picker'
 
+/**
+ * Carries the pricing inputs alongside the label. Mapping a pet down to
+ * {id, name} here is what would make the picker quote a bandless price while the
+ * confirmation quotes a banded one.
+ */
 interface PetOption {
   id: string
   name: string
+  size?: string | null
+  weight_lb?: number | null
 }
 
 interface TransportCreationFormProps {
@@ -52,13 +59,13 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
     async function loadPets() {
       if (user?.role === 'member') {
         const { data } = await listUserPets()
-        if (data) setPets(data.map(p => ({ id: p.id, name: p.name })))
+        if (data) setPets(data.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb })))
       } else if (user?.role === 'rescue_center') {
         const { data: rc } = await getMyRescueCenter()
         if (rc) {
           try {
             const rcPets = await listPets(rc.id)
-            setPets(rcPets.map(p => ({ id: p.id, name: p.name })))
+            setPets(rcPets.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb })))
           } catch {
             // listPets throws on failure (known exception to {data, error} pattern)
           }
@@ -83,6 +90,16 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
 
   const addressesReady = !!pickupAddress && !!dropoffAddress && !!selectedPetId
 
+  /*
+    One lookup feeding the picker fan-out, the quote and the request, so all three
+    price the same pet. `null` collapses to `undefined` because the backend reads
+    an absent field as "fall back to the other input", while a null would be sent
+    as a value.
+  */
+  const selectedPet = pets.find(p => p.id === selectedPetId)
+  const petSize = selectedPet?.size ?? undefined
+  const petWeightLb = selectedPet?.weight_lb ?? undefined
+
   // Step 1: geocode both addresses, then open the businesses picker.
   const handleChooseTransporter = async () => {
     setPickupError('')
@@ -105,7 +122,13 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
     setFinalQuote(null)
     if (!pickupCoords || !dropoffCoords) return
     setQuoting(true)
-    const { data } = await quoteTrip({ business_id: b.business_id, from: pickupCoords, to: dropoffCoords })
+    const { data } = await quoteTrip({
+      business_id: b.business_id,
+      from: pickupCoords,
+      to: dropoffCoords,
+      size: petSize,
+      weight_lb: petWeightLb,
+    })
     setQuoting(false)
     if (data) setFinalQuote(data)
   }
@@ -116,13 +139,16 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
     if (!business || !pickupCoords || !dropoffCoords) return
     setSubmitError('')
     setSubmitting(true)
-    const selectedPet = pets.find(p => p.id === selectedPetId)
     const { data, error } = await requestTrip({
       // Same role fork as the pet list above: a member's id belongs to
       // `user_pets`, a rescue center's to `pets`. Sending it under the wrong key
       // fails the backend's foreign key.
       ...(isMember ? { user_pet_id: selectedPetId } : { pet_id: selectedPetId }),
       pet_description: selectedPet?.name ?? '',
+      // The same inputs the quote above was priced with, so the persisted price
+      // matches the one the user agreed to.
+      size: petSize,
+      weight_lb: petWeightLb,
       business_id: business.business_id,
       pickup_address: pickupAddress,
       pickup_lat: pickupCoords.lat,

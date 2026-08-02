@@ -9,11 +9,16 @@ vi.mock('@/lib/contexts/auth-context', () => ({
   useAuth: () => ({ user: { id: 'u1', role: authMock.role } }),
 }))
 
+// Size and weight ride along on the pet option — they are the pricing inputs, so
+// a load branch that maps the pet down to {id, name} silently un-prices the trip.
 vi.mock('@/lib/api/user-pets', () => ({
-  listUserPets: vi.fn().mockResolvedValue({ data: [{ id: 'p1', name: 'Firulais' }], error: null }),
+  listUserPets: vi.fn().mockResolvedValue({
+    data: [{ id: 'p1', name: 'Firulais', size: 'large', weight_lb: 80 }],
+    error: null,
+  }),
 }))
 vi.mock('@/lib/api/pets', () => ({
-  listPets: vi.fn().mockResolvedValue([{ id: 'rc-p1', name: 'Luna' }]),
+  listPets: vi.fn().mockResolvedValue([{ id: 'rc-p1', name: 'Luna', size: 'small' }]),
 }))
 vi.mock('@/lib/api/rescue-centers', () => ({
   getMyRescueCenter: vi.fn().mockResolvedValue({ data: { id: 'rc1' }, error: null }),
@@ -58,6 +63,7 @@ describe('TransportCreationForm reflow', () => {
 
     await waitFor(() => expect(mockQuote).toHaveBeenCalledWith({
       business_id: 'b1', from: { lat: 18.5, lng: -69.9 }, to: { lat: 18.5, lng: -69.9 },
+      size: 'large', weight_lb: 80,
     }))
     fireEvent.click(await screen.findByText('Solicitar · RD$ 450'))
 
@@ -67,6 +73,61 @@ describe('TransportCreationForm reflow', () => {
     expect(payload).not.toHaveProperty('target_driver_id')
     expect(payload.stops).toHaveLength(2)
     expect(onTripCreated).toHaveBeenCalled()
+  })
+})
+
+/*
+  The pricing inputs have to survive the whole trip: picker fan-out → quote →
+  request. If any leg drops them the user sees one price in the picker and a
+  different one on the confirmation.
+*/
+describe('TransportCreationForm size and weight threading', () => {
+  async function pickBusiness() {
+    renderWithProviders(<TransportCreationForm onTripCreated={vi.fn()} />)
+    await screen.findByRole('option', { name: 'Firulais' })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de recogida'), { target: { value: 'Calle A' } })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de entrega'), { target: { value: 'Calle B' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'p1' } })
+    fireEvent.click(screen.getByText('Elegir transportista'))
+    fireEvent.click(await screen.findByText('PetGo'))
+  }
+
+  it('sends the selected pet size and weight with the quote', async () => {
+    await pickBusiness()
+
+    await waitFor(() =>
+      expect(mockQuote).toHaveBeenCalledWith(
+        expect.objectContaining({ size: 'large', weight_lb: 80 }),
+      ),
+    )
+  })
+
+  it('sends the selected pet size and weight with the request', async () => {
+    await pickBusiness()
+    fireEvent.click(await screen.findByText('Solicitar · RD$ 450'))
+
+    await waitFor(() => expect(mockRequest).toHaveBeenCalled())
+    expect(mockRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ size: 'large', weight_lb: 80 }),
+    )
+  })
+
+  it('sends size alone for a pet with no recorded weight', async () => {
+    authMock.role = 'rescue_center'
+    renderWithProviders(<TransportCreationForm onTripCreated={vi.fn()} />)
+    await screen.findByRole('option', { name: 'Luna' })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de recogida'), { target: { value: 'Calle A' } })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de entrega'), { target: { value: 'Calle B' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'rc-p1' } })
+    fireEvent.click(screen.getByText('Elegir transportista'))
+    fireEvent.click(await screen.findByText('PetGo'))
+
+    await waitFor(() => expect(mockQuote).toHaveBeenCalled())
+    const arg = mockQuote.mock.calls[0][0]
+    expect(arg.size).toBe('small')
+    // Undefined rather than 0: the backend 400s a weight outside 0-500 and reads
+    // an absent one as "price from the size band".
+    expect(arg.weight_lb).toBeUndefined()
   })
 })
 

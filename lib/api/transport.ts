@@ -97,6 +97,13 @@ interface RequestTripPayload {
   stops: { address: string; lat: number; lng: number }[]
   conversation_id?: string
   rescue_center_id?: string
+  /**
+   * Pricing inputs. The backend re-quotes server-side from these and snapshots
+   * both onto the trip, so an accepted price stays reconstructible after the pet
+   * is edited. Same 0–500 bound as the quote endpoint.
+   */
+  weight_lb?: number
+  size?: string
 }
 
 export async function requestTrip(payload: RequestTripPayload): Promise<{ data: Trip | null; error: string | null }> {
@@ -183,7 +190,17 @@ export async function completeStop(tripId: string, stopId: string): Promise<{ da
 
 // --- Marketplace (quote / businesses / decline) ---
 
-export async function quoteTrip(input: { business_id: string; from: Point; to: Point }): Promise<{ data: TripQuote | null; error: string | null }> {
+/**
+ * `weight_lb` must stay inside 0–500 — unlike the marketplace fan-out, this
+ * endpoint rejects an out-of-range weight with a 400 rather than ignoring it.
+ */
+export async function quoteTrip(input: {
+  business_id: string
+  from: Point
+  to: Point
+  weight_lb?: number
+  size?: string
+}): Promise<{ data: TripQuote | null; error: string | null }> {
   try {
     const res = await apiClient('/api/v1/transport/quote', { method: 'POST', body: JSON.stringify(input) })
     const json = await res.json()
