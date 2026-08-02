@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { requestTrip, listTrips, getTrip, cancelTrip, acceptTrip, updateTripStatus, completeStop, quoteTrip, listTransportBusinesses, declineTrip } from '../transport'
+import { requestTrip, listTrips, getTrip, cancelTrip, acceptTrip, updateTripStatus, completeStop, quoteTrip, listTransportBusinesses, declineTrip, createQuote } from '../transport'
 
 vi.mock('../client', () => ({
   apiClient: vi.fn(),
@@ -148,6 +148,88 @@ describe('quoteTrip', () => {
     mockApiClient.mockResolvedValue({ ok: false, json: () => Promise.resolve({ error: 'business does not offer pet taxi service' }) } as Response)
     const result = await quoteTrip({ business_id: 'b1', from: { lat: 18.5, lng: -69.9 }, to: { lat: 18.4, lng: -69.8 } })
     expect(result).toEqual({ data: null, error: 'business does not offer pet taxi service' })
+  })
+})
+
+describe('createQuote', () => {
+  const createdQuote = {
+    id: 'q1',
+    number: 'COT-2026-0042',
+    token: 'a'.repeat(32),
+    url: `http://localhost:2701/api/v1/documents/${'a'.repeat(32)}`,
+  }
+
+  it('returns the document url on success', async () => {
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(createdQuote) } as Response)
+
+    const result = await createQuote({
+      business_id: 'b1',
+      from: { lat: 18.47, lng: -69.9 },
+      to: { lat: 18.5, lng: -69.95 },
+      size: 'large',
+      pet_name: 'Max',
+      pickup_address: 'A',
+      dropoff_address: 'B',
+    })
+
+    expect(result.error).toBeNull()
+    expect(result.data?.number).toBe('COT-2026-0042')
+    expect(result.data?.url).toContain('/documents/')
+  })
+
+  /*
+    Both addresses are REQUIRED by the backend — it answers a body without them
+    with a 400 "pickup_address is required". Serialising them is the whole reason
+    the picker takes them as props, so pin them in the request body.
+  */
+  it('POSTs to /api/v1/quotes with both addresses in the body', async () => {
+    mockApiClient.mockResolvedValue({ ok: true, json: () => Promise.resolve(createdQuote) } as Response)
+
+    await createQuote({
+      business_id: 'b1',
+      from: { lat: 18.47, lng: -69.9 },
+      to: { lat: 18.5, lng: -69.95 },
+      pickup_address: 'Calle A 1',
+      dropoff_address: 'Calle B 2',
+    })
+
+    expect(mockApiClient).toHaveBeenCalledWith('/api/v1/quotes', expect.objectContaining({ method: 'POST' }))
+    const body = JSON.parse((mockApiClient.mock.calls[0][1] as RequestInit).body as string)
+    expect(body.pickup_address).toBe('Calle A 1')
+    expect(body.dropoff_address).toBe('Calle B 2')
+    expect(body.business_id).toBe('b1')
+  })
+
+  it('returns an error string, never throws', async () => {
+    mockApiClient.mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: 'business does not offer pet taxi service' }),
+    } as Response)
+
+    const result = await createQuote({
+      business_id: 'b1',
+      from: { lat: 18.47, lng: -69.9 },
+      to: { lat: 18.5, lng: -69.95 },
+      pickup_address: 'A',
+      dropoff_address: 'B',
+    })
+
+    expect(result.data).toBeNull()
+    expect(result.error).toBe('business does not offer pet taxi service')
+  })
+
+  it('returns a connection error instead of throwing on network failure', async () => {
+    mockApiClient.mockRejectedValue(new Error('Network'))
+
+    const result = await createQuote({
+      business_id: 'b1',
+      from: { lat: 18.47, lng: -69.9 },
+      to: { lat: 18.5, lng: -69.95 },
+      pickup_address: 'A',
+      dropoff_address: 'B',
+    })
+
+    expect(result).toEqual({ data: null, error: 'Error de conexión' })
   })
 })
 

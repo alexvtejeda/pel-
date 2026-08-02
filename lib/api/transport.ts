@@ -252,6 +252,56 @@ export async function listTransportBusinesses(params: {
   }
 }
 
+// --- Quote documents (cotizaciones) ---
+
+export interface CreatedQuote {
+  id: string
+  /** Human-facing document number, e.g. `COT-2026-0001`. */
+  number: string
+  token: string
+  /** Absolute URL of the rendered document, served by the API. */
+  url: string
+}
+
+export interface CreateQuoteInput {
+  business_id: string
+  from: Point
+  to: Point
+  /**
+   * Both addresses are REQUIRED: the backend prints them on the document and
+   * rejects a body without them with a 400 (`pickup_address is required`).
+   * They are not derivable from the coordinates, so they must be threaded down
+   * from the creation form rather than defaulted here.
+   */
+  pickup_address: string
+  dropoff_address: string
+  weight_lb?: number | null
+  size?: string | null
+  pet_name?: string
+  pet_species?: string
+}
+
+/**
+ * Creates a persisted cotización for ONE business. The picker's per-row prices
+ * stay in-memory — only a deliberate member action produces a numbered
+ * document, so comparing five businesses does not issue five of them.
+ */
+export async function createQuote(
+  input: CreateQuoteInput,
+): Promise<{ data: CreatedQuote | null; error: string | null }> {
+  try {
+    const res = await apiClient('/api/v1/quotes', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    })
+    const json = await res.json()
+    if (!res.ok) return { data: null, error: json.error || 'Error al generar la cotización' }
+    return { data: json, error: null }
+  } catch {
+    return { data: null, error: 'Error de conexión' }
+  }
+}
+
 export async function declineTrip(id: string): Promise<{ data: Trip | null; error: string | null }> {
   try {
     const res = await apiClient(`/api/v1/transport/${id}/decline`, { method: 'PATCH' })
