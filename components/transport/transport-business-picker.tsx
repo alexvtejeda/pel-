@@ -15,9 +15,16 @@ interface TransportBusinessPickerProps {
   lng: number
   from: Point
   to: Point
+  /**
+   * The selected pet's pricing inputs. Without them every row is quoted bandless
+   * while the confirmation screen quotes the same trip with the size surcharge
+   * applied, and the price visibly jumps between the two screens.
+   */
+  size?: string
+  weightLb?: number
 }
 
-export function TransportBusinessPicker({ open, onOpenChange, onSelect, lat, lng, from, to }: TransportBusinessPickerProps) {
+export function TransportBusinessPicker({ open, onOpenChange, onSelect, lat, lng, from, to, size, weightLb }: TransportBusinessPickerProps) {
   const { t } = useTranslation('transport')
   const [items, setItems] = useState<MarketplaceBusiness[]>([])
   const [cursor, setCursor] = useState('')
@@ -27,12 +34,16 @@ export function TransportBusinessPicker({ open, onOpenChange, onSelect, lat, lng
   const load = useCallback(async (nextCursor?: string) => {
     setLoading(true)
     setError(null)
-    const { data, error: err } = await listTransportBusinesses({ lat, lng, from, to, cursor: nextCursor })
+    const { data, error: err } = await listTransportBusinesses({
+      lat, lng, from, to, cursor: nextCursor, size, weight_lb: weightLb,
+    })
     setLoading(false)
     if (err || !data) { setError(err || 'Error'); return }
     setItems(prev => (nextCursor ? [...prev, ...data.items] : data.items))
     setCursor(data.next_cursor)
-  }, [lat, lng, from.lat, from.lng, to.lat, to.lng])
+    // size/weightLb are dependencies: switching to a pet in another band has to
+    // re-price the list, not keep showing the previous pet's prices.
+  }, [lat, lng, from.lat, from.lng, to.lat, to.lng, size, weightLb])
 
   useEffect(() => {
     if (!open) return

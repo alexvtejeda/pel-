@@ -184,6 +184,8 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
           lng={pickupCoords.lng}
           from={pickupCoords}
           to={dropoffCoords}
+          size={petSize}
+          weightLb={petWeightLb}
           onSelect={handleBusinessSelected}
         />
       )}

@@ -92,6 +92,17 @@ describe('TransportCreationForm size and weight threading', () => {
     fireEvent.click(await screen.findByText('PetGo'))
   }
 
+  // The picker here is the real component, so this pins the whole wiring: form
+  // state → picker props → fan-out query. It is the leg the plan flags as the
+  // most likely to be skipped.
+  it('prices the business picker with the selected pet', async () => {
+    await pickBusiness()
+
+    expect(mockList).toHaveBeenCalledWith(
+      expect.objectContaining({ size: 'large', weight_lb: 80 }),
+    )
+  })
+
   it('sends the selected pet size and weight with the quote', async () => {
     await pickBusiness()
 

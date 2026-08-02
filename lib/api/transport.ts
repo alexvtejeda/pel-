@@ -211,12 +211,23 @@ export async function quoteTrip(input: {
   }
 }
 
+/**
+ * Pass the same `size`/`weight_lb` that will go to `quoteTrip`, so each row's
+ * quote carries that business's size surcharge and the picker price matches the
+ * confirmation price.
+ *
+ * Unlike `quoteTrip`, the backend silently ignores a malformed `size` or an
+ * out-of-range `weight_lb` here instead of erroring — a bad param must never
+ * blank the picker — so there is no 400 to handle.
+ */
 export async function listTransportBusinesses(params: {
   lat: number
   lng: number
   from?: Point
   to?: Point
   cursor?: string
+  weight_lb?: number
+  size?: string
 }): Promise<{ data: { items: MarketplaceBusiness[]; next_cursor: string } | null; error: string | null }> {
   try {
     const q = new URLSearchParams()
@@ -229,6 +240,9 @@ export async function listTransportBusinesses(params: {
       q.set('to_lng', String(params.to.lng))
     }
     if (params.cursor) q.set('cursor', params.cursor)
+    if (params.size) q.set('size', params.size)
+    // Explicit null/undefined check: 0 is a legitimate weight and must still be sent.
+    if (params.weight_lb != null) q.set('weight_lb', String(params.weight_lb))
     const res = await apiClient(`/api/v1/transport/businesses?${q.toString()}`)
     const json = await res.json()
     if (!res.ok) return { data: null, error: json.error || 'Error al cargar transportistas' }

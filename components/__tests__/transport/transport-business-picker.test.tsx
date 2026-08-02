@@ -45,6 +45,55 @@ describe('TransportBusinessPicker', () => {
     expect(onSelect).toHaveBeenCalledWith(expect.objectContaining({ business_id: 'b1' }))
   })
 
+  /*
+    The backend applies the size surcharge inside the fan-out, so these params are
+    the only thing making the picker's price match the confirmation's. Drop them
+    and every row is priced bandless while the next screen is priced banded.
+  */
+  it('passes size and weight to the marketplace fan-out', async () => {
+    mockList.mockResolvedValue({ data: { items: [], next_cursor: '' }, error: null })
+    renderWithProviders(
+      <TransportBusinessPicker open onOpenChange={() => {}} onSelect={vi.fn()}
+        lat={from.lat} lng={from.lng} from={from} to={to} size="large" weightLb={80} />
+    )
+
+    await waitFor(() =>
+      expect(mockList).toHaveBeenCalledWith(
+        expect.objectContaining({ size: 'large', weight_lb: 80 }),
+      ),
+    )
+  })
+
+  it('omits weight for a pet that has none, keeping size', async () => {
+    mockList.mockResolvedValue({ data: { items: [], next_cursor: '' }, error: null })
+    renderWithProviders(
+      <TransportBusinessPicker open onOpenChange={() => {}} onSelect={vi.fn()}
+        lat={from.lat} lng={from.lng} from={from} to={to} size="small" />
+    )
+
+    await waitFor(() => expect(mockList).toHaveBeenCalled())
+    const arg = mockList.mock.calls[0][0]
+    expect(arg.size).toBe('small')
+    expect(arg.weight_lb).toBeUndefined()
+  })
+
+  it('refetches when the selected pet changes the band', async () => {
+    mockList.mockResolvedValue({ data: { items: [], next_cursor: '' }, error: null })
+    const { rerender } = renderWithProviders(
+      <TransportBusinessPicker open onOpenChange={() => {}} onSelect={vi.fn()}
+        lat={from.lat} lng={from.lng} from={from} to={to} size="small" />
+    )
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(1))
+
+    rerender(
+      <TransportBusinessPicker open onOpenChange={() => {}} onSelect={vi.fn()}
+        lat={from.lat} lng={from.lng} from={from} to={to} size="large" />
+    )
+
+    await waitFor(() => expect(mockList).toHaveBeenCalledTimes(2))
+    expect(mockList.mock.calls[1][0].size).toBe('large')
+  })
+
   it('shows the empty state when no businesses serve the area', async () => {
     mockList.mockResolvedValue({ data: { items: [], next_cursor: '' }, error: null })
     renderWithProviders(
