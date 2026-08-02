@@ -35,7 +35,8 @@
     "choose_transporter": "Elegir transportista",
     "change_transporter": "Cambiar transportista",
     "request_with_price": "Solicitar · RD$ {{price}}",
-    "quoting": "Calculando precio..."
+    "quoting": "Calculando precio...",
+    "price_estimate_note": "Estimado — sujeto a ajuste"
   },
   "marketplace": {
     "picker_title": "Elegir transportista",

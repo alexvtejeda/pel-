@@ -142,6 +142,54 @@ describe('TransportCreationForm size and weight threading', () => {
   })
 })
 
+/*
+  `priced_from` explains the price; it is not a quality signal. Only "none" —
+  nothing at all to derive a band from — is an estimate. "size" is how most
+  operators here charge, so badging it would mislabel the common path.
+*/
+describe('TransportCreationForm estimate badge', () => {
+  const ESTIMATE = 'Estimado — sujeto a ajuste'
+
+  async function quoteWith(pricedFrom: string) {
+    mockQuote.mockResolvedValue({
+      data: {
+        business_id: 'b1', distance_km: 12, duration_minutes: 22, estimated_price: 450,
+        routing_degraded: false, routing_source: 'ors', currency: 'DOP',
+        priced_from: pricedFrom as never,
+      },
+      error: null,
+    })
+    renderWithProviders(<TransportCreationForm onTripCreated={vi.fn()} />)
+    await screen.findByRole('option', { name: 'Firulais' })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de recogida'), { target: { value: 'Calle A' } })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de entrega'), { target: { value: 'Calle B' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'p1' } })
+    fireEvent.click(screen.getByText('Elegir transportista'))
+    fireEvent.click(await screen.findByText('PetGo'))
+    await screen.findByText('Solicitar · RD$ 450')
+  }
+
+  it('badges the price as an estimate when nothing priced the band', async () => {
+    await quoteWith('none')
+    expect(await screen.findByText(ESTIMATE)).toBeInTheDocument()
+  })
+
+  it('does NOT badge a price that came from the size band', async () => {
+    await quoteWith('size')
+    expect(screen.queryByText(ESTIMATE)).not.toBeInTheDocument()
+  })
+
+  it('does NOT badge a price that came from a real weight', async () => {
+    await quoteWith('weight')
+    expect(screen.queryByText(ESTIMATE)).not.toBeInTheDocument()
+  })
+
+  it('does NOT badge a business that simply does not charge by size', async () => {
+    await quoteWith('disabled')
+    expect(screen.queryByText(ESTIMATE)).not.toBeInTheDocument()
+  })
+})
+
 // A member's pet id comes from `user_pets`; a rescue center's from `pets`. The
 // backend keys them separately because a user_pets id can never satisfy
 // transport_trips.pet_id's foreign key.

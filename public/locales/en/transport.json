@@ -35,7 +35,8 @@
     "choose_transporter": "Choose transporter",
     "change_transporter": "Change transporter",
     "request_with_price": "Request · RD$ {{price}}",
-    "quoting": "Calculating price..."
+    "quoting": "Calculating price...",
+    "price_estimate_note": "Estimate — subject to adjustment"
   },
   "marketplace": {
     "picker_title": "Choose transporter",

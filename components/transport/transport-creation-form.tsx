@@ -264,6 +264,14 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
           {submitLabel}
         </button>
 
+        {/* Only `none` — nothing at all to derive a band from — is a real estimate.
+            `size` is how most operators here price and `weight` is the precise
+            case; `disabled` just means this business doesn't charge by size.
+            Badging any of those three would mislabel ordinary pricing. */}
+        {finalQuote?.priced_from === 'none' && (
+          <p className="text-center text-xs text-background/70">{t('form.price_estimate_note')}</p>
+        )}
+
         {/* Directory link */}
         <Link href="/transporte/negocios" className="block text-center text-xs text-background/70 hover:text-background">
           {t('directory.view_link')}
