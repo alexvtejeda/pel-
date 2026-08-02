@@ -32,6 +32,9 @@ export interface AddPetFormData {
   vaccinated: boolean
   castrated: boolean
   size: 'small' | 'medium' | 'large'
+  /** Optional, in pounds. Absent when the centre didn't record one — pricing
+   *  falls back to `size`, which is always present. */
+  weight_lb?: number
 }
 
 const CONDITION_GROUPS = [
@@ -151,6 +154,9 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const [vaccinated, setVaccinated] = useState(false)
   const [castrated, setCastrated] = useState(false)
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
+  // Optional, and held as a string so a blank field stays distinguishable from a
+  // real 0 — a pet with no recorded weight is priced from its size band instead.
+  const [weightLb, setWeightLb] = useState<string>('')
   const [dragging, setDragging] = useState(false)
   const [mobilePreview, setMobilePreview] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -193,6 +199,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
     setVaccinated(false)
     setCastrated(false)
     setSize('medium')
+    setWeightLb('')
     setMobilePreview(false)
   }
 
@@ -215,6 +222,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
       vaccinated,
       castrated,
       size,
+      ...(weightLb.trim() !== '' ? { weight_lb: Number(weightLb) } : {}),
     })
     reset()
   }
@@ -401,6 +409,24 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                   <option value="medium">{t('size.medium')}</option>
                   <option value="large">{t('size.large')}</option>
                 </select>
+              </div>
+
+              {/* Weight — optional. Rescue centres often don't weigh an intake, so
+                  the size band above is what actually prices a transport. */}
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="rc-pet-weight" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.weight_lb')}</label>
+                <input
+                  id="rc-pet-weight"
+                  type="number"
+                  inputMode="decimal"
+                  min={0}
+                  max={500}
+                  value={weightLb}
+                  onChange={(e) => setWeightLb(e.target.value)}
+                  placeholder={t('details.weight_placeholder')}
+                  className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+                />
+                <p className="text-xs text-muted-foreground">{t('details.weight_hint')}</p>
               </div>
 
               {/* Description */}

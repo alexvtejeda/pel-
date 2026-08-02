@@ -595,6 +595,10 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
         vaccinated: data.vaccinated,
         castrated: data.castrated,
         size: data.size,
+        // Spread rather than assigned, so a pet with no recorded weight omits the
+        // key instead of sending an explicit undefined the serializer would drop
+        // anyway — and the omission stays visible here.
+        ...(data.weight_lb != null ? { weight_lb: data.weight_lb } : {}),
         conditions: data.conditions.length > 0 ? data.conditions : undefined,
         condition_notes: data.condition_notes?.trim() || undefined,
       })
