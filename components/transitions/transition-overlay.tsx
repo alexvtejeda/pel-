@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useRouteTransition } from './route-transition-context'
+import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 
 function useReducedMotion() {
   return useSyncExternalStore(
@@ -47,53 +48,273 @@ function useHeaderHeight() {
   return height
 }
 
-function Pill({ width }: { width: number }) {
+/*
+  The skeletons below mirror their route class-for-class — same container, same
+  paddings, same breakpoint forks — because the overlay fades out directly onto
+  the live page. Whatever differs reads to the user as the page jumping. When a
+  route's layout moves, its skeleton here has to move with it.
+
+  Note what is deliberately *absent*: `data-pet-feed`. That attribute drives a
+  `html:has(...)` scroll-snap rule in globals.css, and the overlay mounts while
+  the browser is still on the outgoing route — copying it would snap-scroll a
+  page that has no feed on it.
+*/
+
+/** Text placeholders sit on `bg-muted`, where a `bg-muted` bar is invisible. */
+const BAR = 'rounded-xl bg-foreground/10 animate-pulse'
+
+/**
+ * A filter pill. A bordered one measures 34px (`py-1.5` + a 20px line box + the
+ * border); the mobile disclosure button carries no border and so measures 32.
+ *
+ * `active` fills it the way the real pressed pill is filled. Both routes mount
+ * fresh on a transition with their first filter ("Todos") selected, so the
+ * leading pill is genuinely coloured on the page the overlay is about to reveal.
+ */
+function Pill({
+  width,
+  bordered = true,
+  active = false,
+}: {
+  width: number
+  bordered?: boolean
+  active?: boolean
+}) {
   return (
     <div
-      className="h-8 rounded-xl bg-background shadow-xl animate-pulse"
+      className={`shrink-0 rounded-xl animate-pulse ${
+        active ? 'bg-pop-solid' : 'bg-background'
+      } ${bordered ? `h-[34px] border ${active ? 'border-pop-solid' : 'border-input'}` : 'h-8'}`}
       style={{ width: `${width}px` }}
     />
   )
 }
 
-function FilterPillPlaceholder({ targetHref }: { targetHref: string | null }) {
-  if (targetHref === '/aliados') {
-    // 6 plain pills, no separators (matches provider-grid.tsx)
-    return (
-      <>
-        <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 overflow-x-auto">
-          {[56, 88, 76, 88, 76, 88].map((w, i) => (
-            <Pill key={i} width={w} />
+/**
+ * The title block both grid routes render above their filters. Each line box is
+ * reserved at its full height with a shorter bar drawn inside, so the filter row
+ * below lands on exactly the y the real page puts it on.
+ *
+ * The mobile line counts are per route and measured, not guessed: at 390px the
+ * /pets title wraps to two lines and its subtitle to two, while /aliados keeps a
+ * one-line title over a three-line subtitle. Getting these wrong is what makes
+ * the pills jump when the overlay lifts.
+ */
+function SkeletonHeader({
+  title,
+  titleMobile,
+  subtitleMobile,
+}: {
+  /** Bar width for the single-line title at sm and up. */
+  title: string
+  /** One bar width per line of the wrapped mobile title. */
+  titleMobile: string[]
+  /** One bar width per line of the wrapped mobile subtitle. */
+  subtitleMobile: string[]
+}) {
+  return (
+    <div className="px-4 pt-6 pb-2 sm:px-2">
+      <div className="sm:hidden">
+        {titleMobile.map((w, i) => (
+          <div key={i} className="flex h-8 items-center">
+            <div className={`h-6 ${w} ${BAR}`} />
+          </div>
+        ))}
+      </div>
+      <div className="hidden sm:flex h-9 items-center">
+        <div className={`h-7 ${title} ${BAR}`} />
+      </div>
+
+      <div className="mt-1 max-w-xl">
+        <div className="sm:hidden">
+          {subtitleMobile.map((w, i) => (
+            <div key={i} className="flex h-5 items-center">
+              <div className={`h-3 ${w} ${BAR}`} />
+            </div>
           ))}
         </div>
-        <div className="sm:hidden px-2 py-3 shrink-0">
-          <Pill width={96} />
+        <div className="hidden sm:flex h-5 items-center">
+          <div className={`h-3 w-full max-w-md ${BAR}`} />
         </div>
-      </>
-    )
-  }
+      </div>
 
-  // Default: /pets layout (6 + sep + 2 + sep + 2)
-  return (
-    <>
-      <div className="hidden sm:flex items-center gap-2 px-2 py-3 shrink-0 flex-wrap">
-        {[72, 72, 72, 80, 84, 88].map((w, i) => (
-          <Pill key={`f1-${i}`} width={w} />
-        ))}
-        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-        {[96, 96].map((w, i) => (
-          <Pill key={`f2-${i}`} width={w} />
-        ))}
-        <span className="text-muted-foreground/20 mx-1 select-none">|</span>
-        {[92, 92].map((w, i) => (
-          <Pill key={`f3-${i}`} width={w} />
-        ))}
-      </div>
-      <div className="sm:hidden px-2 py-3 shrink-0">
-        <Pill width={96} />
-      </div>
-    </>
+      {/* Empty on purpose — the real count line renders blank while loading and
+          holds its space with `min-h-4`. */}
+      <div className="mt-2 h-4" />
+    </div>
   )
+}
+
+/*
+  Pill widths are measured off the rendered Spanish labels in Chrome, not
+  estimated — the row wraps at the top breakpoint, so a few px of drift moves a
+  whole line. Re-measure if the labels change.
+*/
+const PETS_SPECIES_PILLS = [86, 90, 88, 100, 110, 112]
+const PETS_HEALTH_PILLS = [116, 110]
+const PETS_SOURCE_PILLS = [101, 115]
+
+function PetsSkeleton() {
+  return (
+    <div
+      data-testid="transition-skeleton-pets"
+      className="container mx-auto max-w-6xl flex-1 flex flex-col sm:px-4 sm:pb-0"
+    >
+      <SkeletonHeader
+        title="w-78"
+        titleMobile={['w-1/2', 'w-2/5']}
+        subtitleMobile={['w-full', 'w-3/4']}
+      />
+
+      {/* Filters — desktop row, with the two separators pet-filters.tsx draws. */}
+      <div className="hidden sm:flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0 flex-wrap">
+        {PETS_SPECIES_PILLS.map((w, i) => (
+          <Pill key={`species-${i}`} width={w} active={i === 0} />
+        ))}
+        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
+        {PETS_HEALTH_PILLS.map((w, i) => (
+          <Pill key={`health-${i}`} width={w} />
+        ))}
+        <span className="text-muted-foreground/30 mx-1 select-none">|</span>
+        {PETS_SOURCE_PILLS.map((w, i) => (
+          <Pill key={`source-${i}`} width={w} />
+        ))}
+      </div>
+      {/* Filters — the mobile disclosure button, which carries no border. */}
+      <div className="sm:hidden px-2 py-3 shrink-0">
+        <Pill width={87} bordered={false} />
+      </div>
+
+      {/* ≥640px: the grid panel (pet-grid.tsx). */}
+      <div className="hidden sm:block flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-2xl overflow-hidden bg-secondary animate-pulse">
+              <div className="aspect-square bg-muted" />
+              <div className="p-2 space-y-1.5">
+                <div className="h-3.5 bg-muted rounded w-2/3" />
+                <div className="h-3 bg-muted rounded w-1/3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* <640px: the post feed (pet-feed.tsx). No panel — the cards sit straight
+          on the muted page, and the second one is clipped to say "keep going". */}
+      <div className="sm:hidden flex-1 px-3 pb-20">
+        <div className="space-y-4">
+          <div className="overflow-hidden rounded-2xl bg-card shadow-post">
+            <div className="h-11 animate-pulse bg-muted/60" />
+            <div className="aspect-square animate-pulse bg-muted" />
+            <div className="space-y-2 p-3">
+              <div className="h-5 w-1/2 animate-pulse rounded-xl bg-muted" />
+              <div className="h-4 w-3/4 animate-pulse rounded-xl bg-muted" />
+              <div className="h-11 animate-pulse rounded-xl bg-muted" />
+            </div>
+          </div>
+          <div className="h-44 overflow-hidden rounded-2xl bg-card shadow-post">
+            <div className="h-11 animate-pulse bg-muted/60" />
+            <div className="aspect-square animate-pulse bg-muted" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** `all` + the six SERVICE_TYPES labels, measured. No icons here, unlike /pets. */
+const ALIADOS_PILLS = [65, 100, 100, 177, 138, 100, 130]
+
+function AliadosSkeleton() {
+  return (
+    <div
+      data-testid="transition-skeleton-aliados"
+      className="container mx-auto max-w-6xl flex-1 flex flex-col sm:px-4 sm:pb-0"
+    >
+      <SkeletonHeader
+        title="w-28"
+        titleMobile={['w-24']}
+        subtitleMobile={['w-full', 'w-full', 'w-1/2']}
+      />
+
+      {/* One row at every breakpoint — provider-grid.tsx has no mobile fork.
+          `overflow-x-auto` verbatim, scrollbar and all: below sm this row
+          overflows, and on a classic-scrollbar browser that gutter is 15px of
+          real height. Swapping in `overflow-hidden` would sit the cards 15px
+          high and drop them on handoff. */}
+      <div className="flex items-center gap-2 px-2 py-3 overflow-x-auto shrink-0">
+        {ALIADOS_PILLS.map((w, i) => (
+          <Pill key={i} width={w} active={i === 0} />
+        ))}
+      </div>
+
+      {/* Provider cards: avatar left, two text lines, service chips, price. */}
+      <div className="flex-1 p-4 pb-20 sm:pb-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="rounded-2xl border bg-card p-4 space-y-3 animate-pulse">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 shrink-0 rounded-full bg-muted" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3.5 w-2/3 rounded bg-muted" />
+                  <div className="h-3 w-1/3 rounded bg-muted" />
+                </div>
+              </div>
+              <div className="h-3 w-full rounded bg-muted" />
+              <div className="flex gap-1.5">
+                <div className="h-5 w-16 rounded-full bg-muted" />
+                <div className="h-5 w-20 rounded-full bg-muted" />
+              </div>
+              <div className="h-4 w-24 rounded bg-muted" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * /eventos is the odd one out: a full-bleed centred hero band, then the loading
+ * state — no container, no filters, no grid. The paw is the same component the
+ * route itself renders while it fetches, so the handoff continues one animation
+ * instead of swapping indicators.
+ */
+function EventosSkeleton() {
+  return (
+    <div data-testid="transition-skeleton-eventos" className="flex-1">
+      <section className="px-4 pt-12 pb-16 text-center bg-background border-input border border-t-0 border-b-2 mb-16">
+        <div className="mb-3 flex h-9 items-center justify-center md:h-10">
+          <div className={`h-7 w-28 md:h-8 md:w-36 ${BAR}`} />
+        </div>
+        <div className="mx-auto max-w-md">
+          <div className="flex h-6 items-center justify-center">
+            <div className={`h-3.5 w-full max-w-sm ${BAR}`} />
+          </div>
+          <div className="flex h-6 items-center justify-center sm:hidden">
+            <div className={`h-3.5 w-2/3 ${BAR}`} />
+          </div>
+        </div>
+      </section>
+      <section className="px-4 pb-16">
+        <div className="container mx-auto max-w-5xl">
+          {/* aria-hidden: this is the decorative copy. The real route mounts its
+              own role="status" underneath, and two live regions announcing
+              "Cargando…" would double up. */}
+          <div className="flex justify-center py-20" aria-hidden="true">
+            <PeluLoadingLogo />
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function RouteSkeleton({ targetHref }: { targetHref: string | null }) {
+  if (targetHref === '/aliados') return <AliadosSkeleton />
+  if (targetHref === '/eventos') return <EventosSkeleton />
+  return <PetsSkeleton />
 }
 
 export function TransitionOverlay() {
@@ -141,25 +362,7 @@ export function TransitionOverlay() {
               opacity: { duration: reduced ? 0.05 : 0.25, ease: 'easeOut' },
             }}
           >
-            <div className="container mx-auto flex-1 flex flex-col sm:px-4">
-              <FilterPillPlaceholder targetHref={targetHref} />
-              <div className="flex-1 p-4 rounded-t-2xl sm:inset-shadow-2xl sm:shadow-2xl bg-background">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="rounded-2xl overflow-hidden bg-secondary animate-pulse"
-                    >
-                      <div className="aspect-square bg-muted" />
-                      <div className="p-2 space-y-1.5">
-                        <div className="h-3.5 bg-muted rounded w-2/3" />
-                        <div className="h-3 bg-muted rounded w-1/3" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <RouteSkeleton targetHref={targetHref} />
           </motion.div>
         </div>
       )}

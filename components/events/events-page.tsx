@@ -7,6 +7,7 @@ import { faCalendarDays } from '@fortawesome/free-solid-svg-icons'
 import { Footer } from '@/components/footer'
 import { EventBlock } from '@/components/events/event-block'
 import { getEvents, EventItem } from '@/lib/api/events'
+import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 import { useRouteTransition } from '@/components/transitions/route-transition-context'
 
 export function EventsPage() {
@@ -44,7 +45,7 @@ export function EventsPage() {
         <div className="container mx-auto max-w-5xl space-y-16">
           {loading || holdSkeleton ? (
             <div className="flex justify-center py-20">
-              <div className="w-8 h-8 border-2 border-muted-foreground/30 border-t-foreground rounded-full animate-spin" />
+              <PeluLoadingLogo />
             </div>
           ) : events.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 gap-4 text-muted-foreground">

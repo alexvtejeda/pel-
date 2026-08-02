@@ -1,245 +1,255 @@
-# Center the registration-flow cards at any viewport (2026-07-31)
+# Make the route-transition skeleton match /pets and /aliados (2026-07-31)
 
-Goal: the card on `/auth/role-selection` and `/auth/mfa/enrollment` sits centred
-in the space below the nav at every screen size, and content taller than that
-space scrolls instead of being clipped.
+Goal: the `skeleton` overlay that covers a `/` ↔ `/pets` ↔ `/aliados` navigation
+lands on the same geometry the incoming page actually renders, so nothing jumps
+when the overlay fades out.
 
 ## The bug
 
-Both shells center with `items-center` / `justify-center` on a wrapper that has
-**auto height**. There is no free space to distribute, so the class is a no-op
-and the card lands directly under the nav. Measured in Chrome against the
-running build:
+`components/transitions/transition-overlay.tsx` still draws the layout both
+routes had *before* the recent changes. One shape is painted for every target:
+a filter-pill row, then a `bg-background` panel holding an 8-card square grid.
+Since then:
 
-| viewport  | nav  | card h | gap above | gap below | result                          |
-|-----------|------|--------|-----------|-----------|---------------------------------|
-| 1920×1080 | 73.9 | 684    | 16        | 306.1     | 145px too high                  |
-| 1440×900  | 73.9 | 684    | 16        | 126.1     | 55px too high                   |
-| 1024×758  | 73.9 | 684    | 16        | −15.9     | 32px clipped, cannot scroll     |
-| 844×390   | 73.9 | 684    | 16        | −383.9    | 400px clipped, Continuar unreachable |
-| 390×844   | 73.9 | 1100   | 16        | —         | 362px clipped, cannot scroll    |
+- both pages gained a **title block** above the pills (`h1` + subtitle + a live
+  count line, `px-4 pt-6 pb-2 sm:px-2`)
+- both containers gained **`max-w-6xl`** — the overlay's bare `container` runs to
+  1400px, so the content column is wider under the overlay than under the page
+- **/pets below 640px** is now the post feed (`pet-feed.tsx`): full-width cards
+  on `bg-muted`, `px-3`, no panel — not a 2-col grid inside `bg-background`
+- **/aliados** cards are provider cards (`grid-cols-1 sm:grid-cols-2
+  lg:grid-cols-3`, `gap-3`, avatar + chips + price), not square pet tiles
+- **/aliados** filter pills are one scrolling row at *every* breakpoint and there
+  are **7** of them (`all` + 6 `SERVICE_TYPES`); the overlay draws 6 desktop-only
+  pills plus a mobile "Filtros" button that route does not have
 
-The gap above is exactly 16px (the `p-4`) at every size — proof the centering
-classes do nothing. `overflow-hidden` on the root turns the overflow into
-*unreachable* content rather than a scrollbar.
+Net effect: the pills sit ~90px too high, the column is too wide, and on mobile
+`/pets` the overlay shows a grid the page never renders.
 
 ## The fix
 
-Root becomes a flex column; the content row takes `flex-1`, which resolves to
-`100dvh − navHeight` at runtime. No hardcoded nav height: the nav measures
-**73.9px**, not the 72px its classes suggest (the breadcrumb line box is 33.9px,
-not the Logo's 32px), so any magic number would already be ~2px wrong.
+Split the single skeleton into per-route shapes that mirror the real markup
+class-for-class, and keep today's generic shape as the fallback.
 
-Flex items default to `min-height: auto`, so the row floors at content height —
-it centers when there is room and grows-and-scrolls when there is not.
-
-## Todo
-
-- [x] `role-selection.tsx:111` — root to `flex min-h-dvh flex-col overflow-x-clip`
-- [x] `role-selection.tsx:120` — wrapper to `flex flex-1 items-center justify-center p-4`
-- [x] `role-selection.tsx:121` — `p-16` → `p-6 sm:p-10 lg:p-16` (at 390px the
-      description column collapses to ~90px, wrapping to 6–7 lines)
-- [x] `onboarding-nav.tsx:40` — add `shrink-0`
-- [x] `mfa-enrollment.tsx:201` — root to `flex min-h-dvh flex-col overflow-x-clip`
-- [x] `mfa-enrollment.tsx:205` — wrapper to `flex flex-1 items-center justify-center p-4`;
-      drop `overflow-y-clip` and the no-op `border-border`
-- [x] `mfa-enrollment.tsx:206` — responsive padding, drop duplicate `border-border`
-- [x] Verify all three enrollment step heights (shell rebuilt in-browser; the
-      route itself redirects to /auth/login without local credentials)
-- [x] Re-measure viewports: `gapAbove == gapBelow`
-- [x] `npx tsc --noEmit` — only the 2 known pre-existing errors
-- [x] `npx vitest run` — 776/777, the one failure pre-existing (transition-overlay.tsx)
-
-## Out of scope
-
-- The three onboarding wizards — scrolling multi-step layouts, centering is not
-  the goal there.
-- Equal-height role cards (`grid-rows-3`) — aesthetic call, not raised.
+- [x] 1. Add `max-w-6xl` + `sm:pb-0` to the overlay's container so the column
+      matches `pets-page.tsx` / `aliados-page.tsx`
+- [x] 2. Add a shared `SkeletonHeader` (title + subtitle + reserved count line)
+      using the real `px-4 pt-6 pb-2 sm:px-2` box; the count line stays **empty**
+      because the real one renders empty while loading
+- [x] 3. `PetsSkeleton` — real pill widths from the Spanish labels, `flex-wrap`
+      desktop row + `sm:hidden` "Filtros" button
+- [x] 4. `PetsSkeleton` — desktop grid panel gated `hidden sm:block`, mobile feed
+      (`px-3 pb-20`, 1½ post cards) gated `sm:hidden`, mirroring `pet-feed.tsx`
+- [x] 5. `AliadosSkeleton` — 7-pill single scrolling row + the provider-card
+      skeleton copied from `provider-grid.tsx`'s own loading state
+- [x] 6. Route the branch on `targetHref`; keep the pets shape as the fallback
+- [x] 7. Add tests pinning each branch to its target — transitions suite 25/25
+- [x] 8. Verify in the browser at 1440px and 390px against the real pages
+- [x] 9. `EventosSkeleton` — hero band + the real loading state (added on request)
+- [x] 10. Swap /eventos' bespoke loading circle for `<PeluLoadingLogo />`, in the
+      route **and** the skeleton, so the paw animation carries across the handoff
 
 ## Review
 
-### What changed
+`transition-overlay.tsx` is now three route-shaped skeletons behind a
+`targetHref` switch (`RouteSkeleton`), replacing the single generic shape.
+Nothing outside that file changed.
 
-Three files, class strings only — no logic touched.
+**Verified by measurement, not by eye.** Every number below is the overlay's own
+geometry compared against the live page in Chrome, at both breakpoints. Offsets
+are from the top of the route container, since the overlay is mid-slide when
+sampled:
 
-- `role-selection.tsx` — root is now a flex column (`flex min-h-dvh flex-col
-  overflow-x-clip`); the content wrapper is `flex flex-1 items-center
-  justify-center p-4`; card padding is responsive.
-- `onboarding-nav.tsx` — `shrink-0` on the `<nav>`.
-- `mfa-enrollment.tsx` (`MfaPanel`, the shell all three steps render through) —
-  same pattern; dropped `overflow-y-clip` and two no-op `border-border`.
-
-`flex-1` resolves to `100dvh − navHeight` at runtime, so nothing hardcodes the
-nav. That matters: the nav measures **73.9px**, not the 72px its classes imply.
-
-### Measured after (live code, reloaded)
-
-| viewport  | gap above | gap below | centered |
-|-----------|-----------|-----------|----------|
-| 1920×1080 | 161       | 161.1     | yes      |
-| 1440×900  | 71        | 71.1      | yes      |
-
-MfaPanel shell, 390×844: short card 251/251.1 centered, medium 101/101.1
-centered, oversized correctly stops centering and scrolls 510px.
-
-Mobile 390px on role-selection: content width 215→295px, description column
-~90→143px, wraps 6/4/7→4/3/4 lines, card height 1100→812, overflow 362→74px.
-
-### Correction to the original diagnosis
-
-The first pass reported "the page cannot scroll, Continuar is unreachable at
-1024×758 and below". **That was wrong** — a measurement artifact. The app sets
-`scroll-behavior: smooth`, so `window.scrollTo(0, N)` followed by a synchronous
-`scrollTop` read always returns 0. Re-measured with `behavior: 'instant'`, the
-original scrolled fine (`maxScroll: 400`, button reachable).
-
-Consequence: `overflow-hidden` → `overflow-x-clip` fixes **no live bug**. A root
-with only a `min-height` grows to fit its content, so it never clipped. The
-change is kept as defensive hygiene (it cannot trap vertical overflow if a fixed
-height is ever introduced), not as a fix. The real bug was always just the
-centering, which is what was asked about.
-
-## Follow-up: animate the card height between enrollment steps
-
-- [x] `AnimatedHeight` in `mfa-enrollment.tsx` — wraps `MfaPanel`'s children
-- [x] Guard for jsdom's missing ResizeObserver
-- [x] Verified on the real route (registered a local throwaway account)
-
-`height: auto` is not interpolable, so a CSS transition cannot do this. Used the
-same idiom `components/Stepper.tsx` already uses — measure the content, animate
-an explicit height with a `motion.div` spring. Stepper itself is not reusable
-here for the reason already noted in the `MfaPanel` docstring (it owns its own
-next/back buttons).
-
-Three details worth keeping:
-
-- **`initial={false}`** — on first paint `height` is still undefined; animating
-  in from 0 would make every mount look like a step change.
-- **`overflow: hidden` only while animating.** Left on permanently it clips what
-  deliberately paints outside the content box: the method buttons' `shadow-post`
-  (32px blur) and `focus-ring`'s `outline` (2px at 2px offset) — the latter is a
-  keyboard-accessibility regression, not just cosmetic.
-- **ResizeObserver, not a step-keyed effect.** It also catches height changes the
-  step swap does not cause. Measured proof below: the TOTP step first renders
-  short, then grows when the QR code resolves, and the wrapper re-targets.
-
-Measured on `/auth/mfa/enrollment` at 1440×900:
-
-| transition | height | frames | duration | overflow |
+| route / viewport | header block | filters | content | pills |
 |---|---|---|---|---|
-| step 1 → 2 (TOTP) | 451 → 378 → 544 | 19 | 463ms | hidden during, visible at rest |
-| step 1 → 3 (email → recovery codes) | 451 → 500 | 12 | ~440ms | hidden during, visible at rest |
+| /pets 1440 | +0, h116 | +116, h100 (wraps to 2 rows) | +216 | all 10 exact |
+| /pets 390 | +0, h164 | +176, 87×32 | feed +220, x32 w311 | — |
+| /aliados 1440 | +0, h116 | +116, h58 | +174, 3 cols | all 7 exact |
+| /aliados 390 | +0, h152 | +152, h73 | +225, 1 col | all 7 exact |
+| /eventos 1440 | hero h190, mb64, full-bleed 1425 | — | paw at +334, 106×112 | — |
 
-Card stays centred throughout — 85 / 85.1 on the recovery step.
+Every one matches the real page exactly.
 
-### Regression caught and fixed
+### The /eventos loading state (follow-up)
 
-The first version threw `ReferenceError: ResizeObserver is not defined` in
-jsdom, taking the suite from 1 failure to **25**. Fixed with the guard
-`components/pets/pet-feed.tsx:44` already uses. Leaving `height` undefined is
-the correct degradation: `offsetHeight` is 0 in a layout-less environment, and
-committing that would collapse the card. Back to 776/777.
+The bespoke `w-8 h-8 border-2 … animate-spin` circle became `<PeluLoadingLogo />`
+— **in `events-page.tsx` as well as the skeleton**, deliberately. Changing only
+the overlay would have shown the paw and then swapped it for a circle at handoff,
+which is the exact class of jump this task set out to remove. Swapping both keeps
+them matched and follows the rule `components/ui/spinner.tsx` already documents:
+"Full-page loads use `<PeluLoadingLogo />` instead; list/grid surfaces use
+skeletons." The route was the outlier — its circle was not even the shared
+`Spinner`.
 
-## Follow-up 2: MfaPanel must never overflow the page
+Verified: overlay and route both put the paw at offset **+334**, box 106×112, at
+the same absolute x/y. The assembly animation now continues across the handoff
+rather than restarting as a different indicator.
 
-- [x] Reproduced: step 3 overflowed the page by **106px at 1280×720**
-- [x] Root becomes `h-dvh` (was `min-h-dvh`), panel `max-h-full`, content area scrolls
-- [x] Verified across 4 viewports + step 1
+The skeleton's copy is wrapped in `aria-hidden` — `PeluLoadingLogo` carries
+`role="status"`, and the route mounts its own underneath, so two live regions
+would announce "Cargando…" twice.
 
-The panel is now capped at the viewport and the content area scrolls inside it,
-so the page itself can never scroll.
+**Four things the measurements caught that eyeballing would not have:**
 
-**The non-obvious part.** The first attempt (`max-h-full` + `min-h-0`) did
-nothing — still 106px of page overflow. A percentage `max-height` resolves
-against a *definite* parent height, and `min-h-dvh` is not definite, so the cap
-silently computed to `none`. Changing the root to `h-dvh` is what makes it bite,
-and a definite root height is the invariant itself.
+1. `container` is customised in `globals.css` with `padding-inline: 2rem`, so
+   below sm the content is inset 32px, not 0. Reusing the page's own container
+   classes inherits this for free — hand-rolling the wrapper would not have.
+2. The /pets `h1` wraps to **two** lines at 390px (64px, not 32) while /aliados
+   stays at one over a **three**-line subtitle. The mobile line counts are
+   therefore per route; a shared guess put the pills 32px off.
+3. The mobile "Filtros" trigger has no border, so it is 87×32 — not the 34px a
+   bordered pill measures.
+4. The /aliados pill row keeps `overflow-x-auto` verbatim. Below sm that row
+   overflows, and on a classic-scrollbar browser the gutter is 15px of real
+   height; `overflow-hidden` would have sat the cards 15px high.
 
-`min-h-0` on the centring wrapper is also load-bearing: without it `flex-1`
-grows to its content and `max-h-full` would resolve against that grown height.
+Pill widths are measured off the rendered Spanish labels and noted as such in the
+file — they need re-measuring if the labels change.
 
-| viewport  | page overflow | panel fits | internal scroll |
-|-----------|---------------|------------|-----------------|
-| 1920×1080 | 0             | yes        | 0 — centred 143/143.1 |
-| 1280×720  | **0** (was 106) | yes      | 106             |
-| 390×844   | 0             | yes        | 6               |
-| 844×390   | 0             | yes        | 388, confirm button reachable |
+## Found while verifying — separate from this work, not fixed
 
-Centring is unchanged when the content fits; the cap only engages when it does
-not. The scroll area carries `-mx-2 px-2` so `focus-ring`'s outline keeps 8px of
-bleed inside the scroll box (it needs 4) — a bare scroll container would clip it.
+Below 640px, `/pets` **cannot rest at scroll 0**. `pet-feed-card.tsx` carries
+`snap-start scroll-mt-24` and `globals.css` puts `scroll-snap-type: y proximity`
+on `html`, so once the cards mount the document snaps to scrollY **215** and the
+page's own title and filter bar scroll out of view unscrolled-to. `window.scrollTo(0, 0)`
+is immediately undone by the snap.
 
-### Open: the nested padding is why it scrolls this early
+This is **not** a transition bug and the overlay handoff is unaffected — the
+feed's *loading* skeleton has no snap targets, so the page sits at 0 for exactly
+as long as the overlay is up. The snap happens later, when the pets arrive. But
+it does mean a mobile visitor never sees the /pets heading or filters without
+scrolling up. Worth deciding on separately.
 
-Step 3 pays **256px of vertical padding before any content**: the panel's
-`lg:p-16` (64px top + bottom) plus the recovery card's own `p-16` nested inside
-it. That is the whole reason a 720px-tall laptop needs to scroll at all —
-reclaiming ~106px would remove it. Not changed, because the inner `p-16` looks
-like a deliberate choice. Options: inner `p-16`→`p-8` (64px) plus panel
-`lg:p-16`→`lg:p-10` (48px) = 112px, enough to clear it.
+## Pre-existing failures, untouched
 
-## Follow-up 3: logo loader during the registration flow's async work
+- `design-system.test.ts` "no inline `style={{}}`" — fails identically on a
+  stashed tree (7 violations across `logo-loader`, `mfa-enrollment` and this
+  file). The skeleton's pill widths are pixel data, so they stay inline; the
+  count is unchanged from before.
+- `service-provider-form.test.tsx` times out in a full run, passes alone (12/12)
+  — the known full-run flake.
+- `tsc --noEmit` reports 2 errors in `transition-link.test.tsx` (a mock missing
+  `targetHref`). Pre-existing; I fixed the same gap in the overlay's own test but
+  left that file alone as out of scope. One-line fix if you want it.
 
-Decided with the user: **only** while the real awaits run (not route changes,
-not intra-wizard steps, not `/adopt`), and a **new centered logo loader**
-(dimmed backdrop, pulsing mark, loops until the await resolves).
+---
 
-### Todo
+# Update the README (2026-08-01)
 
-- [x] `components/logo-loader.tsx` — fixed dimmed overlay, centered pulsing mark
-- [x] `app/globals.css` — `--animate-logo-pulse` + `@keyframes`, next to `--animate-marquee`
-- [x] `common.json` es/en — new `saving` key
-- [x] Wire `role-selection.tsx` (`loading`) — covers `setRole`
-- [x] Wire `member-wizard.tsx` (`submitting`) — profile PATCH + `createUserPets`
-- [x] Wire `rescue-center-wizard.tsx` (`submitting`, `petSubmitting`) — `createRescueCenter`,
-      `createPet` + `uploadPhotos`, `getMethods`
-- [x] Wire `business-wizard.tsx` (`submitting`) — `createBusiness`, `uploadBusinessPhoto`, `getMethods`
-- [x] Verified in the browser against a throttled API
-- [x] `npx tsc --noEmit` (2 pre-existing) + `npx vitest run` (776/777) at baseline
+Goal: `README.md` describes the repo as it is today. Only `README.md` changes —
+no code, no new files.
 
-### Measured
+## What I found wrong or missing (verified against the tree)
 
-Throttling `/auth/role` by 1800ms on a real submit: the loader appeared on
-click, stayed **2068ms**, ran `logo-pulse` at `1.6s`, announced "Guardando…",
-sat at `z-index: 50`, and cleared only once `/auth/onboarding/member` painted.
+**Wrong — would waste someone's time:**
 
-### Three fixes the wiring turned up
+1. `cp .env.example .env.local` — **there is no `.env.example`** in this repo.
+2. API URL given as `http://localhost:8080` (twice). Every real profile uses
+   **`http://localhost:2701`**; 8080 is only the stale code fallback.
+3. `bun run lint` is listed as the lint command. **It is broken** — `next lint`
+   was removed in Next 16 (confirmed: `next --help` has no `lint`), and there is
+   no eslint config in the repo. The real check is `npx tsc --noEmit`.
+4. "Node.js 18+" — Next 16 needs Node 20.9+.
+5. i18n lists 5 namespaces; there are **6** (`business.json` was added), and the
+   files are bundled by `lib/i18n/index.ts`, not fetched.
 
-- `role-selection.tsx` called `setLoading(false)` *after* `router.push`. Since
-  push resolves before the next route paints, that flashed the role picker back
-  for a frame. Removed — the component unmounts on navigation anyway. Same
-  pattern removed from `member-wizard.tsx`'s no-pets branch.
-- Both `rescue-center-wizard.tsx` and `business-wizard.tsx` cleared `submitting`
-  *before* `await getMethods()`, so the loader blinked off while a second round
-  trip was still deciding which screen came next. Moved the clear after it.
-- Pulse opacity floor raised 0.55 → 0.7. `logo.svg` is a fixed dark slate
-  (`#3b424c`) with no `currentColor`, so a deep trough read as washed out
-  rather than as a pulse; scale carries the motion instead.
+**Missing entirely:**
 
-### Known limitation
+6. **Testing.** 87 test files, no `test` script, `npx vitest run`, and the
+   `renderWithProviders()` requirement. The README never mentions tests.
+7. **Deployment.** `Dockerfile` (bun build → nginx:alpine) + `nginx.conf` serving
+   the static export on port 3000, and that `NEXT_PUBLIC_API_URL` is a
+   **build arg** inlined at build time — changing it needs a rebuild.
+8. **Routes.** No route list at all. Also the static-export consequence:
+   `/p?slug=` and `/adopt?id=` are query params, not `[slug]`/`[id]` segments.
+9. **WebSocket.** `lib/contexts/websocket-context.tsx` is unmentioned.
+10. Provider stack, `ProtectedRoute`/guards, and "no Next middleware — auth is
+    client-side".
 
-`logo.svg` hardcodes its colours, so if these screens ever render on a genuinely
-dark surface the mark will sink into it. Today the `dark` class on the auth
-shells still resolves to a light background, so it reads fine — the same
-assumption `components/logo.tsx` already makes in the nav.
+**Stale structure / feature list:**
 
-### Two constraints that decide the implementation
+11. Project tree misses `about/`, `adopt/`, `events/`, `forms/`, `providers/`,
+    `service-providers/`, `transitions/`, `dashboard/admin/`, `lib/hooks/`,
+    `lib/data/`, `lib/utils/`, `scripts/`.
+12. Feature phases stop at "Phase 7 Business dashboard". Since then: admin
+    dashboard, service-provider applications (`/servicios`), events (`/eventos`),
+    member pets (`/mis-mascotas`), transport directory (`/transporte/negocios`),
+    the about scrollytelling page, public route transitions, and the /pets
+    mobile feed.
+13. Design system omits the **Pop** accent and Tailwind v4 (**no
+    `tailwind.config.ts`** — theme lives in `app/globals.css` `@theme {}`) and
+    the Font-Awesome-only icon rule.
 
-**CSS keyframes, not Framer Motion.** `CLAUDE.md` records that `LogoLoop` was
-replaced by a CSS `@keyframes` marquee because `requestAnimationFrame` freezes
-on mobile Safari after React re-renders. A loader that loops for the length of a
-photo upload is exactly that hazard, so the pulse runs on the compositor via CSS
-and `motion-reduce:animate-none` handles reduced motion — no JS timer at all.
+## Todo
 
-**Do not reuse `components/logo.tsx`.** It wraps the mark in `<Link href="/">`,
-so dropping it into a blocking overlay would make clicking the loader navigate
-home mid-submit. The loader renders the `<Image>` directly.
+- [x] 1. Fix the four factual errors (env file, 2701, lint, Node version)
+- [x] 2. Add a Testing section (`npx vitest run`, `renderWithProviders`)
+- [x] 3. Add a Routes table, incl. the query-param deep links
+- [x] 4. Refresh the project-structure tree against the real directories
+- [x] 5. Expand Architecture: providers, guards, WebSocket, static-export limits
+- [x] 6. Add a Deployment section (Docker + nginx, build-time API URL)
+- [x] 7. Update i18n (6 namespaces, bundled), design system (Pop, Tailwind v4,
+      Font Awesome), and the feature list
+- [x] 8. Re-read the finished README against the tree and add a Review section
 
-### Not done
+## Open question for you — answered
 
-- Equal-height role cards (`grid-rows-3`) — never confirmed as wanted.
-- `/auth/mfa/enrollment` not driven end-to-end: it redirects to `/auth/login`
-  and there are no local test credentials. Shell geometry was verified by
-  rebuilding the exact `MfaPanel` DOM against the loaded stylesheet; the real
-  route's three steps have not been seen rendered.
-- The three onboarding wizards — out of scope by design.
+Approved **(a)**: the single variable is documented inline. No `.env.example` was
+committed, so this stayed a docs-only change.
+
+## Review
+
+`README.md` is the only file that changed (plus this plan). No code was touched.
+
+### What the rewrite fixed
+
+Every error from the list above, plus six new sections: Testing, Routes,
+Deployment, Electron, and — inside Architecture — the provider stack, route
+protection, the three fetch patterns, WebSocket, and the static-export
+constraints.
+
+The **"Features Implemented" phase list was removed rather than extended.** It
+had drifted into a changelog that nobody updates, and the Routes table now says
+the same thing in a form a reader can act on.
+
+### Three things I got wrong on the first pass and corrected against the source
+
+Worth recording, because each one is a claim the old README (or `CLAUDE.md`)
+implies and the code contradicts:
+
+1. **`admin` is not a role.** `UserRole` in `lib/types/user.ts` is exactly
+   `member | rescue_center | business`. Admin is an `is_admin` flag on
+   `/api/v1/auth/me` — which is why `AdminGuard` calls that endpoint and why
+   `app/dashboard/admin/layout.tsx` wraps a `<ProtectedRoute>` with **no**
+   `requireRole`. The README now says so explicitly.
+2. **Static export does not forbid dynamic segments.** I wrote that it did;
+   `app/auth/onboarding/[role]` disproves it by enumerating the three roles in
+   `generateStaticParams()`. The real rule is that every value must be known at
+   build time — which is why *pet* deep links use `?slug=` / `?id=` and the
+   onboarding route does not have to.
+3. **`location_update` does not exist in this repo.** `CLAUDE.md` lists it as a
+   client→server transport event, but `grep` across the tree returns nothing.
+   The frontend sends only `send_message`, `typing` and `read_receipt`. The
+   README lists the nine event types actually subscribed to, verified by grep.
+
+### Verified, not assumed
+
+- `next lint` is gone: `bunx next lint --help` prints the Next 16 command list
+  with no `lint` entry, and there is no eslint config file in the repo.
+- Node floor: `node_modules/next/package.json` → `engines.node` is `>=20.9.0`.
+- `.env.example` genuinely absent (`ls -a` shows only `.env` and `.env.local`).
+- Both documented commands actually run: `npx vitest run
+  components/__tests__/ui/error-state.test.tsx` → 5/5 passed;
+  `npx tsc --noEmit` runs and reports **only** the 2 pre-existing
+  `transition-link.test.tsx` errors already noted in the entry above. Left
+  untouched — out of scope for a docs change.
+- Test file count (87), namespace count (6, `business.json` included), route
+  roles, and the WS event list all come from the tree, not from `CLAUDE.md`.
+
+### Follow-ups you may want, deliberately not done here
+
+- **`CLAUDE.md` has the same `location_update` error** and still says "~32 test
+  files" (it is 87) and 5 i18n namespaces. Same class of drift, different file.
+- The broken `lint` script is still in `package.json`. The README documents the
+  workaround; replacing the script with `tsc --noEmit` (or wiring up ESLint 9's
+  flat config) would be a one-line code change if you want it.
