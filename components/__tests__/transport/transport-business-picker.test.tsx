@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/components/__tests__/test-utils'
 import { TransportBusinessPicker } from '@/components/transport/transport-business-picker'
@@ -130,6 +130,12 @@ describe('TransportBusinessPicker', () => {
       error: null,
     }
 
+    // Hoisted so every test in this block has a stub: jsdom does not implement
+    // window.open and logs a "Not implemented" error when it is called for real.
+    let openSpy: ReturnType<typeof vi.spyOn>
+    beforeEach(() => { openSpy = vi.spyOn(window, 'open').mockImplementation(() => null) })
+    afterEach(() => openSpy.mockRestore())
+
     function renderPicker(props: Record<string, unknown> = {}) {
       mockList.mockResolvedValue(oneBusiness)
       return renderWithProviders(
@@ -172,23 +178,19 @@ describe('TransportBusinessPicker', () => {
     })
 
     it('opens the returned document url in a new tab', async () => {
-      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
       renderPicker()
       await clickQuote()
       await waitFor(() =>
         expect(openSpy).toHaveBeenCalledWith(expect.stringContaining('/documents/'), '_blank'),
       )
-      openSpy.mockRestore()
     })
 
     it('shows an error and does not navigate when creation fails', async () => {
       mockCreateQuote.mockResolvedValue({ data: null, error: 'boom' })
-      const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
       renderPicker()
       await clickQuote()
       expect(await screen.findByText(/boom/)).toBeInTheDocument()
       expect(openSpy).not.toHaveBeenCalled()
-      openSpy.mockRestore()
     })
 
     it('does not create a quote merely by selecting a business', async () => {
