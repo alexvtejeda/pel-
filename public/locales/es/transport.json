@@ -45,7 +45,11 @@
     "distance_km": "{{km}} km",
     "duration_min": "~{{min}} min",
     "price": "RD$ {{price}}",
-    "approx": "aproximado"
+    "approx": "aproximado",
+    "request_quote": "Solicitar cotización",
+    "quote_loading": "Generando…",
+    "quote_error": "No se pudo generar la cotización",
+    "quote_opened_hint": "Tu cotización se abrió en una pestaña nueva. Puedes guardarla en PDF o enviarla por correo desde allí."
   },
   "directory": {
     "title": "Transportistas",

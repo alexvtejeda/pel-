@@ -45,7 +45,11 @@
     "distance_km": "{{km}} km",
     "duration_min": "~{{min}} min",
     "price": "RD$ {{price}}",
-    "approx": "approx."
+    "approx": "approx.",
+    "request_quote": "Request a quote",
+    "quote_loading": "Generating…",
+    "quote_error": "Could not generate the quote",
+    "quote_opened_hint": "Your quote opened in a new tab. You can save it as a PDF or email it from there."
   },
   "directory": {
     "title": "Transporters",
