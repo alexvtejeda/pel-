@@ -43,6 +43,10 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
   const [quoting, setQuoting] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
+  // Members own pets in `user_pets`, rescue centers in `pets` — this decides
+  // both which list to load and which id key the request is sent under.
+  const isMember = user?.role === 'member'
+
   // Load pets based on role
   useEffect(() => {
     async function loadPets() {
@@ -114,7 +118,10 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
     setSubmitting(true)
     const selectedPet = pets.find(p => p.id === selectedPetId)
     const { data, error } = await requestTrip({
-      pet_id: selectedPetId,
+      // Same role fork as the pet list above: a member's id belongs to
+      // `user_pets`, a rescue center's to `pets`. Sending it under the wrong key
+      // fails the backend's foreign key.
+      ...(isMember ? { user_pet_id: selectedPetId } : { pet_id: selectedPetId }),
       pet_description: selectedPet?.name ?? '',
       business_id: business.business_id,
       pickup_address: pickupAddress,

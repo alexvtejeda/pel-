@@ -15,7 +15,9 @@ export interface Trip {
   id: string
   requester_id: string
   driver_id: string | null
-  pet_id: string
+  /** Exactly one of pet_id (rescue center, `pets`) and user_pet_id (member, `user_pets`) is set. */
+  pet_id?: string | null
+  user_pet_id?: string | null
   status: TripStatus
   stops: TripStop[]
   created_at: string
@@ -71,7 +73,9 @@ export interface MarketplaceBusiness {
 }
 
 interface RequestTripPayload {
-  pet_id: string
+  /** Send exactly one: pet_id for a rescue center's pet, user_pet_id for a member's own. */
+  pet_id?: string
+  user_pet_id?: string
   pet_description?: string
   target_driver_id?: string
   business_id?: string

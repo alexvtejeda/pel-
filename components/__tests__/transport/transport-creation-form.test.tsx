@@ -3,15 +3,21 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '@/components/__tests__/test-utils'
 import { TransportCreationForm } from '@/components/transport/transport-creation-form'
 
+// Mutable so a single suite can exercise both sides of the role fork.
+const authMock = vi.hoisted(() => ({ role: 'member' }))
 vi.mock('@/lib/contexts/auth-context', () => ({
-  useAuth: () => ({ user: { id: 'u1', role: 'member' } }),
+  useAuth: () => ({ user: { id: 'u1', role: authMock.role } }),
 }))
 
 vi.mock('@/lib/api/user-pets', () => ({
   listUserPets: vi.fn().mockResolvedValue({ data: [{ id: 'p1', name: 'Firulais' }], error: null }),
 }))
-vi.mock('@/lib/api/pets', () => ({ listPets: vi.fn() }))
-vi.mock('@/lib/api/rescue-centers', () => ({ getMyRescueCenter: vi.fn() }))
+vi.mock('@/lib/api/pets', () => ({
+  listPets: vi.fn().mockResolvedValue([{ id: 'rc-p1', name: 'Luna' }]),
+}))
+vi.mock('@/lib/api/rescue-centers', () => ({
+  getMyRescueCenter: vi.fn().mockResolvedValue({ data: { id: 'rc1' }, error: null }),
+}))
 
 vi.mock('@/lib/api/transport', () => ({
   requestTrip: vi.fn(),
@@ -25,6 +31,7 @@ const mockList = vi.mocked(listTransportBusinesses)
 
 beforeEach(() => {
   vi.clearAllMocks()
+  authMock.role = 'member'
   global.fetch = vi.fn().mockResolvedValue({
     json: () => Promise.resolve([{ lat: '18.5', lon: '-69.9' }]),
   }) as unknown as typeof fetch
@@ -60,5 +67,39 @@ describe('TransportCreationForm reflow', () => {
     expect(payload).not.toHaveProperty('target_driver_id')
     expect(payload.stops).toHaveLength(2)
     expect(onTripCreated).toHaveBeenCalled()
+  })
+})
+
+// A member's pet id comes from `user_pets`; a rescue center's from `pets`. The
+// backend keys them separately because a user_pets id can never satisfy
+// transport_trips.pet_id's foreign key.
+describe('TransportCreationForm pet id key', () => {
+  async function submit(petOptionName: string, petValue: string) {
+    renderWithProviders(<TransportCreationForm onTripCreated={vi.fn()} />)
+
+    await screen.findByRole('option', { name: petOptionName })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de recogida'), { target: { value: 'Calle A' } })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de entrega'), { target: { value: 'Calle B' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: petValue } })
+
+    fireEvent.click(screen.getByText('Elegir transportista'))
+    fireEvent.click(await screen.findByText('PetGo'))
+    fireEvent.click(await screen.findByText('Solicitar · RD$ 450'))
+
+    await waitFor(() => expect(mockRequest).toHaveBeenCalled())
+    return mockRequest.mock.calls[0][0]
+  }
+
+  it('sends user_pet_id for a member', async () => {
+    const payload = await submit('Firulais', 'p1')
+    expect(payload.user_pet_id).toBe('p1')
+    expect(payload).not.toHaveProperty('pet_id')
+  })
+
+  it('sends pet_id for a rescue center', async () => {
+    authMock.role = 'rescue_center'
+    const payload = await submit('Luna', 'rc-p1')
+    expect(payload.pet_id).toBe('rc-p1')
+    expect(payload).not.toHaveProperty('user_pet_id')
   })
 })
