@@ -23,6 +23,9 @@
     "breed": "Breed",
     "age": "Age",
     "size": "Size",
+    "weight_lb": "Weight (lb)",
+    "weight_placeholder": "Optional",
+    "weight_hint": "If you don't know it, leave it blank — we'll use the size.",
     "description": "Description",
     "requirements": "Adoption requirements"
   },

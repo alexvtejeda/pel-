@@ -23,6 +23,9 @@
     "breed": "Raza",
     "age": "Edad",
     "size": "Tamaño",
+    "weight_lb": "Peso (lb)",
+    "weight_placeholder": "Opcional",
+    "weight_hint": "Si no lo sabes, déjalo vacío — usamos el tamaño.",
     "description": "Descripción",
     "requirements": "Requisitos de adopción"
   },

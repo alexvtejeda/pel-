@@ -172,6 +172,55 @@ describe('MemberAddPetModal — dialog semantics', () => {
   })
 })
 
+describe('MemberAddPetModal — optional weight', () => {
+  it('submits an optional weight in pounds', async () => {
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.change(screen.getByLabelText('Peso (lb)'), { target: { value: '40' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    await waitFor(() => expect(createUserPets).toHaveBeenCalled())
+    expect(createUserPets).toHaveBeenCalledWith([expect.objectContaining({ weight_lb: 40 })])
+  })
+
+  it('omits weight entirely when left blank', async () => {
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    fillRequired()
+    fireEvent.click(screen.getByRole('button', { name: 'Publicar mascota' }))
+
+    await waitFor(() => expect(createUserPets).toHaveBeenCalled())
+    // Absent, not 0 — the pet simply has no recorded weight and pricing falls
+    // back to its size band.
+    expect(vi.mocked(createUserPets).mock.calls[0][0][0]).not.toHaveProperty('weight_lb')
+  })
+
+  it('prefills and round-trips the weight in edit mode', async () => {
+    renderWithProviders(
+      <MemberAddPetModal open pet={{ ...pet, weight_lb: 80 }} onClose={vi.fn()} onSaved={vi.fn()} />
+    )
+
+    await waitFor(() => expect(screen.getByLabelText('Peso (lb)')).toHaveValue(80))
+
+    fireEvent.change(screen.getByLabelText('Peso (lb)'), { target: { value: '85' } })
+    fireEvent.click(screen.getByText('Guardar cambios'))
+
+    await waitFor(() =>
+      expect(updateUserPet).toHaveBeenCalledWith('up1', expect.objectContaining({ weight_lb: 85 })),
+    )
+  })
+
+  it('keeps the input inside the 0-500 range the backend enforces', async () => {
+    renderWithProviders(<MemberAddPetModal open onClose={vi.fn()} />)
+
+    // Out of range 400s the quote outright, so the bound is mirrored on the input.
+    const input = screen.getByLabelText('Peso (lb)')
+    expect(input).toHaveAttribute('min', '0')
+    expect(input).toHaveAttribute('max', '500')
+  })
+})
+
 describe('MemberAddPetModal — edit mode', () => {
   it('prefills fields from pet and saves via updateUserPet (PATCH)', async () => {
     renderWithProviders(

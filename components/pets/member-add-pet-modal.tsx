@@ -64,6 +64,9 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
   const [vaccinated, setVaccinated] = useState(false)
   const [castrated, setCastrated] = useState(false)
   const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
+  // Optional, and held as a string so a blank field stays distinguishable from a
+  // real 0 — a pet with no recorded weight is priced from its size band instead.
+  const [weightLb, setWeightLb] = useState<string>('')
   const [dragging, setDragging] = useState(false)
   const [mobilePreview, setMobilePreview] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -95,6 +98,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
     setVaccinated(pet.vaccinated ?? false)
     setCastrated(pet.castrated ?? false)
     setSize(pet.size ?? 'medium')
+    setWeightLb(pet.weight_lb != null ? String(pet.weight_lb) : '')
   }, [open, pet])
 
   // The publish flow is the only place a member can set a phone (there is no
@@ -136,6 +140,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
     setVaccinated(false)
     setCastrated(false)
     setSize('medium')
+    setWeightLb('')
     setMobilePreview(false)
     setSaving(false)
     setError(null)
@@ -194,6 +199,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
         gender,
         description: description.trim() || undefined,
         size,
+        ...(weightLb.trim() !== '' ? { weight_lb: Number(weightLb) } : {}),
         vaccinated,
         castrated,
       })
@@ -236,6 +242,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
       gender,
       description: description.trim() || undefined,
       size,
+      ...(weightLb.trim() !== '' ? { weight_lb: Number(weightLb) } : {}),
       vaccinated,
       castrated,
       // Publishing IS the point of this modal. The edit branch above omits the
@@ -422,6 +429,24 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
                 <option value="medium">{t('size.medium')}</option>
                 <option value="large">{t('size.large')}</option>
               </select>
+            </div>
+
+            {/* Weight — optional. Most owners don't know it, which is why the size
+                band above is what actually prices a transport. */}
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="pet-weight" className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('details.weight_lb')}</label>
+              <input
+                id="pet-weight"
+                type="number"
+                inputMode="decimal"
+                min={0}
+                max={500}
+                value={weightLb}
+                onChange={(e) => setWeightLb(e.target.value)}
+                placeholder={t('details.weight_placeholder')}
+                className="w-full rounded-xl border border-input bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring"
+              />
+              <p className="text-xs text-muted-foreground">{t('details.weight_hint')}</p>
             </div>
 
             {/* Description */}
