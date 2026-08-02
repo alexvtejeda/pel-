@@ -37,9 +37,9 @@ beforeEach(() => {
   }) as unknown as typeof fetch
   mockList.mockResolvedValue({ data: { items: [
     { business_id: 'b1', name: 'PetGo', phone: '809', distance_from_member_km: 3.2,
-      quote: { distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: false } },
+      quote: { distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: false, priced_from: 'size' as const } },
   ], next_cursor: '' }, error: null })
-  mockQuote.mockResolvedValue({ data: { business_id: 'b1', distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: false, routing_source: 'ors', currency: 'DOP' }, error: null })
+  mockQuote.mockResolvedValue({ data: { business_id: 'b1', distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: false, routing_source: 'ors', currency: 'DOP', priced_from: 'size' }, error: null })
   mockRequest.mockResolvedValue({ data: { id: 't1', status: 'requested' } as never, error: null })
 })
 

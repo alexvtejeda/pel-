@@ -11,6 +11,12 @@ export interface UserPet {
   gender: 'male' | 'female'
   description?: string
   size?: 'small' | 'medium' | 'large'
+  /**
+   * Optional weight in pounds, 0–500. A refinement only: transport pricing resolves
+   * its band from `size` and uses the weight only when present. Serialized
+   * `omitempty`, so an absent field means the owner never entered one.
+   */
+  weight_lb?: number | null
   vaccinated?: boolean
   castrated?: boolean
   /**

@@ -19,11 +19,11 @@ describe('TransportBusinessPicker', () => {
     mockList
       .mockResolvedValueOnce({ data: { items: [
         { business_id: 'b1', name: 'PetGo', phone: '809', distance_from_member_km: 3.2,
-          quote: { distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: true } },
+          quote: { distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: true, priced_from: 'size' as const } },
       ], next_cursor: 'c2' }, error: null })
       .mockResolvedValueOnce({ data: { items: [
         { business_id: 'b2', name: 'FastPaws', phone: '829', distance_from_member_km: 5.1,
-          quote: { distance_km: 14, duration_minutes: 26, estimated_price: 500, routing_degraded: false } },
+          quote: { distance_km: 14, duration_minutes: 26, estimated_price: 500, routing_degraded: false, priced_from: 'size' as const } },
       ], next_cursor: '' }, error: null })
 
     const onSelect = vi.fn()

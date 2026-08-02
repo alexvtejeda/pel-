@@ -78,6 +78,17 @@ export interface Business {
   taxi_base_fee?: number | null
   taxi_per_km?: number | null
   taxi_per_minute?: number | null
+  /**
+   * Size-band pricing. The toggle is serialized without `omitempty` and is always
+   * present in a response, because `false` is meaningful — it is the opted-out
+   * default, not a missing value. The three surcharges are `omitempty`, so an
+   * absent one means "use the platform default", NOT "free". Same distinction the
+   * taxi_* fees above already carry.
+   */
+  taxi_size_pricing_enabled?: boolean
+  taxi_surcharge_small?: number | null
+  taxi_surcharge_medium?: number | null
+  taxi_surcharge_large?: number | null
   terms_and_conditions?: string | null
   status: string
   rejection_reason?: string
@@ -127,6 +138,15 @@ export interface UpdateBusinessInput extends Partial<CreateBusinessInput> {
   taxi_base_fee?: number
   taxi_per_km?: number
   taxi_per_minute?: number
+  taxi_size_pricing_enabled?: boolean
+  /**
+   * Send a surcharge only when it carries a value. Omitting one leaves the stored
+   * value untouched (COALESCE, see above) and an unset band falls back to the
+   * platform default — whereas an explicit 0 means "this band is free".
+   */
+  taxi_surcharge_small?: number
+  taxi_surcharge_medium?: number
+  taxi_surcharge_large?: number
   terms_and_conditions?: string
 }
 

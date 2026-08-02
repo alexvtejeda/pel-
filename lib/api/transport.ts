@@ -45,11 +45,22 @@ export interface Point {
   lng: number
 }
 
+/**
+ * What selected the pricing band. `'size'` is NOT a degraded case — it is how most
+ * operators price, so only `'none'` (nothing to go on) warrants an estimate badge.
+ * `'disabled'` means the business does not charge by size at all.
+ *
+ * Independent of `routing_degraded`, which means the routing service failed: a
+ * quote can be both, either, or neither.
+ */
+export type PricedFrom = 'weight' | 'size' | 'none' | 'disabled'
+
 export interface MarketplaceQuote {
   distance_km: number
   duration_minutes: number
   estimated_price: number
   routing_degraded: boolean
+  priced_from: PricedFrom
 }
 
 export interface TripQuote {
@@ -60,6 +71,7 @@ export interface TripQuote {
   routing_degraded: boolean
   routing_source: string
   currency: string
+  priced_from: PricedFrom
 }
 
 export interface MarketplaceBusiness {
