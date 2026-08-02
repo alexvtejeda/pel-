@@ -10,6 +10,7 @@ beforeEach(() => {
     status: 'idle',
     type: null,
     logoRect: null,
+    targetHref: null,
     navigate,
     setLogoRect: vi.fn(),
   })
@@ -36,6 +37,7 @@ describe('TransitionLink', () => {
       status: 'exiting',
       type: 'skeleton',
       logoRect: null,
+      targetHref: '/aliados',
       navigate,
       setLogoRect: vi.fn(),
     })
