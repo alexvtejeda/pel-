@@ -87,6 +87,13 @@ export function SettingsTab() {
   const [taxiBaseFee, setTaxiBaseFee] = useState<string>('')
   const [taxiPerKm, setTaxiPerKm] = useState<string>('')
   const [taxiPerMinute, setTaxiPerMinute] = useState<string>('')
+  // Size-band pricing. Held as strings for the same reason as the fees above: an
+  // empty input must stay distinguishable from an explicit 0, because the backend
+  // reads NULL as "use the platform default" and 0 as "this band is free".
+  const [sizePricingEnabled, setSizePricingEnabled] = useState(false)
+  const [surchargeSmall, setSurchargeSmall] = useState<string>('')
+  const [surchargeMedium, setSurchargeMedium] = useState<string>('')
+  const [surchargeLarge, setSurchargeLarge] = useState<string>('')
   const [terms, setTerms] = useState('')
 
   // Save state
@@ -127,6 +134,10 @@ export function SettingsTab() {
         setTaxiBaseFee(data.taxi_base_fee != null ? String(data.taxi_base_fee) : '')
         setTaxiPerKm(data.taxi_per_km != null ? String(data.taxi_per_km) : '')
         setTaxiPerMinute(data.taxi_per_minute != null ? String(data.taxi_per_minute) : '')
+        setSizePricingEnabled(data.taxi_size_pricing_enabled ?? false)
+        setSurchargeSmall(data.taxi_surcharge_small != null ? String(data.taxi_surcharge_small) : '')
+        setSurchargeMedium(data.taxi_surcharge_medium != null ? String(data.taxi_surcharge_medium) : '')
+        setSurchargeLarge(data.taxi_surcharge_large != null ? String(data.taxi_surcharge_large) : '')
         setTerms(data.terms_and_conditions ?? '')
         if (data.operating_hours) {
           const hours: Record<string, DayHours> = {}
@@ -195,8 +206,24 @@ export function SettingsTab() {
   const baseFeeMissing = petTaxiEnabled && taxiBaseFee.trim() === ''
   const termsTooLong = charCount(terms.trim()) > TERMS_MAX
 
+  // Gated on both toggles, for the same reason as the fees: the band inputs only
+  // exist on screen once size pricing is on.
+  const surchargeSmallInvalid =
+    petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeSmall)
+  const surchargeMediumInvalid =
+    petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeMedium)
+  const surchargeLargeInvalid =
+    petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeLarge)
+  const surchargeInvalid =
+    surchargeSmallInvalid || surchargeMediumInvalid || surchargeLargeInvalid
+
   const saveBlocked =
-    baseFeeInvalid || perKmInvalid || perMinuteInvalid || baseFeeMissing || termsTooLong
+    baseFeeInvalid ||
+    perKmInvalid ||
+    perMinuteInvalid ||
+    baseFeeMissing ||
+    surchargeInvalid ||
+    termsTooLong
 
   const handleSave = async () => {
     if (saveBlocked) return
@@ -226,6 +253,16 @@ export function SettingsTab() {
       if (taxiBaseFee.trim() !== '') pricingPayload.taxi_base_fee = Number(taxiBaseFee)
       if (taxiPerKm.trim() !== '') pricingPayload.taxi_per_km = Number(taxiPerKm)
       if (taxiPerMinute.trim() !== '') pricingPayload.taxi_per_minute = Number(taxiPerMinute)
+
+      // The toggle is always sent, unlike the amounts. It is COALESCEd too, so
+      // omitting it when the business opts back out would silently leave size
+      // pricing switched on — `false` has to travel explicitly.
+      pricingPayload.taxi_size_pricing_enabled = sizePricingEnabled
+      if (sizePricingEnabled) {
+        if (surchargeSmall.trim() !== '') pricingPayload.taxi_surcharge_small = Number(surchargeSmall)
+        if (surchargeMedium.trim() !== '') pricingPayload.taxi_surcharge_medium = Number(surchargeMedium)
+        if (surchargeLarge.trim() !== '') pricingPayload.taxi_surcharge_large = Number(surchargeLarge)
+      }
     }
 
     const { error } = await updateBusiness({
@@ -623,6 +660,65 @@ export function SettingsTab() {
             </div>
 
             <p className="text-xs text-muted-foreground">{tb('settings.pet_taxi_fallback_hint')}</p>
+
+            {/* Size-band pricing opt-in. Separate from the pet-taxi toggle because
+                "I do pet-taxi" and "I charge by size" are independent — some
+                operators charge a flat distance rate for every pet. */}
+            <div className="flex items-start gap-3 pt-4 border-t">
+              <input
+                type="checkbox"
+                id="size-pricing-optin"
+                checked={sizePricingEnabled}
+                onChange={() => setSizePricingEnabled((v) => !v)}
+                className="mt-0.5 shrink-0"
+              />
+              <label htmlFor="size-pricing-optin" className="cursor-pointer">
+                <span className="text-sm font-medium block">{tb('settings.size_pricing_label')}</span>
+                <span className="text-xs text-muted-foreground">{tb('settings.size_pricing_hint')}</span>
+              </label>
+            </div>
+
+            {sizePricingEnabled && (
+              <div className="space-y-4">
+                {(
+                  [
+                    ['small', surchargeSmall, setSurchargeSmall, surchargeSmallInvalid, '0'],
+                    ['medium', surchargeMedium, setSurchargeMedium, surchargeMediumInvalid, '250'],
+                    ['large', surchargeLarge, setSurchargeLarge, surchargeLargeInvalid, '600'],
+                  ] as const
+                ).map(([band, value, setter, invalid, placeholder]) => (
+                  <div key={band}>
+                    <label
+                      htmlFor={`surcharge-${band}`}
+                      className="text-xs text-muted-foreground mb-1 block"
+                    >
+                      {tb(`settings.size_surcharge_${band}_label`)}
+                    </label>
+                    {/* The placeholder shows the platform default, so a blank field
+                        reads as "use the default" rather than "free". */}
+                    <input
+                      id={`surcharge-${band}`}
+                      type="number"
+                      value={value}
+                      onChange={(e) => setter(e.target.value)}
+                      placeholder={placeholder}
+                      min={0}
+                      max={FEE_MAX}
+                      aria-invalid={invalid}
+                      className={INPUT_CLASS}
+                    />
+                    {invalid && (
+                      <p className="text-xs text-destructive mt-1">
+                        {tb('settings.pet_taxi_range_error')}
+                      </p>
+                    )}
+                  </div>
+                ))}
+                <p className="text-xs text-muted-foreground">
+                  {tb('settings.size_pricing_default_hint')}
+                </p>
+              </div>
+            )}
           </div>
         )}
       </div>

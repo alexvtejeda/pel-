@@ -68,6 +68,11 @@ async function renderPrefilled(business = businessFixture()) {
 
 const saveButton = () => screen.getByRole('button', { name: 'Guardar cambios' })
 const petTaxiToggle = () => screen.getByRole('checkbox', { name: /Ofrecer pet-taxi/ })
+const sizeToggle = () => screen.getByRole('checkbox', { name: /Cobrar seg[úu]n el tama[ñn]o/ })
+
+/** A business already opted into pet-taxi, so the size section is reachable. */
+const petTaxiFixture = (overrides: Record<string, unknown> = {}) =>
+  businessFixture({ services: ['transport', 'pet_taxi'], taxi_base_fee: 250, ...overrides })
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -172,6 +177,100 @@ describe('SettingsTab — pet-taxi opt-in', () => {
     // untouched fields must be absent rather than explicitly nulled.
     expect('taxi_per_km' in payload).toBe(false)
     expect('taxi_per_minute' in payload).toBe(false)
+  })
+})
+
+describe('SettingsTab — size-band pricing', () => {
+  it('hides the size section entirely until pet-taxi is on', async () => {
+    await renderPrefilled()
+    expect(screen.queryByRole('checkbox', { name: /Cobrar seg[úu]n el tama[ñn]o/ })).toBeNull()
+  })
+
+  it('reveals the three band inputs only when size pricing is on', async () => {
+    await renderPrefilled(petTaxiFixture())
+
+    expect(sizeToggle()).not.toBeChecked()
+    expect(screen.queryByLabelText(/^Recargo.*mediano/i)).not.toBeInTheDocument()
+
+    fireEvent.click(sizeToggle())
+
+    expect(screen.getByLabelText(/^Recargo.*peque/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Recargo.*mediano/i)).toBeInTheDocument()
+    expect(screen.getByLabelText(/^Recargo.*grande/i)).toBeInTheDocument()
+  })
+
+  it('sends only the bands that carry a value', async () => {
+    await renderPrefilled(petTaxiFixture())
+
+    fireEvent.click(sizeToggle())
+    fireEvent.change(screen.getByLabelText(/^Recargo.*mediano/i), { target: { value: '300' } })
+    fireEvent.click(saveButton())
+
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalled())
+    const payload = mockUpdate.mock.calls[0][0]
+    expect(payload.taxi_size_pricing_enabled).toBe(true)
+    expect(payload.taxi_surcharge_medium).toBe(300)
+    // A blank band must be absent, not 0 — the backend reads absent as "use the
+    // platform default" and 0 as "this band is free".
+    expect('taxi_surcharge_small' in payload).toBe(false)
+    expect('taxi_surcharge_large' in payload).toBe(false)
+  })
+
+  it('sends the toggle as false when the business opts back out', async () => {
+    await renderPrefilled(petTaxiFixture({ taxi_size_pricing_enabled: true, taxi_surcharge_large: 600 }))
+
+    expect(sizeToggle()).toBeChecked()
+    fireEvent.click(sizeToggle())
+    fireEvent.click(saveButton())
+
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalled())
+    const payload = mockUpdate.mock.calls[0][0]
+    // Explicitly false, never omitted: the backend COALESCEs an absent field, so
+    // omitting it would silently leave size pricing switched on.
+    expect(payload.taxi_size_pricing_enabled).toBe(false)
+  })
+
+  it('prefills the toggle and the bands from the API response', async () => {
+    await renderPrefilled(
+      petTaxiFixture({
+        taxi_size_pricing_enabled: true,
+        taxi_surcharge_small: 0,
+        taxi_surcharge_large: 600,
+      }),
+    )
+
+    expect(sizeToggle()).toBeChecked()
+    // 0 is a real value ("this band is free") and must survive the round-trip
+    // rather than rendering as an empty "use the default" field.
+    expect(screen.getByLabelText(/^Recargo.*peque/i)).toHaveValue(0)
+    expect(screen.getByLabelText(/^Recargo.*mediano/i)).toHaveValue(null)
+    expect(screen.getByLabelText(/^Recargo.*grande/i)).toHaveValue(600)
+  })
+
+  it('a surcharge above the backend 50000 ceiling blocks the save', async () => {
+    await renderPrefilled(petTaxiFixture())
+
+    fireEvent.click(sizeToggle())
+    fireEvent.change(screen.getByLabelText(/^Recargo.*grande/i), { target: { value: '50001' } })
+
+    expect(saveButton()).toBeDisabled()
+    fireEvent.click(saveButton())
+    expect(mockUpdate).not.toHaveBeenCalled()
+  })
+
+  it('does not send any band while size pricing is off', async () => {
+    await renderPrefilled(petTaxiFixture())
+
+    fireEvent.click(sizeToggle())
+    fireEvent.change(screen.getByLabelText(/^Recargo.*mediano/i), { target: { value: '300' } })
+    // Turning it back off must not smuggle the typed amount through.
+    fireEvent.click(sizeToggle())
+    fireEvent.click(saveButton())
+
+    await waitFor(() => expect(mockUpdate).toHaveBeenCalled())
+    const payload = mockUpdate.mock.calls[0][0]
+    expect(payload.taxi_size_pricing_enabled).toBe(false)
+    expect('taxi_surcharge_medium' in payload).toBe(false)
   })
 })
 
