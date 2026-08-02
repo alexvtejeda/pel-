@@ -23,6 +23,7 @@ interface PetOption {
   name: string
   size?: string | null
   weight_lb?: number | null
+  species?: string | null
 }
 
 interface TransportCreationFormProps {
@@ -59,13 +60,13 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
     async function loadPets() {
       if (user?.role === 'member') {
         const { data } = await listUserPets()
-        if (data) setPets(data.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb })))
+        if (data) setPets(data.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb, species: p.species })))
       } else if (user?.role === 'rescue_center') {
         const { data: rc } = await getMyRescueCenter()
         if (rc) {
           try {
             const rcPets = await listPets(rc.id)
-            setPets(rcPets.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb })))
+            setPets(rcPets.map(p => ({ id: p.id, name: p.name, size: p.size, weight_lb: p.weight_lb, species: p.species })))
           } catch {
             // listPets throws on failure (known exception to {data, error} pattern)
           }
@@ -184,6 +185,12 @@ export function TransportCreationForm({ initialPetId, conversationId, onTripCrea
           lng={pickupCoords.lng}
           from={pickupCoords}
           to={dropoffCoords}
+          /* The typed addresses, not the geocoded coordinates: `POST /quotes`
+             requires both and prints them verbatim on the document. */
+          pickupAddress={pickupAddress}
+          dropoffAddress={dropoffAddress}
+          petName={selectedPet?.name}
+          petSpecies={selectedPet?.species ?? undefined}
           size={petSize}
           weightLb={petWeightLb}
           onSelect={handleBusinessSelected}

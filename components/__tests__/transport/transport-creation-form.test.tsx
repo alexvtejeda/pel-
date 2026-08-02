@@ -28,11 +28,13 @@ vi.mock('@/lib/api/transport', () => ({
   requestTrip: vi.fn(),
   quoteTrip: vi.fn(),
   listTransportBusinesses: vi.fn(),
+  createQuote: vi.fn(),
 }))
-import { requestTrip, quoteTrip, listTransportBusinesses } from '@/lib/api/transport'
+import { requestTrip, quoteTrip, listTransportBusinesses, createQuote } from '@/lib/api/transport'
 const mockRequest = vi.mocked(requestTrip)
 const mockQuote = vi.mocked(quoteTrip)
 const mockList = vi.mocked(listTransportBusinesses)
+const mockCreateQuote = vi.mocked(createQuote)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -46,6 +48,10 @@ beforeEach(() => {
   ], next_cursor: '' }, error: null })
   mockQuote.mockResolvedValue({ data: { business_id: 'b1', distance_km: 12, duration_minutes: 22, estimated_price: 450, routing_degraded: false, routing_source: 'ors', currency: 'DOP', priced_from: 'size' }, error: null })
   mockRequest.mockResolvedValue({ data: { id: 't1', status: 'requested' } as never, error: null })
+  mockCreateQuote.mockResolvedValue({
+    data: { id: 'q1', number: 'COT-2026-0042', token: 'a'.repeat(32), url: `http://localhost:2701/api/v1/documents/${'a'.repeat(32)}` },
+    error: null,
+  })
 })
 
 describe('TransportCreationForm reflow', () => {
@@ -101,6 +107,35 @@ describe('TransportCreationForm size and weight threading', () => {
     expect(mockList).toHaveBeenCalledWith(
       expect.objectContaining({ size: 'large', weight_lb: 80 }),
     )
+  })
+
+  /*
+    The addresses are REQUIRED by POST /quotes and are not derivable from the
+    coordinates, so they have to survive form state → picker props → request
+    body. The picker here is the real component; mocking it would let the whole
+    feature 400 on every click with this suite still green.
+  */
+  it('threads the typed addresses through the picker into createQuote', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+    renderWithProviders(<TransportCreationForm onTripCreated={vi.fn()} />)
+    await screen.findByRole('option', { name: 'Firulais' })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de recogida'), { target: { value: 'Calle A' } })
+    fireEvent.change(screen.getByPlaceholderText('Dirección de entrega'), { target: { value: 'Calle B' } })
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'p1' } })
+    fireEvent.click(screen.getByText('Elegir transportista'))
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Solicitar cotización' }))
+
+    await waitFor(() => expect(mockCreateQuote).toHaveBeenCalled())
+    expect(mockCreateQuote).toHaveBeenCalledWith(expect.objectContaining({
+      business_id: 'b1',
+      pickup_address: 'Calle A',
+      dropoff_address: 'Calle B',
+      pet_name: 'Firulais',
+      size: 'large',
+      weight_lb: 80,
+    }))
+    openSpy.mockRestore()
   })
 
   it('sends the selected pet size and weight with the quote', async () => {
