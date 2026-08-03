@@ -51,7 +51,12 @@
     "request_quote": "Request a quote",
     "quote_loading": "Generating…",
     "quote_error": "Could not generate the quote",
-    "quote_opened_hint": "Your quote opened in a new tab. You can save it as a PDF or email it from there."
+    "quote_opened_hint": "Your quote opened in a new tab. You can save it as a PDF or email it from there.",
+    "rate_from": "From RD$ {{price}}",
+    "rate_minimum": "Minimum RD$ {{price}}",
+    "rate_per_km": "RD$ {{price}}/km",
+    "rate_per_minute": "RD$ {{price}}/min",
+    "rates_unavailable": "Rates unavailable"
   },
   "directory": {
     "title": "Transporters",

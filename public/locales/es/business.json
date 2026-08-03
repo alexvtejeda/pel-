@@ -84,7 +84,10 @@
     "terms_label": "Tus términos y condiciones",
     "terms_placeholder": "Ej. Se requiere transportín propio. Cancelaciones con 24 horas de anticipación.",
     "terms_counter": "{{chars}} / 5000 caracteres",
-    "terms_too_long": "Máximo 5000 caracteres."
+    "terms_too_long": "Máximo 5000 caracteres.",
+    "size_surcharge_giant_label": "Recargo mascota gigante (60+ lb)",
+    "pet_taxi_minimum_fare_label": "Tarifa mínima (RD$)",
+    "pet_taxi_minimum_fare_hint": "Precio mínimo por viaje. No se suma a la tarifa base: si el cálculo por distancia queda por debajo, se cobra este monto. Déjalo vacío si no tienes mínimo."
   },
   "admin": {
     "type_rescue_center": "Centro de Rescate",

@@ -53,7 +53,7 @@ export interface Pet {
   condition_notes: string | null
   vaccinated: boolean
   castrated: boolean
-  size: 'small' | 'medium' | 'large'
+  size: 'small' | 'medium' | 'large' | 'giant'
   /**
    * Optional weight in pounds, 0–500. A refinement only: transport pricing resolves
    * its band from `size` (which is required) and uses the weight only when present.
@@ -71,13 +71,13 @@ export async function listPets(rescueCenterId: string): Promise<Pet[]> {
   return res.json()
 }
 
-export async function createPet(data: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; vaccinated: boolean; castrated: boolean; size: 'small' | 'medium' | 'large'; weight_lb?: number; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
+export async function createPet(data: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; vaccinated: boolean; castrated: boolean; size: 'small' | 'medium' | 'large' | 'giant'; weight_lb?: number; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
   const res = await apiClient('/api/v1/pets', { method: 'POST', body: JSON.stringify(data) })
   if (!res.ok) throw new Error('Failed to create pet')
   return res.json()
 }
 
-export async function updatePet(id: string, data: { name?: string; description?: string; age?: number; gender?: 'male' | 'female'; species?: 'dog' | 'cat'; vaccinated?: boolean; castrated?: boolean; size?: 'small' | 'medium' | 'large'; weight_lb?: number; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
+export async function updatePet(id: string, data: { name?: string; description?: string; age?: number; gender?: 'male' | 'female'; species?: 'dog' | 'cat'; vaccinated?: boolean; castrated?: boolean; size?: 'small' | 'medium' | 'large' | 'giant'; weight_lb?: number; conditions?: string[]; condition_notes?: string }): Promise<Pet> {
   const res = await apiClient(`/api/v1/pets/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
   if (!res.ok) throw new Error('Failed to update pet')
   return res.json()

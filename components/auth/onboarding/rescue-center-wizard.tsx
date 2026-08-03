@@ -107,7 +107,7 @@ export function RescueCenterWizard() {
   const [petAgeUnit, setPetAgeUnit] = useState<'months' | 'years'>('years')
   const [petVaccinated, setPetVaccinated] = useState(false)
   const [petCastrated, setPetCastrated] = useState(false)
-  const [petSize, setPetSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [petSize, setPetSize] = useState<'small' | 'medium' | 'large' | 'giant'>('medium')
   const [petPhotos, setPetPhotos] = useState<PendingPhoto[]>([])
   const [dragging, setDragging] = useState(false)
   const [petSubmitting, setPetSubmitting] = useState(false)
@@ -302,11 +302,12 @@ export function RescueCenterWizard() {
                 </div>
                 <div className="flex flex-col gap-1.5 mt-3">
                   <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">{t('rc_wizard.size_label')}</label>
-                  <select value={petSize} onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large')}
+                  <select value={petSize} onChange={e => setPetSize(e.target.value as 'small' | 'medium' | 'large' | 'giant')}
                     className="w-full rounded-xl border border-input bg-background px-4 py-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring">
                     <option value="small">{t('rc_wizard.size_small')}</option>
                     <option value="medium">{t('rc_wizard.size_medium')}</option>
                     <option value="large">{t('rc_wizard.size_large')}</option>
+                    <option value="giant">{t('rc_wizard.size_giant')}</option>
                   </select>
                 </div>
               </div>
@@ -343,7 +344,7 @@ export function RescueCenterWizard() {
                       <div className="flex items-center gap-2 mt-1">
                         <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                         <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? t('rc_wizard.size_small') : petSize === 'medium' ? t('rc_wizard.size_medium') : t('rc_wizard.size_large')}</span>
+                        <span className="text-xs text-muted-foreground">{t(`rc_wizard.size_${petSize}`)}</span>
                       </div>
                     </div>
                   </div>
@@ -368,7 +369,7 @@ export function RescueCenterWizard() {
                       <div className="flex items-center gap-2 mt-1">
                         <FontAwesomeIcon icon={faSyringe} className={`text-xs ${petVaccinated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
                         <FontAwesomeIcon icon={faScissors} className={`text-xs ${petCastrated ? 'text-green-500' : 'text-muted-foreground/30'}`} />
-                        <span className="text-xs text-muted-foreground">{petSize === 'small' ? t('rc_wizard.size_small') : petSize === 'medium' ? t('rc_wizard.size_medium') : t('rc_wizard.size_large')}</span>
+                        <span className="text-xs text-muted-foreground">{t(`rc_wizard.size_${petSize}`)}</span>
                       </div>
                     </div>
                   </div>

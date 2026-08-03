@@ -84,7 +84,10 @@
     "terms_label": "Your terms and conditions",
     "terms_placeholder": "E.g. Own carrier required. Cancellations 24 hours in advance.",
     "terms_counter": "{{chars}} / 5000 characters",
-    "terms_too_long": "5000 characters maximum."
+    "terms_too_long": "5000 characters maximum.",
+    "size_surcharge_giant_label": "Giant pet surcharge (60+ lb)",
+    "pet_taxi_minimum_fare_label": "Minimum fare (RD$)",
+    "pet_taxi_minimum_fare_hint": "Minimum price per trip. It is not added to the base fee: if the distance-based total falls below it, this amount is charged instead. Leave blank if you have no minimum."
   },
   "admin": {
     "type_rescue_center": "Rescue Center",

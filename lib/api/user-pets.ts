@@ -10,7 +10,7 @@ export interface UserPet {
   species: 'dog' | 'cat'
   gender: 'male' | 'female'
   description?: string
-  size?: 'small' | 'medium' | 'large'
+  size?: 'small' | 'medium' | 'large' | 'giant'
   /**
    * Optional weight in pounds, 0–500. A refinement only: transport pricing resolves
    * its band from `size` and uses the weight only when present. Serialized

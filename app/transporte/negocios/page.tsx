@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faLocationDot, faLocationCrosshairs, faPhone, faClock } from '@fortawesome/free-solid-svg-icons'
 import { listTransportBusinesses, MarketplaceBusiness } from '@/lib/api/transport'
+import { BusinessRateLine } from '@/components/transport/business-rate-line'
 
 type GeoState = 'prompting' | 'granted' | 'denied'
 
@@ -108,6 +109,12 @@ export default function NegociosPage() {
                   )}
                   <div className="p-4 space-y-2">
                     <h2 className="font-semibold text-sm">{b.name}</h2>
+                    {/*
+                      This page sends no route, so no row ever carries a quote —
+                      the rate card is the only price here, and before it existed
+                      the page showed no price at all.
+                    */}
+                    <BusinessRateLine rates={b.rates} />
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <FontAwesomeIcon icon={faLocationDot} className="text-xs" />
                       {t('marketplace.distance_km', { km: b.distance_from_member_km.toFixed(1) })}

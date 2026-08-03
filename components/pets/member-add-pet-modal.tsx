@@ -63,7 +63,7 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
   const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
   const [vaccinated, setVaccinated] = useState(false)
   const [castrated, setCastrated] = useState(false)
-  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [size, setSize] = useState<'small' | 'medium' | 'large' | 'giant'>('medium')
   // Optional, and held as a string so a blank field stays distinguishable from a
   // real 0 — a pet with no recorded weight is priced from its size band instead.
   const [weightLb, setWeightLb] = useState<string>('')
@@ -422,12 +422,13 @@ export function MemberAddPetModal({ open, onClose, pet, onSaved }: MemberAddPetM
               <select
                 id="pet-size"
                 value={size}
-                onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large' | 'giant')}
                 className="w-full rounded-xl border border-input px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
               >
                 <option value="small">{t('size.small')}</option>
                 <option value="medium">{t('size.medium')}</option>
                 <option value="large">{t('size.large')}</option>
+                <option value="giant">{t('size.giant')}</option>
               </select>
             </div>
 

@@ -74,6 +74,29 @@ export interface TripQuote {
   priced_from: PricedFrom
 }
 
+/**
+ * A business's advertised rate card, independent of any route.
+ *
+ * Every number is the RESOLVED effective rate: a business that leaves a column
+ * NULL is charged the platform default, and the backend reports that default
+ * rather than null. Do not reintroduce a nullable-rate path here — rendering
+ * "—" for a rate the business really does charge is the bug this shape exists
+ * to prevent.
+ */
+export interface PricingSummary {
+  base_fee: number
+  per_km: number
+  per_minute: number
+  /**
+   * A price FLOOR, not a base fee: the total becomes `max(minimum_fare, …)`
+   * rather than having this added to it. Optional because publishing no floor
+   * is a real configuration and must not render as "RD$0".
+   */
+  minimum_fare?: number
+  size_pricing_enabled: boolean
+  currency: string
+}
+
 export interface MarketplaceBusiness {
   business_id: string
   name: string
@@ -81,6 +104,8 @@ export interface MarketplaceBusiness {
   cover_photo_url?: string
   operating_hours?: string
   distance_from_member_km: number
+  /** Always present from `GET /transport/businesses` — unlike `quote`, it needs no route. */
+  rates?: PricingSummary
   quote?: MarketplaceQuote
 }
 

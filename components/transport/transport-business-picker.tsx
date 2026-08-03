@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faLocationDot, faFileInvoiceDollar } from '@fortawesome/free-solid-svg-icons'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { listTransportBusinesses, createQuote, MarketplaceBusiness, Point } from '@/lib/api/transport'
+import { BusinessRateLine } from './business-rate-line'
 
 interface TransportBusinessPickerProps {
   open: boolean
@@ -151,6 +152,13 @@ export function TransportBusinessPicker({ open, onOpenChange, onSelect, lat, lng
                   </span>
                   {b.quote && <span>{t('marketplace.duration_min', { min: b.quote.duration_minutes })}</span>}
                 </div>
+
+                {/*
+                  Subdued when a quoted total is already shown above, since the
+                  total is the number the member acts on; primary when there is
+                  no quote, where these rates are the only price on the row.
+                */}
+                <BusinessRateLine rates={b.rates} subdued={!!b.quote} className="mt-1" />
 
                 {/* Secondary action: subordinate to selecting the row, which stays
                     the primary action of the card. */}

@@ -157,7 +157,7 @@ function EditPetModal({
     species: 'dog' | 'cat'
     vaccinated: boolean
     castrated: boolean
-    size: 'small' | 'medium' | 'large'
+    size: 'small' | 'medium' | 'large' | 'giant'
     photos: EditPhoto[]
   }) => void
   onClose: () => void
@@ -171,7 +171,7 @@ function EditPetModal({
   const [species, setSpecies] = useState<'dog' | 'cat'>('dog')
   const [vaccinated, setVaccinated] = useState(false)
   const [castrated, setCastrated] = useState(false)
-  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [size, setSize] = useState<'small' | 'medium' | 'large' | 'giant'>('medium')
   const [photos, setPhotos] = useState<EditPhoto[]>([])
   const addRef = useRef<HTMLInputElement>(null)
 
@@ -330,12 +330,13 @@ function EditPetModal({
                 <label className="text-sm font-medium">Tamaño</label>
                 <select
                   value={size}
-                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large' | 'giant')}
                   className="w-full rounded-xl border border-input px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
                 >
                   <option value="small">Pequeño</option>
                   <option value="medium">Mediano</option>
                   <option value="large">Grande</option>
+                  <option value="giant">Gigante</option>
                 </select>
               </div>
 
@@ -646,7 +647,7 @@ export const PetsTab = forwardRef<PetsTabHandle, PetsTabProps>(function PetsTab(
 
   const handleEditSave = async (
     id: string,
-    updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; vaccinated: boolean; castrated: boolean; size: 'small' | 'medium' | 'large'; photos: EditPhoto[] }
+    updates: { name: string; description: string; age: number; gender: 'male' | 'female'; species: 'dog' | 'cat'; vaccinated: boolean; castrated: boolean; size: 'small' | 'medium' | 'large' | 'giant'; photos: EditPhoto[] }
   ) => {
     try {
       // 1. Update metadata

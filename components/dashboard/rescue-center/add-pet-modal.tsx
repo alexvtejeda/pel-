@@ -31,7 +31,7 @@ export interface AddPetFormData {
   condition_notes: string
   vaccinated: boolean
   castrated: boolean
-  size: 'small' | 'medium' | 'large'
+  size: 'small' | 'medium' | 'large' | 'giant'
   /** Optional, in pounds. Absent when the centre didn't record one — pricing
    *  falls back to `size`, which is always present. */
   weight_lb?: number
@@ -153,7 +153,7 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
   const [ageUnit, setAgeUnit] = useState<'months' | 'years'>('months')
   const [vaccinated, setVaccinated] = useState(false)
   const [castrated, setCastrated] = useState(false)
-  const [size, setSize] = useState<'small' | 'medium' | 'large'>('medium')
+  const [size, setSize] = useState<'small' | 'medium' | 'large' | 'giant'>('medium')
   // Optional, and held as a string so a blank field stays distinguishable from a
   // real 0 — a pet with no recorded weight is priced from its size band instead.
   const [weightLb, setWeightLb] = useState<string>('')
@@ -402,12 +402,13 @@ export function AddPetModal({ open, onConfirm, onClose }: AddPetModalProps) {
                 <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tamaño</label>
                 <select
                   value={size}
-                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large')}
+                  onChange={(e) => setSize(e.target.value as 'small' | 'medium' | 'large' | 'giant')}
                   className="w-full rounded-xl border border-input px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-ring bg-background"
                 >
                   <option value="small">{t('size.small')}</option>
                   <option value="medium">{t('size.medium')}</option>
                   <option value="large">{t('size.large')}</option>
+                  <option value="giant">{t('size.giant')}</option>
                 </select>
               </div>
 

@@ -32,7 +32,8 @@
   "size": {
     "small": "Small",
     "medium": "Medium",
-    "large": "Large"
+    "large": "Large",
+    "giant": "Giant"
   },
   "species": {
     "dog": "Dog",

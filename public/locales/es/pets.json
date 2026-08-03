@@ -32,7 +32,8 @@
   "size": {
     "small": "Pequeño",
     "medium": "Mediano",
-    "large": "Grande"
+    "large": "Grande",
+    "giant": "Gigante"
   },
   "species": {
     "dog": "Perro",

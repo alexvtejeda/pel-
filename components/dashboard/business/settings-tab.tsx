@@ -94,6 +94,10 @@ export function SettingsTab() {
   const [surchargeSmall, setSurchargeSmall] = useState<string>('')
   const [surchargeMedium, setSurchargeMedium] = useState<string>('')
   const [surchargeLarge, setSurchargeLarge] = useState<string>('')
+  const [surchargeGiant, setSurchargeGiant] = useState<string>('')
+  // A price floor, not another fee to add. Kept outside the size-pricing block
+  // because it applies whether or not the business charges by size.
+  const [minimumFare, setMinimumFare] = useState<string>('')
   const [terms, setTerms] = useState('')
 
   // Save state
@@ -138,6 +142,8 @@ export function SettingsTab() {
         setSurchargeSmall(data.taxi_surcharge_small != null ? String(data.taxi_surcharge_small) : '')
         setSurchargeMedium(data.taxi_surcharge_medium != null ? String(data.taxi_surcharge_medium) : '')
         setSurchargeLarge(data.taxi_surcharge_large != null ? String(data.taxi_surcharge_large) : '')
+        setSurchargeGiant(data.taxi_surcharge_giant != null ? String(data.taxi_surcharge_giant) : '')
+        setMinimumFare(data.taxi_minimum_fare != null ? String(data.taxi_minimum_fare) : '')
         setTerms(data.terms_and_conditions ?? '')
         if (data.operating_hours) {
           const hours: Record<string, DayHours> = {}
@@ -214,8 +220,12 @@ export function SettingsTab() {
     petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeMedium)
   const surchargeLargeInvalid =
     petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeLarge)
+  const surchargeGiantInvalid =
+    petTaxiEnabled && sizePricingEnabled && feeOutOfRange(surchargeGiant)
   const surchargeInvalid =
-    surchargeSmallInvalid || surchargeMediumInvalid || surchargeLargeInvalid
+    surchargeSmallInvalid || surchargeMediumInvalid || surchargeLargeInvalid || surchargeGiantInvalid
+  // Validated whenever pet-taxi is on: the floor is independent of size pricing.
+  const minimumFareInvalid = petTaxiEnabled && feeOutOfRange(minimumFare)
 
   const saveBlocked =
     baseFeeInvalid ||
@@ -223,6 +233,7 @@ export function SettingsTab() {
     perMinuteInvalid ||
     baseFeeMissing ||
     surchargeInvalid ||
+    minimumFareInvalid ||
     termsTooLong
 
   const handleSave = async () => {
@@ -253,6 +264,7 @@ export function SettingsTab() {
       if (taxiBaseFee.trim() !== '') pricingPayload.taxi_base_fee = Number(taxiBaseFee)
       if (taxiPerKm.trim() !== '') pricingPayload.taxi_per_km = Number(taxiPerKm)
       if (taxiPerMinute.trim() !== '') pricingPayload.taxi_per_minute = Number(taxiPerMinute)
+      if (minimumFare.trim() !== '') pricingPayload.taxi_minimum_fare = Number(minimumFare)
 
       // The toggle is always sent, unlike the amounts. It is COALESCEd too, so
       // omitting it when the business opts back out would silently leave size
@@ -262,6 +274,7 @@ export function SettingsTab() {
         if (surchargeSmall.trim() !== '') pricingPayload.taxi_surcharge_small = Number(surchargeSmall)
         if (surchargeMedium.trim() !== '') pricingPayload.taxi_surcharge_medium = Number(surchargeMedium)
         if (surchargeLarge.trim() !== '') pricingPayload.taxi_surcharge_large = Number(surchargeLarge)
+        if (surchargeGiant.trim() !== '') pricingPayload.taxi_surcharge_giant = Number(surchargeGiant)
       }
     }
 
@@ -659,6 +672,32 @@ export function SettingsTab() {
               )}
             </div>
 
+            {/* Minimum fare. Sits with the rates rather than under the size-pricing
+                toggle because it is a floor on the whole quote, independent of
+                whether the business charges by size. */}
+            <div>
+              <label htmlFor="taxi-minimum-fare" className="text-xs text-muted-foreground mb-1 block">
+                {tb('settings.pet_taxi_minimum_fare_label')}
+              </label>
+              <input
+                id="taxi-minimum-fare"
+                type="number"
+                value={minimumFare}
+                onChange={(e) => setMinimumFare(e.target.value)}
+                placeholder="0"
+                min={0}
+                max={FEE_MAX}
+                aria-invalid={minimumFareInvalid}
+                className={INPUT_CLASS}
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                {tb('settings.pet_taxi_minimum_fare_hint')}
+              </p>
+              {minimumFareInvalid && (
+                <p className="text-xs text-destructive mt-1">{tb('settings.pet_taxi_range_error')}</p>
+              )}
+            </div>
+
             <p className="text-xs text-muted-foreground">{tb('settings.pet_taxi_fallback_hint')}</p>
 
             {/* Size-band pricing opt-in. Separate from the pet-taxi toggle because
@@ -685,6 +724,7 @@ export function SettingsTab() {
                     ['small', surchargeSmall, setSurchargeSmall, surchargeSmallInvalid, '0'],
                     ['medium', surchargeMedium, setSurchargeMedium, surchargeMediumInvalid, '250'],
                     ['large', surchargeLarge, setSurchargeLarge, surchargeLargeInvalid, '600'],
+                    ['giant', surchargeGiant, setSurchargeGiant, surchargeGiantInvalid, '900'],
                   ] as const
                 ).map(([band, value, setter, invalid, placeholder]) => (
                   <div key={band}>

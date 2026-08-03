@@ -81,14 +81,24 @@ export interface Business {
   /**
    * Size-band pricing. The toggle is serialized without `omitempty` and is always
    * present in a response, because `false` is meaningful — it is the opted-out
-   * default, not a missing value. The three surcharges are `omitempty`, so an
+   * default, not a missing value. The four surcharges are `omitempty`, so an
    * absent one means "use the platform default", NOT "free". Same distinction the
    * taxi_* fees above already carry.
+   *
+   * Bands follow the operators' published ones: <20, 20-39.99, 40-59.99, 60+ lb.
    */
   taxi_size_pricing_enabled?: boolean
   taxi_surcharge_small?: number | null
   taxi_surcharge_medium?: number | null
   taxi_surcharge_large?: number | null
+  taxi_surcharge_giant?: number | null
+  /**
+   * A price FLOOR, not another fee. `taxi_base_fee` is added to the distance and
+   * time charges; this one replaces the total when the total falls below it.
+   * Businesses use one model or the other — a `taxi_base_fee` of 0 alongside a
+   * minimum is how a purely distance-priced operator is configured.
+   */
+  taxi_minimum_fare?: number | null
   terms_and_conditions?: string | null
   status: string
   rejection_reason?: string
@@ -147,6 +157,9 @@ export interface UpdateBusinessInput extends Partial<CreateBusinessInput> {
   taxi_surcharge_small?: number
   taxi_surcharge_medium?: number
   taxi_surcharge_large?: number
+  taxi_surcharge_giant?: number
+  /** Price floor — see Business.taxi_minimum_fare. Same COALESCE rules. */
+  taxi_minimum_fare?: number
   terms_and_conditions?: string
 }
 
