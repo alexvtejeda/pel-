@@ -1,7 +1,9 @@
 {
   "status": {
-    "pending": "Pending",
-    "active": "In transit",
+    "requested": "Requested",
+    "accepted": "Accepted",
+    "picking_up": "Picking up",
+    "in_transit": "In transit",
     "completed": "Completed",
     "cancelled": "Cancelled"
   },
