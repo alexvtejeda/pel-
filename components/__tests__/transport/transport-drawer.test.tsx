@@ -79,6 +79,104 @@ describe('TransportDrawer — viewport-spanning layout (regression)', () => {
   })
 })
 
+describe('TransportDrawer — expanded content is height-bounded (regression)', () => {
+  // The bug this guards: at 390x667 with 8 stops, the 0.65 snap showed 430px of
+  // sheet but the content kept growing past it — "Cancelar viaje" measured at
+  // y=741, and nothing in the subtree had `scrollHeight > clientHeight`, so
+  // there was no way to reach it. The content div already carried
+  // `overflow-y-auto`; what it lacked was any height bound to overflow.
+  //
+  // HONESTY NOTE: jsdom does no layout — every getBoundingClientRect() here is
+  // zeroes and no element is ever really scrollable — so this test cannot prove
+  // the button lands on screen. It proves the *class contract* that the
+  // geometry depends on: a column bounded to the active snap, a scroll region
+  // that is allowed to shrink inside it, and a header that is not. Pixels are a
+  // browser's job.
+  function column(): HTMLElement {
+    return screen.getByTestId('transport-drawer-column')
+  }
+  function scrollRegion(): HTMLElement {
+    return screen.getByTestId('transport-drawer-scroll')
+  }
+
+  it('bounds the drawer column to the active snap point', () => {
+    renderWithProviders(<TransportDrawer trip={trip()} driverLocation={null} onCancel={() => {}} />)
+
+    const classes = [...column().classList]
+    const height = classes.find((c) => c.startsWith('h-['))
+
+    // Unbounded is the bug: `h-full`/no height lets the content run off-screen.
+    expect(height, `no arbitrary height on the drawer column: ${classes.join(' ')}`).toBeDefined()
+    // Mounts at the 0.15 peek, so the bound must track that snap — not a
+    // hardcoded constant that only happens to be right when expanded.
+    expect(height).toContain('15%')
+    // It is the flex context the scroll region shrinks inside.
+    expect(classes).toContain('flex')
+    expect(classes).toContain('flex-col')
+  })
+
+  it('makes the content region scrollable AND shrinkable, not just scrollable', () => {
+    renderWithProviders(
+      <TransportDrawer
+        trip={trip({ stops: Array.from({ length: 8 }, (_, i) => stop(String(i + 1), `Calle ${i + 1}`)) })}
+        driverLocation={null}
+        onCancel={() => {}}
+      />
+    )
+
+    const scroll = scrollRegion()
+    expect(column().contains(scroll)).toBe(true)
+    expect([...scroll.classList]).toContain('overflow-y-auto')
+
+    // The half of the fix that is easy to drop: a flex child defaults to
+    // `min-height: auto` and refuses to shrink below its content, so
+    // `overflow-y-auto` never engages and the box grows past the fold again —
+    // with every class still "present". This assertion is the whole point of
+    // the test; drop `min-h-0` and it fails.
+    expect([...scroll.classList]).toContain('min-h-0')
+    expect([...scroll.classList]).toContain('shrink')
+    expect([...scroll.classList]).not.toContain('shrink-0')
+
+    // Same trap one level up: every flex-1 link in the chain between the scroll
+    // region and the bounded column also has to be allowed to shrink.
+    for (let el: HTMLElement | null = scroll; el && el !== column(); el = el.parentElement) {
+      if (el.classList.contains('flex-1')) {
+        expect([...el.classList], `flex-1 without min-h-0: ${el.className}`).toContain('min-h-0')
+      }
+    }
+  })
+
+  it('keeps the header out of the shrinking, and the cancel button out of the scroll', () => {
+    renderWithProviders(<TransportDrawer trip={trip()} driverLocation={null} onCancel={() => {}} />)
+
+    // Header is the first child of the bounded column and must not be squeezed
+    // to make room for a long stop list.
+    const header = column().firstElementChild as HTMLElement
+    expect(header).toHaveTextContent('Tu mascota está en camino')
+    expect([...header.classList]).toContain('shrink-0')
+
+    // Pinned, not scrolled-to: the cancel action lives outside the scroll
+    // region entirely, so no stop count can bury it. (getByText, not getByRole
+    // — at the peek snap the region is display:none and therefore hidden from
+    // the accessibility tree.)
+    const cancel = screen.getByText('Cancelar viaje')
+    expect(scrollRegion().contains(cancel)).toBe(false)
+    expect(column().contains(cancel)).toBe(true)
+  })
+
+  it('still bounds the column with no stops and with the button absent', () => {
+    // Terminal trips render no cancel button at all; the column must still be
+    // bounded rather than falling back to unbounded growth.
+    renderWithProviders(
+      <TransportDrawer trip={trip({ status: 'completed', stops: [] })} driverLocation={null} onCancel={() => {}} />
+    )
+
+    expect([...column().classList].find((c) => c.startsWith('h-['))).toBeDefined()
+    expect(screen.queryByText('Cancelar viaje')).toBeNull()
+    expect([...scrollRegion().classList]).toEqual(expect.arrayContaining(['shrink', 'min-h-0', 'overflow-y-auto']))
+  })
+})
+
 describe('TransportDrawer — status labels', () => {
   const EXPECTED: Record<TripStatus, string> = {
     requested: 'Solicitado',
