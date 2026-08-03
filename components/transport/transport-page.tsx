@@ -40,7 +40,7 @@ export function TransportPage({ initialPetId, conversationId, tripId }: Transpor
       })
       return
     }
-    listTrips().then(({ data }) => {
+    listTrips().then(async ({ data }) => {
       if (!data || data.length === 0) {
         setPageState('none')
         return
@@ -49,8 +49,14 @@ export function TransportPage({ initialPetId, conversationId, tripId }: Transpor
         .filter(t => t.status !== 'completed' && t.status !== 'cancelled')
         .sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime())[0]
       if (active) {
-        setTrip(active)
-        setPageState(active.status as PageState)
+        // The list endpoint deliberately omits `stops` to keep its payload small,
+        // so the summary row alone renders an empty stepper and "Parada 1 de 0".
+        // Re-fetch the one active trip by id for the full record; keep the summary
+        // as a fallback so a failed hydration still shows the trip.
+        const { data: hydrated } = await getTrip(active.id)
+        const full = hydrated ?? active
+        setTrip(full)
+        setPageState(full.status as PageState)
       } else {
         setPageState('none')
       }
@@ -92,7 +98,9 @@ export function TransportPage({ initialPetId, conversationId, tripId }: Transpor
           if (!prev) return null
           return {
             ...prev,
-            stops: prev.stops.map(s =>
+            // `stops` is typed non-optional but is absent from the list payload,
+            // so a trip left un-hydrated by a failed getTrip would crash here.
+            stops: (prev.stops ?? []).map(s =>
               s.id === data.stop_id ? { ...s, completed_at: data.completed_at } : s
             ),
           }
