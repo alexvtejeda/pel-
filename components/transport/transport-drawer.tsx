@@ -69,7 +69,24 @@ export function TransportDrawer({ trip, driverLocation, onCancel }: TransportDra
       setActiveSnapPoint={setSnap}
       shouldScaleBackground={false}
     >
-      <DrawerContent className="bg-sidebar/95 backdrop-blur-xl border-border rounded-t-2xl">
+      {/*
+        `top-0 mt-0 h-full` is load-bearing, not cosmetic — do not drop it.
+
+        Vaul turns a fractional snap point into an offset of
+        `innerHeight - innerHeight * snapPoint` and applies it as translateY.
+        That formula only lands where you want if the sheet spans the viewport
+        from `top: 0`. The shared `DrawerContent` primitive is `bottom-0 mt-24
+        h-auto`, i.e. already bottom-anchored, so the translate stacks on top of
+        that anchoring and pushes the sheet clean off the bottom of the screen
+        (at a 900px viewport: natural top 816 + 765 translate ≈ 1581).
+
+        These three classes override the primitive's `bottom`-anchored box via
+        `cn()`/tailwind-merge (`h-auto` -> `h-full`, `mt-24` -> `mt-0`) so the
+        element spans the full viewport and the snap offsets mean what they say.
+        This is the only drawer in the app that passes `snapPoints`, which is
+        why the fix lives here and not in `components/ui/drawer.tsx`.
+      */}
+      <DrawerContent className="bg-sidebar/95 backdrop-blur-xl border-border rounded-t-2xl top-0 mt-0 h-full">
         <DrawerHeader className="px-4 pt-2 pb-3">
           <div className="flex items-center justify-between">
             <div>
