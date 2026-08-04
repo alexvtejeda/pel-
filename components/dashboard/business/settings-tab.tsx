@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import {
@@ -59,7 +59,7 @@ function feeOutOfRange(value: string): boolean {
 
 export function SettingsTab() {
   const { user, logout } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
   // The MFA copy below lives in `auth`; the business copy lives in `business`.
   const { t: tb } = useTranslation('business')

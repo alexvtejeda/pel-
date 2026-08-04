@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -24,7 +24,7 @@ type Props = {
 }
 
 export function OnboardingNav({ items }: Props) {
-    const router = useRouter()
+    const router = useLocaleRouter()
     function handleClick(item: BreadcrumbItemType) {
         if (item.changeRole) {
         sessionStorage.setItem("pelu_changing_role", "1")

@@ -1,7 +1,8 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faComments } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'sonner'
@@ -13,7 +14,7 @@ import { Conversation } from '@/lib/api/chat'
 export function ChatPage() {
   const { t } = useTranslation(['pets', 'transport'])
   const searchParams = useSearchParams()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [active, setActive] = useState<Conversation | null>(null)
   const welcomeShown = useRef(false)
 

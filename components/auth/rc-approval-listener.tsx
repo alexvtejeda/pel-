@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -11,7 +11,7 @@ export function RCApprovalListener() {
   const { user } = useAuth()
   const { subscribe } = useWebSocket()
   const { t } = useTranslation('common')
-  const router = useRouter()
+  const router = useLocaleRouter()
 
   useEffect(() => {
     if (user?.role !== 'rescue_center') return

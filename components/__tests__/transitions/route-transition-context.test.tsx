@@ -11,6 +11,7 @@ const mockPathname = vi.fn(() => '/pets')
 vi.mock('next/navigation', () => ({
   useRouter: () => ({ push: mockPush }),
   usePathname: () => mockPathname(),
+  useParams: () => ({ lang: 'es' }),
 }))
 
 const wrapper = ({ children }: { children: ReactNode }) => (

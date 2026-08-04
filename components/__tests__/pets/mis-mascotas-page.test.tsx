@@ -23,7 +23,7 @@ vi.mock('@/components/pets/member-add-pet-modal', () => ({
   MemberAddPetModal: () => null,
 }))
 
-import MisMascotasPage from '@/app/mis-mascotas/page'
+import MisMascotasPage from '@/app/[lang]/mis-mascotas/page'
 import { listUserPets, updateUserPet, type UserPet } from '@/lib/api/user-pets'
 import { toast } from 'sonner'
 

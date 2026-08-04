@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import Image from 'next/image'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faPaw } from '@fortawesome/free-solid-svg-icons'
@@ -16,7 +16,7 @@ import { useAuth } from '@/lib/contexts/auth-context'
 
 export function AdoptPetPage({ petId }: { petId: string }) {
   const { t } = useTranslation('pets')
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { user, loading: authLoading } = useAuth()
 
   const [pet, setPet] = useState<Pet | null>(null)

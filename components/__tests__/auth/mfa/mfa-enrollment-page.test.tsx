@@ -24,7 +24,7 @@ vi.mock('@/lib/auth/post-login-redirect', () => ({
   postLoginRedirect: vi.fn(),
 }))
 
-import MfaEnrollmentPage from '@/app/auth/mfa/enrollment/page'
+import MfaEnrollmentPage from '@/app/[lang]/auth/mfa/enrollment/page'
 
 const SKIP = 'Omitir por ahora'
 const rescueCenter = { id: 'u2', role: 'rescue_center' }

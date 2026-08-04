@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
-import i18n from '@/lib/i18n'
+import { getI18n } from '@/lib/i18n'
 
 // Rendered without `renderWithProviders` on purpose: that helper registers its
 // own next/navigation mock with a throwaway `push`, which would shadow this one
@@ -11,6 +11,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => ({ push, replace: vi.fn(), back: vi.fn(), prefetch: vi.fn() }),
   usePathname: () => '/auth/role-selection',
   useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({ lang: 'es' }),
 }))
 
 vi.mock('next/image', () => ({
@@ -43,7 +44,7 @@ let location: { href: string }
 
 const renderPicker = () =>
   render(<RoleSelection />, {
-    wrapper: ({ children }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>,
+    wrapper: ({ children }) => <I18nextProvider i18n={getI18n('es')}>{children}</I18nextProvider>,
   })
 
 const pick = (name: RegExp) => fireEvent.click(screen.getByRole('button', { name }))
@@ -75,7 +76,7 @@ describe('RoleSelection — who gets redirected away', () => {
 
     renderPicker()
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/dashboard/rescue-center'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/es/dashboard/rescue-center'))
   })
 
   // The flag is set by the "Cambiar rol" button and the wizards' breadcrumb.

@@ -19,7 +19,11 @@ function createWindow() {
     mainWindow.loadURL('http://localhost:3000')
     mainWindow.webContents.openDevTools()
   } else {
-    mainWindow.loadFile(path.join(__dirname, '../out/index.html'))
+    // Straight to the Spanish entry, not `out/index.html`. That root file is now
+    // a locale-picking redirect stub, and its client-side `replace('/es')` does
+    // not resolve over `file://` — it would leave the window blank.
+    // `trailingSlash` is off, so the export writes `es.html`, not `es/index.html`.
+    mainWindow.loadFile(path.join(__dirname, '../out/es.html'))
   }
 }
 

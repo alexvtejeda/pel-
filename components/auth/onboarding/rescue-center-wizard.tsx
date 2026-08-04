@@ -2,7 +2,7 @@
 import { OnboardingNav } from './onboarding-nav'
 import { useState, useEffect, useRef } from 'react'
 import type { ReactNode } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -74,7 +74,7 @@ function CardCarousel({ urls }: { urls: string[] }) {
 
 
 export function RescueCenterWizard() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
 
   // If RC already exists, redirect to dashboard (prevents re-showing form after approval)

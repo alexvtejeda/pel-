@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaw, faCircleXmark } from '@fortawesome/free-solid-svg-icons'
 import { BackgroundBeams } from '@/components/ui/beams'
@@ -10,7 +10,7 @@ import { getMyRescueCenter, RescueCenter } from '@/lib/api/rescue-centers'
 type Status = 'loading' | 'active' | 'pending' | 'rejected' | 'missing'
 
 export function RescueCenterGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [status, setStatus] = useState<Status>('loading')
   const [center, setCenter] = useState<RescueCenter | null>(null)
 

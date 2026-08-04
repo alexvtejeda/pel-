@@ -360,7 +360,7 @@ describe('Semantic Status Colors', () => {
   // IN_SCOPE resolves against COMPONENTS_DIR, so the one audited file that lives
   // under app/ would otherwise have no regression cover at all.
   it('26 — audited app/ routes use success/warning tokens too', () => {
-    const files = [path.join(COMPONENTS_DIR, '..', 'app', 'servicios', 'page.tsx')]
+    const files = [path.join(COMPONENTS_DIR, '..', 'app', '[lang]', 'servicios', 'page.tsx')]
     const v = findViolations(files, /\b(bg|text|border)-(amber|green|yellow)-\d/)
     expect(v, `raw palette colors found:\n${v.join('\n')}`).toHaveLength(0)
   })

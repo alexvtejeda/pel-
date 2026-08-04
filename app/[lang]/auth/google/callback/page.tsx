@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
 
 export default function GoogleCallbackPage() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { updateSession } = useAuth()
 
   useEffect(() => {

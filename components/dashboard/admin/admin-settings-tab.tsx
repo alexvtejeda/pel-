@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -15,7 +15,7 @@ import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 
 export function AdminSettingsTab() {
   const { user, logout } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
   const resolveError = useMfaError()
 

@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import Link from '@/components/locale-link'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -38,7 +38,7 @@ interface PetFeedCardProps {
 export function PetFeedCard({ pet, photoWidth, priority = false }: PetFeedCardProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [startingChat, setStartingChat] = useState(false)
 
   const age = formatAge(pet.age)

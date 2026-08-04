@@ -19,7 +19,7 @@ import {
   faRulerCombined,
 } from '@fortawesome/free-solid-svg-icons'
 import { faInstagram } from '@fortawesome/free-brands-svg-icons'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { toast } from 'sonner'
 import { Pet } from '@/lib/api/pets'
 import { createConversation } from '@/lib/api/chat'
@@ -27,7 +27,7 @@ import { instagramUrl, ensureUrl, ownerDisplayName } from '@/lib/utils'
 import { formatAge } from '@/lib/utils/format-age'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { trackPetEvent } from '@/lib/api/metrics'
-import Link from 'next/link'
+import Link from '@/components/locale-link'
 import Carousel from '@/components/Carousel'
 import { VerifiedBadge } from './verified-badge'
 import { PetOwnerCard } from './pet-owner-card'
@@ -79,7 +79,7 @@ interface PetDetailProps {
 export function PetDetail({ pet }: PetDetailProps) {
   const { t } = useTranslation('pets')
   const { user } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [copied, setCopied] = useState(false)
   const [startingChat, setStartingChat] = useState(false)
 

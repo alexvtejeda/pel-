@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCalendarDays, faLocationDot, faClock } from '@fortawesome/free-solid-svg-icons'
 import { useTranslation } from 'react-i18next'
@@ -18,7 +18,7 @@ interface EventBlockProps {
 export function EventBlock({ event, index }: EventBlockProps) {
   const { t } = useTranslation('common')
   const { user } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [attending, setAttending] = useState(event.is_attending)
   const [count, setCount] = useState(event.attendee_count)
   const [toggling, setToggling] = useState(false)

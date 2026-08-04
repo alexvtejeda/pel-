@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
-import Link from 'next/link'
+import Link from '@/components/locale-link'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
@@ -26,7 +27,7 @@ const shrinkExpandProps = {
 }
 
 export function LoginPage() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const searchParams = useSearchParams()
   const { t } = useTranslation('auth')
   const { login } = useAuth()

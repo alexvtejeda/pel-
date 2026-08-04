@@ -1,7 +1,8 @@
 'use client'
 
 import { Suspense } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { MfaEnrollment } from '@/components/auth/mfa/mfa-enrollment'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -9,7 +10,7 @@ import { postLoginRedirect } from '@/lib/auth/post-login-redirect'
 import { PeluLoadingLogo } from '@/components/ui/pelu-loading-logo'
 
 function MfaEnrollmentInner() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const searchParams = useSearchParams()
   const { user, mfaSetupRequired } = useAuth()
   const { t } = useTranslation(['common', 'auth'])

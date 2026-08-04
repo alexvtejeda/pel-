@@ -1,7 +1,8 @@
 'use client'
 
 import { Suspense, useState, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -21,7 +22,7 @@ import {
 
 function MisMascotasContent() {
   const { t } = useTranslation('pets')
-  const router = useRouter()
+  const router = useLocaleRouter()
   const searchParams = useSearchParams()
   const addParam = searchParams?.get('add')
   const [pets, setPets] = useState<UserPet[]>([])

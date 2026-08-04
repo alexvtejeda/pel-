@@ -49,7 +49,7 @@ vi.mock('@/components/transitions/use-public-header-logo-rect', () => ({
 
 import { MemberAddPetModal } from '@/components/pets/member-add-pet-modal'
 import { PetsHeader } from '@/components/pets/pets-header'
-import MisMascotasPage from '@/app/mis-mascotas/page'
+import MisMascotasPage from '@/app/[lang]/mis-mascotas/page'
 import {
   createUserPets, updateUserPet, uploadUserPetPhotos, deleteUserPetPhoto,
   listUserPets, type UserPet,
@@ -511,7 +511,7 @@ describe('add-pet modal mounts exactly once', () => {
     expect(dialogs[0]).toHaveAccessibleName('Mi cuenta')
 
     const publish = screen.getByRole('link', { name: 'Publicar mascota' })
-    expect(publish).toHaveAttribute('href', '/mis-mascotas?add=1')
+    expect(publish).toHaveAttribute('href', '/es/mis-mascotas?add=1')
 
     fireEvent.click(publish)
 

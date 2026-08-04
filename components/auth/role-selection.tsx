@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { UserRole } from '@/lib/types/user'
 import { useAuth } from '@/lib/contexts/auth-context'
@@ -39,7 +39,7 @@ export function RoleSelection() {
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
   const { user, setRole } = useAuth()
   const submitted = useRef(false)

@@ -1,8 +1,11 @@
 'use client'
 
 import { useTranslation } from 'react-i18next'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { setStoredLanguage, SupportedLanguage } from '@/lib/i18n/language'
+import { switchLocalePath } from '@/lib/i18n/routing'
+import { useLocale } from '@/lib/i18n/use-locale'
 
 const LANGUAGES: { code: SupportedLanguage; labelKey: string; short: string }[] = [
   { code: 'es', labelKey: 'language.spanish', short: 'ES' },
@@ -12,14 +15,26 @@ const LANGUAGES: { code: SupportedLanguage; labelKey: string; short: string }[] 
 /**
  * Quiet ES/EN text toggle. Works logged out; the choice is persisted to
  * localStorage and takes precedence over the profile's preferred_lang.
+ *
+ * Switching is a *navigation* to the same page under the other locale, not a
+ * `changeLanguage()` call — the locale lives in the URL now.
  */
 export function LanguageSwitcher({ className }: { className?: string }) {
-  const { t, i18n } = useTranslation('common')
-  const current: SupportedLanguage = i18n.language?.startsWith('en') ? 'en' : 'es'
+  const { t } = useTranslation('common')
+  const router = useRouter()
+  const pathname = usePathname()
+  const current = useLocale()
 
   const choose = (code: SupportedLanguage) => {
+    // Persisted even when it matches the current locale: it is what the
+    // unprefixed entry stubs read to decide where to send a bare URL.
     setStoredLanguage(code)
-    if (code !== i18n.language) i18n.changeLanguage(code)
+    if (code === current) return
+    // Read from `window` rather than `useSearchParams` so this component stays
+    // usable outside a Suspense boundary — it renders in the header on every
+    // page, and `output: 'export'` would demand a boundary around each one.
+    const search = typeof window === 'undefined' ? '' : window.location.search
+    router.replace(switchLocalePath(pathname ?? '/', code, search))
   }
 
   return (

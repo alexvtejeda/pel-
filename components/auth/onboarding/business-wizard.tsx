@@ -1,7 +1,7 @@
 'use client'
 import { OnboardingNav } from './onboarding-nav'
 import React, { useState, useRef, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -94,7 +94,7 @@ function makeDefaultHours(): OperatingHours {
 }
 
 export function BusinessWizard() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   // Only the service labels are translated here; the rest of this wizard is still
   // hardcoded Spanish, so the hook is deliberately narrow.
   const { t } = useTranslation('auth')

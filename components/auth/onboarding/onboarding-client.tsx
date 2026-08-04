@@ -2,7 +2,7 @@
 
 import { OnboardingNav } from './onboarding-nav'
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { MemberWizard } from './member-wizard'
 import { RescueCenterWizard } from './rescue-center-wizard'
@@ -18,7 +18,7 @@ const validRoles = ['member', 'rescue_center', 'business']
 
 export function OnboardingClient({ role }: { role: string }) {
   const { user, loading } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
 
   useEffect(() => {
     if (loading) return

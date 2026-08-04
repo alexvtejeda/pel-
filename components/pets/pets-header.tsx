@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
+import Link from '@/components/locale-link'
 import Image from 'next/image'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { apiClient } from '@/lib/api/client'
 import { uploadAvatar, deleteAvatar } from '@/lib/api/auth'
@@ -30,7 +31,7 @@ export function PetsHeader() {
   const { user, logout, updateSession } = useAuth()
   const { unreadChatCount } = useWebSocket()
   const { t } = useTranslation('pets')
-  const router = useRouter()
+  const router = useLocaleRouter()
   const pathname = usePathname()
   const [sheetOpen, setSheetOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)

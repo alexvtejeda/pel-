@@ -266,7 +266,7 @@ describe('PetDetail member listings', () => {
     fireEvent.click(screen.getByRole('button', { name: /chatear/i }))
 
     await waitFor(() => expect(createConversation).toHaveBeenCalledWith({ pet_id: 'p1' }))
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/es/chat?conversation_id=c1'))
   })
 
   it('reports a failed start and stays on the page', async () => {
@@ -299,7 +299,7 @@ describe('PetDetail member listings', () => {
 
     expect(screen.getByRole('link', { name: 'Inicia sesión para adoptar' })).toHaveAttribute(
       'href',
-      '/auth/login',
+      '/es/auth/login',
     )
   })
 

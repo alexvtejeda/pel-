@@ -7,7 +7,7 @@ import { faArrowLeft, faCheck, faCheckDouble, faCircleUser, faPaperPlane, faPlus
 import { Conversation, Message, listMessages } from '@/lib/api/chat'
 import { useWebSocket } from '@/lib/contexts/websocket-context'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -62,7 +62,7 @@ export default function ChatMessageThread({ conversation, onBack, showBack = tru
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
   const { user, loading: authLoading } = useAuth()
   const { subscribe, sendMessage, sendTyping, sendReadReceipt, connected } = useWebSocket()
-  const router = useRouter()
+  const router = useLocaleRouter()
 
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBug } from '@fortawesome/free-solid-svg-icons'
@@ -30,7 +30,7 @@ const ISSUE_TYPES: { value: Exclude<IssueType, ''>; labelKey: string; testId: st
 
 export function ReportIssueButton() {
   const { t } = useTranslation('pets')
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [body, setBody] = useState('')

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { renderWithProviders } from '../test-utils'
-import ServiciosPage from '@/app/servicios/page'
+import ServiciosPage from '@/app/[lang]/servicios/page'
 
 vi.mock('@/lib/api/service-providers', () => ({
   getMyServiceProvider: vi.fn(),

@@ -75,6 +75,6 @@ describe('About scenes smoke', () => {
   })
   it('scene 8 renders the CTA link', () => {
     const { getByText } = renderWithProviders(wrap(<Scene08Cta />))
-    expect(getByText('Ver mascotas').closest('a')).toHaveAttribute('href', '/pets')
+    expect(getByText('Ver mascotas').closest('a')).toHaveAttribute('href', '/es/pets')
   })
 })

@@ -236,7 +236,7 @@ describe('ProviderDetail Contactar', () => {
     clickContact()
 
     expect(createConversation).not.toHaveBeenCalled()
-    expect(push).toHaveBeenCalledWith('/auth/login')
+    expect(push).toHaveBeenCalledWith('/es/auth/login')
   })
 
   it('opens a conversation and navigates to that thread', async () => {
@@ -249,7 +249,7 @@ describe('ProviderDetail Contactar', () => {
 
     // The resource id, never the owner's user id — the backend resolves the owner.
     await waitFor(() => expect(createConversation).toHaveBeenCalledWith({ provider_id: '1' }))
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/es/chat?conversation_id=c1'))
     expect(toastError).not.toHaveBeenCalled()
   })
 
@@ -263,7 +263,7 @@ describe('ProviderDetail Contactar', () => {
 
     clickContact()
 
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c9'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/es/chat?conversation_id=c9'))
   })
 
   // The backend answers this with a 400; hiding the button is what stops the
@@ -348,6 +348,6 @@ describe('ProviderDetail Contactar', () => {
     expect(createConversation).toHaveBeenCalledTimes(1)
 
     resolve({ data: { id: 'c1' }, error: null })
-    await waitFor(() => expect(push).toHaveBeenCalledWith('/chat?conversation_id=c1'))
+    await waitFor(() => expect(push).toHaveBeenCalledWith('/es/chat?conversation_id=c1'))
   })
 })

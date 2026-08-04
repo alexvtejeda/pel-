@@ -50,11 +50,11 @@ describe('FeaturedPets', () => {
     expect(await screen.findByText('Pet 0')).toBeInTheDocument()
     expect(screen.getByText('Pet 7')).toBeInTheDocument()
     expect(screen.queryByText('Pet 8')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Ver todas' })).toHaveAttribute('href', '/pets')
+    expect(screen.getByRole('link', { name: 'Ver todas' })).toHaveAttribute('href', '/es/pets')
     // Ages come from the `pets` namespace: a wrong ns renders the raw key.
     expect(screen.getAllByText('2 años')).toHaveLength(8)
     // Cards reach the grid: /pets?id= is not a route this app serves.
-    expect(screen.getByRole('link', { name: /Pet 0/ })).toHaveAttribute('href', '/pets')
+    expect(screen.getByRole('link', { name: /Pet 0/ })).toHaveAttribute('href', '/es/pets')
     expect(screen.queryByRole('alert')).toBeNull()
     expect(screen.queryByTestId('featured-pets-skeleton')).toBeNull()
   })

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
-import i18n from '@/lib/i18n'
+import { getI18n } from '@/lib/i18n'
 
 /*
   This file deliberately does NOT use renderWithProviders() from ../test-utils.
@@ -41,6 +41,7 @@ vi.mock('next/navigation', () => ({
   useRouter: () => mockRouter,
   usePathname: () => '/',
   useSearchParams: () => new URLSearchParams(),
+  useParams: () => ({ lang: 'es' }),
 }))
 
 vi.mock('@/lib/api/pets-public', () => ({
@@ -111,7 +112,7 @@ const ONE_SIDED: [
 const renderPage = () =>
   render(<AdoptPetPage petId="p1" />, {
     wrapper: ({ children }) => (
-      <I18nextProvider i18n={i18n}>
+      <I18nextProvider i18n={getI18n('es')}>
         <RouteTransitionProvider>{children}</RouteTransitionProvider>
       </I18nextProvider>
     ),
@@ -185,7 +186,7 @@ describe('AdoptPetPage load states', () => {
 
     renderPage()
 
-    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/pets'))
+    await waitFor(() => expect(mockReplace).toHaveBeenCalledWith('/es/pets'))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 })

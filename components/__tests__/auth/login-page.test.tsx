@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { I18nextProvider } from 'react-i18next'
-import i18n from '@/lib/i18n'
+import { getI18n } from '@/lib/i18n'
 import { LoginPage } from '@/components/auth/login-page'
 
 vi.mock('next/navigation', () => {
@@ -9,6 +9,7 @@ vi.mock('next/navigation', () => {
   return {
     useRouter: () => ({ push: mockPush }),
     useSearchParams: () => mockSearchParams,
+    useParams: () => ({ lang: 'es' }),
   }
 })
 
@@ -46,7 +47,7 @@ import { mfaChallenge as mockMfaChallenge } from '@/lib/api/mfa'
 // translated, so it still needs the i18n instance bound.
 const renderLogin = () =>
   render(<LoginPage />, {
-    wrapper: ({ children }) => <I18nextProvider i18n={i18n}>{children}</I18nextProvider>,
+    wrapper: ({ children }) => <I18nextProvider i18n={getI18n('es')}>{children}</I18nextProvider>,
   })
 
 describe('LoginPage', () => {

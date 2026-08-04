@@ -2,7 +2,7 @@
 import { render, RenderOptions } from '@testing-library/react'
 import { ReactElement } from 'react'
 import { I18nextProvider } from 'react-i18next'
-import i18n from '@/lib/i18n'
+import { getI18n } from '@/lib/i18n'
 
 // Mock next/navigation before any component imports
 vi.mock('next/navigation', () => ({
@@ -12,8 +12,12 @@ vi.mock('next/navigation', () => ({
     back: vi.fn(),
     prefetch: vi.fn(),
   }),
-  usePathname: () => '/',
+  usePathname: () => '/es',
   useSearchParams: () => new URLSearchParams(),
+  // The `[lang]` segment. `useLocale()` reads this, so every component that
+  // navigates or links needs it present — components render under Spanish here,
+  // which means navigation assertions expect `/es/…` paths.
+  useParams: () => ({ lang: 'es' }),
 }))
 
 // Mock next/image to a simple img tag
@@ -25,7 +29,7 @@ vi.mock('next/image', () => ({
 }))
 
 function TestWrapper({ children }: { children: React.ReactNode }) {
-  return <I18nextProvider i18n={i18n}>{children}</I18nextProvider>
+  return <I18nextProvider i18n={getI18n('es')}>{children}</I18nextProvider>
 }
 
 export function renderWithProviders(

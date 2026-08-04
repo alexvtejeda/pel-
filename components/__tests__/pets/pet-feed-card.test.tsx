@@ -166,7 +166,7 @@ describe('PetFeedCard CTA', () => {
 
     expect(screen.getByRole('link', { name: 'Inicia sesión para adoptar' })).toHaveAttribute(
       'href',
-      '/auth/login',
+      '/es/auth/login',
     )
   })
 

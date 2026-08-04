@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -27,7 +27,7 @@ interface ProviderDetailProps {
 export function ProviderDetail({ provider }: ProviderDetailProps) {
   const { t, i18n } = useTranslation('business')
   const { user } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [contacting, setContacting] = useState(false)
   const locale = i18n.language?.startsWith('en') ? 'en-US' : 'es-DO'
 

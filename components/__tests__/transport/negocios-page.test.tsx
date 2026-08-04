@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen } from '@testing-library/react'
 import { renderWithProviders } from '@/components/__tests__/test-utils'
-import NegociosPage from '@/app/transporte/negocios/page'
+import NegociosPage from '@/app/[lang]/transporte/negocios/page'
 
 vi.mock('@/lib/api/transport', () => ({ listTransportBusinesses: vi.fn() }))
 import { listTransportBusinesses } from '@/lib/api/transport'

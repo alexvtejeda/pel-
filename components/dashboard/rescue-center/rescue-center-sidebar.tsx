@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Logo } from '@/components/logo'
 import { useAuth } from '@/lib/contexts/auth-context'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 
 function nameFromEmail(email: string): string {
   const prefix = email.split('@')[0]
@@ -46,7 +46,7 @@ const navItems: { tab: Tab; label: string; icon: IconDefinition }[] = [
 export function RescueCenterSidebar({ activeTab, onTabChange }: RescueCenterSidebarProps) {
   const { state } = useSidebar()
   const { user } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
 
   const email = user?.email ?? ''
   const displayName = email ? nameFromEmail(email) : ''

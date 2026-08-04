@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { apiClient } from '@/lib/api/client'
 
 export function AdminGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [status, setStatus] = useState<'loading' | 'admin' | 'denied'>('loading')
 
   useEffect(() => {

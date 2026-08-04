@@ -33,7 +33,7 @@ vi.mock('@/components/auth/mfa/mfa-enrollment', () => ({
   MfaEnrollment: () => <div data-testid="guard-enrollment" />,
 }))
 
-import MfaEnrollmentLayout from '@/app/auth/mfa/enrollment/layout'
+import MfaEnrollmentLayout from '@/app/[lang]/auth/mfa/enrollment/layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 
 const PAGE = <div data-testid="enrollment-page">enrollment page</div>
@@ -69,7 +69,7 @@ describe('/auth/mfa/enrollment route guard', () => {
     // visitors and every method fired a 401.
     expect(screen.queryByTestId('enrollment-page')).not.toBeInTheDocument()
     expect(screen.queryByTestId('guard-enrollment')).not.toBeInTheDocument()
-    expect(mockPush).toHaveBeenCalledWith('/auth/login')
+    expect(mockPush).toHaveBeenCalledWith('/es/auth/login')
   })
 
   it('shows the loader and decides nothing while the session is still resolving', () => {

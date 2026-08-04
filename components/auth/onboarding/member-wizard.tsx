@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDog, faCat, faMars, faVenus } from '@fortawesome/free-solid-svg-icons'
@@ -21,7 +21,7 @@ interface PetFormData {
 }
 
 export function MemberWizard() {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
   const { updateSession } = useAuth()
 

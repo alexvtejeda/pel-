@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import Link from 'next/link'
+import Link from '@/components/locale-link'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperPlane, faTruckFast, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useAuth } from '@/lib/contexts/auth-context'

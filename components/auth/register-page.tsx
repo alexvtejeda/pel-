@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
-import Link from 'next/link'
+import Link from '@/components/locale-link'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { googleRedirect } from '@/lib/api/auth'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -17,7 +17,7 @@ export function RegisterPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showMfaEnrollment, setShowMfaEnrollment] = useState(false)
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('auth')
   const { register } = useAuth()
 

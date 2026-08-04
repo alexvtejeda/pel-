@@ -1,13 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { Pet } from '@/lib/api/pets'
 import { getPetBySlug } from '@/lib/api/pets-public'
 import { PetsPage } from '@/components/pets/pets-page'
 
 export function SlugRedirectPage({ slug }: { slug: string }) {
-  const router = useRouter()
+  const router = useLocaleRouter()
   const [pet, setPet] = useState<Pet | null>(null)
   const [loading, setLoading] = useState(true)
 

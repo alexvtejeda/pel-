@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useLocaleRouter } from '@/lib/i18n/use-locale'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '@/lib/contexts/auth-context'
 import { UserRole } from '@/lib/types/user'
@@ -31,7 +31,7 @@ export function ProtectedRoute({
   isMfaEnrollmentSurface = false,
 }: ProtectedRouteProps) {
   const { user, loading, mfaSetupRequired } = useAuth()
-  const router = useRouter()
+  const router = useLocaleRouter()
   const { t } = useTranslation('common')
 
   useEffect(() => {
